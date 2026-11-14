@@ -139,8 +139,8 @@
   :root.is-lift-mode svg.ring-svg, :root.is-lift-mode svg.ring-svg *{ cursor:ns-resize; }
   /* While it is on, a dotted line marks the axis the centre moves along,
      and a bar over the ring names the mode, with its Reset. */
-  .lift-axis, .lift-bar{ display:none; }
-  :root.is-lift-mode .lift-axis{ display:inline; stroke:var(--text); stroke-width:2; stroke-dasharray:1 7; stroke-linecap:round; vector-effect:non-scaling-stroke; pointer-events:none; }
+  .lift-lines, .lift-bar{ display:none; }
+  :root.is-lift-mode .lift-lines{ display:inline; stroke:var(--text); stroke-linecap:round; pointer-events:none; }
   :root.is-lift-mode .lift-bar{ display:flex; position:absolute; z-index:5; translate:-50% 0; align-items:center; gap:12px; padding:6px 6px 6px 14px; color:var(--text); background:var(--surface); border:1px solid var(--text); border-radius:var(--radius-ctl); box-shadow:0 4px 16px var(--scrim); font-size:.85rem; white-space:nowrap; }
   .lift-reset{ font:inherit; font-weight:600; color:var(--text); background:none; border:1px solid var(--text); border-radius:var(--radius-ctl); padding:3px 14px; cursor:pointer; }
   .lift-reset:hover:not(:disabled){ background:color-mix(in srgb, var(--text) 14%, transparent); }
@@ -3429,8 +3429,7 @@
         <svg class="ring-svg" id="ring-svg" viewBox="0 0 760 760" role="img">
           <g id="ring-dynamic"></g>
           <g id="flog-layer"></g>
-          <line class="lift-axis" id="lift-axis" x1="380" y1="0" x2="380" y2="760"/>
-          <line class="lift-axis" id="lift-home" x1="0" y1="380" x2="760" y2="380"/>
+          <g class="lift-lines" id="lift-lines"><line/><line/><line/><line/><line/><line/></g>
         </svg>
         <div class="lift-bar" id="lift-bar" role="status"><span data-i18n="cyclicGroups.liftModeHint">Height mode: drag the ring up or down</span><button type="button" class="lift-reset" id="lift-reset" data-i18n="cyclicGroups.liftReset">Reset</button></div>
         <section class="lap-key" id="lap-key" aria-labelledby="lap-key-title" hidden>
@@ -12413,11 +12412,16 @@ function setRingLift(v){
   if (g && g.cells) refitRingWheel(ringBox(), g.cells.m);
   syncLiftUi();
 }
-// The axis is drawn with the ring, through its centre and a little past
-// its outer reach, so it moves with the ring; across it, from the
-// window's one side to the other, a line stays at the height Reset brings
-// the centre back to, the two crossing at the centre there. The bar sits on the axis at the top of the drawing.
-var liftAxisEl = $('lift-axis'), liftHomeEl = $('lift-home'), liftBarEl = $('lift-bar'), liftResetEl = $('lift-reset');
+// Dotted lines: the axis, drawn with the ring through its centre and a
+// little past its outer reach, and a short arm across it at the centre,
+// a '+' that moves with the ring; and, from the window's one side to the
+// other, the reference line at the height Reset brings the centre back to,
+// broken where the arm lies, so at that height the three read as one
+// cross. Each is drawn outward from the centre or the break, its dots
+// spaced in screen pixels, so a dot falls on the centre and on either end
+// of the arm. The bar sits on the axis at the top of the drawing.
+var LIFT_DOT = 2, LIFT_DOT_EVERY = 8, LIFT_ARM_DOTS = 6;
+var liftLineEls = $('lift-lines').children, liftBarEl = $('lift-bar'), liftResetEl = $('lift-reset');
 function syncLiftUi(){
   if (!liftMode) return;
   // At the ring's own height there is nothing to reset.
@@ -12426,18 +12430,25 @@ function syncLiftUi(){
   if (!ctm || !ctm.d) return;
   // The drawing's matrix is in screen pixels, as getBoundingClientRect is;
   // the bar's place is set in the zoomed page's own (PAGE_ZOOM).
-  var r = ringSvgEl.getBoundingClientRect(), body = liftBarEl.offsetParent, box = ringBox(), x = box.cx;
-  liftAxisEl.setAttribute('x1', num(x));
-  liftAxisEl.setAttribute('x2', num(x));
-  liftAxisEl.setAttribute('y1', num(box.cy - box.R - LIFT_AXIS_PAST));
-  liftAxisEl.setAttribute('y2', num(box.cy + box.R + LIFT_AXIS_PAST));
+  var r = ringSvgEl.getBoundingClientRect(), body = liftBarEl.offsetParent, box = ringBox(), x = box.cx, y = box.cy;
+  var side = body ? body.getBoundingClientRect() : r;
+  // One CSS pixel in the drawing's units, the page's zoom taken out.
+  var px = PAGE_ZOOM / ctm.a, every = LIFT_DOT_EVERY * px, arm = LIFT_ARM_DOTS * every;
+  var lines = $('lift-lines');
+  lines.style.strokeWidth = num(LIFT_DOT * px);
+  lines.style.strokeDasharray = num(0.01 * px) + ' ' + num(every - 0.01 * px);
+  var half = Math.ceil((box.R + LIFT_AXIS_PAST) / every) * every;
   // The lift shifts the view, so the home height is ringLift further down
   // in the drawing.
-  var side = body ? body.getBoundingClientRect() : r;
-  liftHomeEl.setAttribute('x1', num((side.left - ctm.e) / ctm.a));
-  liftHomeEl.setAttribute('x2', num((side.right - ctm.e) / ctm.a));
-  liftHomeEl.setAttribute('y1', num(box.cy + ringLift));
-  liftHomeEl.setAttribute('y2', num(box.cy + ringLift));
+  var home = y + ringLift, left = (side.left - ctm.e) / ctm.a, right = (side.right - ctm.e) / ctm.a;
+  [[x, y, x, y - half], [x, y, x, y + half], [x, y, x - arm, y], [x, y, x + arm, y],
+   [x - arm, home, left, home], [x + arm, home, right, home]].forEach(function(c, i){
+    var el = liftLineEls[i];
+    el.setAttribute('x1', num(c[0]));
+    el.setAttribute('y1', num(c[1]));
+    el.setAttribute('x2', num(c[2]));
+    el.setAttribute('y2', num(c[3]));
+  });
   if (!body) return;
   liftBarEl.style.left = num((ctm.e + ctm.a * x - side.left) / PAGE_ZOOM + body.scrollLeft) + 'px';
   liftBarEl.style.top = num((r.top - side.top) / PAGE_ZOOM + body.scrollTop + 8) + 'px';
