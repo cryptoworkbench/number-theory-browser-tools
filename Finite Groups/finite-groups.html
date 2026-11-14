@@ -1280,6 +1280,10 @@
   .ring-combine-plate.is-hot{ fill:color-mix(in srgb, var(--panel) 55%, transparent); }
   .ring-combine-frost{ pointer-events:none; }
   .ring-combine-frost > use{ filter:blur(5px); }
+  /* Kept solid (its menu's Keep solid, state.cardLooks.lines): the card on
+     the window's own opaque ground, hiding what lies under it. */
+  :root.is-card-lines-solid .ring-combine-plate, :root.is-card-lines-solid .ring-combine-plate.is-hot{ fill:var(--surface); }
+  :root.is-card-lines-solid .ring-combine-frost{ display:none; }
   .ring-wheel-lit.is-out{ opacity:0; }
   @keyframes ring-wheel-lit{ from{ opacity:0; } }
   /* The reduced bead's halo flashes three times, then is gone. */
@@ -11249,6 +11253,15 @@ ringSvgEl.addEventListener('contextmenu', function(e){
       openCombineGenCtx(drawn.G, ptX(e), ptY(e), onSw);
       return;
     }
+    // On the lines' card around them, Keep solid alone.
+    var plate = ringDynamicEl.querySelector('.ring-combine-plate');
+    if (plate && onLineAt(plate)){
+      setRingCtx(false);
+      fsetCtxEl.replaceChildren(combineSolidItem());
+      if (fsetCtxEl.hidden) fsetCtxReturn = document.activeElement instanceof HTMLElement && document.activeElement !== document.body ? document.activeElement : null;
+      showCtxAt(fsetCtxEl, ptX(e), ptY(e));
+      return;
+    }
   }
   // On a bead, Diffie–Hellman is offered with it as g first.
   var bead = e.target.closest ? e.target.closest('circle.bead[data-el]') : null;
@@ -13157,8 +13170,9 @@ exprSlotEl.parentNode.addEventListener('contextmenu', function(e){
 // the turning ruler's own ('spin') and the arrow key's ('key'). Right-
 // clicked on an empty spot, each offers Keep solid and Keep frosted
 // (state.cardLooks, one at most per card), shared with the pane as the
-// rows' look is.
-var CARD_KINDS = ['clu', 'side', 'spin', 'key'];
+// rows' look is. The card of a ∗ b's or aᵏ's lines ('lines'), frosted
+// already, offers Keep solid alone, from the ring's own menus.
+var CARD_KINDS = ['clu', 'side', 'spin', 'key', 'lines'];
 function syncCardLooks(){
   var c = document.documentElement.classList;
   CARD_KINDS.forEach(function(k){
@@ -17521,6 +17535,13 @@ function tellPowersForm(){
 function unfoldLines(G){ return foldShown(G) ? COMBINE_LIMITS / COMBINE_LINE : 0; }
 // The switchable line's menu, of one switch.
 // Keep general on the powers line; on every line, Copy these formulas.
+// Keep solid, for the lines' card while it shows (over the wheel).
+function combineSolidItem(){
+  return menuTick('menuitemcheckbox', translate('cyclicGroups.winKeepSolid'), state.cardLooks.lines === 'solid', function(){
+    closeFsetCtx();
+    setCardLook('lines', state.cardLooks.lines === 'solid' ? null : 'solid');
+  });
+}
 function openCombineGenCtx(G, x, y, onSwitch){
   var items = [];
   if (onSwitch) items.push(menuTick('menuitemcheckbox', translate('cyclicGroups.combineGeneral'), combineGeneral(G), function(){
@@ -17535,6 +17556,7 @@ function openCombineGenCtx(G, x, y, onSwitch){
     copyText(combineText());
   });
   items.push(copy);
+  if (ringDynamicEl.querySelector('.ring-combine-plate')) items.push(combineSolidItem());
   fsetCtxEl.replaceChildren.apply(fsetCtxEl, items);
   if (fsetCtxEl.hidden) fsetCtxReturn = document.activeElement instanceof HTMLElement && document.activeElement !== document.body ? document.activeElement : null;
   showCtxAt(fsetCtxEl, x, y);
