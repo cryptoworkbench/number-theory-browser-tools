@@ -3430,6 +3430,7 @@
           <g id="ring-dynamic"></g>
           <g id="flog-layer"></g>
           <line class="lift-axis" id="lift-axis" x1="380" y1="0" x2="380" y2="760"/>
+          <line class="lift-axis" id="lift-home" x1="0" y1="380" x2="760" y2="380"/>
         </svg>
         <div class="lift-bar" id="lift-bar" role="status"><span data-i18n="cyclicGroups.liftModeHint">Height mode: drag the ring up or down</span><button type="button" class="lift-reset" id="lift-reset" data-i18n="cyclicGroups.liftReset">Reset</button></div>
         <section class="lap-key" id="lap-key" aria-labelledby="lap-key-title" hidden>
@@ -12413,9 +12414,10 @@ function setRingLift(v){
   syncLiftUi();
 }
 // The axis is drawn with the ring, through its centre and a little past
-// its outer reach, so it moves with the ring; the bar sits on the axis at
-// the top of the drawing.
-var liftAxisEl = $('lift-axis'), liftBarEl = $('lift-bar'), liftResetEl = $('lift-reset');
+// its outer reach, so it moves with the ring; across it, as wide, a line
+// stays at the height Reset brings the centre back to, the two crossing
+// at the centre there. The bar sits on the axis at the top of the drawing.
+var liftAxisEl = $('lift-axis'), liftHomeEl = $('lift-home'), liftBarEl = $('lift-bar'), liftResetEl = $('lift-reset');
 function syncLiftUi(){
   if (!liftMode) return;
   // At the ring's own height there is nothing to reset.
@@ -12427,6 +12429,12 @@ function syncLiftUi(){
   liftAxisEl.setAttribute('x2', num(x));
   liftAxisEl.setAttribute('y1', num(box.cy - box.R - LIFT_AXIS_PAST));
   liftAxisEl.setAttribute('y2', num(box.cy + box.R + LIFT_AXIS_PAST));
+  // The lift shifts the view, so the home height is ringLift further down
+  // in the drawing.
+  liftHomeEl.setAttribute('x1', num(x - box.R - LIFT_AXIS_PAST));
+  liftHomeEl.setAttribute('x2', num(x + box.R + LIFT_AXIS_PAST));
+  liftHomeEl.setAttribute('y1', num(box.cy + ringLift));
+  liftHomeEl.setAttribute('y2', num(box.cy + ringLift));
   if (!body) return;
   var b = boxOf(body);
   liftBarEl.style.left = num(ctm.e + ctm.a * x - b.left + body.scrollLeft) + 'px';
