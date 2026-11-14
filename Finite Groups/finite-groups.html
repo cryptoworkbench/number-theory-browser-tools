@@ -11951,6 +11951,10 @@ if (IS_RINGWIN){
       if (IS_ISOPANE){ openCayley(); blinkLinked(cayleyEl); }
       return;
     }
+    if (d.ringhost === 'lift'){
+      if (IS_ISOPANE) heardLift(d);
+      return;
+    }
     if (d.ringhost === 'zoom'){
       if (!IS_ISOPANE || !Number.isInteger(d.i)) return;
       applyZoom(d.i, Number.isFinite(d.at) ? d.at : undefined);
@@ -12641,6 +12645,7 @@ function setRingLift(v){
   var g = ringSvgEl.querySelector('.ring-wheel');
   if (g && g.cells) refitRingWheel(ringBox(), g.cells.m);
   syncLiftUi();
+  tellLift();
 }
 // Dotted lines: the axis, through the ring's centre and past the window's
 // top and bottom edges, and a short arm across it at the centre,
@@ -12692,6 +12697,26 @@ function setLiftMode(on){
   liftDrag = null;
   document.documentElement.classList.toggle('is-lift-mode', on);
   syncLiftUi();
+  tellLift();
+}
+// Beside a pane, while the rings turn together, the mode opens and closes
+// on both at once and the one ring's height is the other's: each tells the
+// other its mode and height (ringhost and isopane 'lift'), and does as told
+// without telling back (liftHeard).
+var liftHeard = false;
+function liftLinked(){ return (IS_ISOPANE || twoRings()) && isoTurnsTogether(); }
+function tellLift(){
+  if (liftHeard || !liftLinked()) return;
+  if (IS_ISOPANE) tellHost({ isopane: 'lift', on: liftMode, v: ringLift });
+  else tellPane({ ringhost: 'lift', on: liftMode, v: ringLift });
+}
+function heardLift(d){
+  if (!liftLinked() || typeof d.on !== 'boolean' || !Number.isFinite(d.v)) return;
+  liftHeard = true;
+  try {
+    if (d.on !== liftMode) setLiftMode(d.on);
+    setRingLift(d.v);
+  } finally { liftHeard = false; }
 }
 liftResetEl.addEventListener('click', function(){ setRingLift(0); });
 window.addEventListener('resize', syncLiftUi);
@@ -23610,6 +23635,8 @@ window.addEventListener('message', function(e){
     heardHead(d.h);
   } else if (d.isopane === 'zoom' && Number.isInteger(d.i)){
     heardPaneZoom(d.i, Number.isFinite(d.at) ? d.at : undefined);
+  } else if (d.isopane === 'lift'){
+    heardLift(d);
   } else if (d.isopane === 'axis' && [d.b, d.s, d.k].every(Number.isFinite)){
     dirPaneAxis = { b: d.b, s: d.s, k: d.k, a: d.a === true, both: d.both === true };
     syncDirAxis();
