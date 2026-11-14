@@ -12414,9 +12414,9 @@ function setRingLift(v){
   syncLiftUi();
 }
 // The axis is drawn with the ring, through its centre and a little past
-// its outer reach, so it moves with the ring; across it, as wide, a line
-// stays at the height Reset brings the centre back to, the two crossing
-// at the centre there. The bar sits on the axis at the top of the drawing.
+// its outer reach, so it moves with the ring; across it, from the
+// window's one side to the other, a line stays at the height Reset brings
+// the centre back to, the two crossing at the centre there. The bar sits on the axis at the top of the drawing.
 var liftAxisEl = $('lift-axis'), liftHomeEl = $('lift-home'), liftBarEl = $('lift-bar'), liftResetEl = $('lift-reset');
 function syncLiftUi(){
   if (!liftMode) return;
@@ -12424,21 +12424,23 @@ function syncLiftUi(){
   liftResetEl.disabled = ringLift === 0;
   var ctm = ringSvgEl.getScreenCTM();
   if (!ctm || !ctm.d) return;
-  var r = boxOf(ringSvgEl), body = liftBarEl.offsetParent, box = ringBox(), x = box.cx;
+  // The drawing's matrix is in screen pixels, as getBoundingClientRect is;
+  // the bar's place is set in the zoomed page's own (PAGE_ZOOM).
+  var r = ringSvgEl.getBoundingClientRect(), body = liftBarEl.offsetParent, box = ringBox(), x = box.cx;
   liftAxisEl.setAttribute('x1', num(x));
   liftAxisEl.setAttribute('x2', num(x));
   liftAxisEl.setAttribute('y1', num(box.cy - box.R - LIFT_AXIS_PAST));
   liftAxisEl.setAttribute('y2', num(box.cy + box.R + LIFT_AXIS_PAST));
   // The lift shifts the view, so the home height is ringLift further down
   // in the drawing.
-  liftHomeEl.setAttribute('x1', num(x - box.R - LIFT_AXIS_PAST));
-  liftHomeEl.setAttribute('x2', num(x + box.R + LIFT_AXIS_PAST));
+  var side = body ? body.getBoundingClientRect() : r;
+  liftHomeEl.setAttribute('x1', num((side.left - ctm.e) / ctm.a));
+  liftHomeEl.setAttribute('x2', num((side.right - ctm.e) / ctm.a));
   liftHomeEl.setAttribute('y1', num(box.cy + ringLift));
   liftHomeEl.setAttribute('y2', num(box.cy + ringLift));
   if (!body) return;
-  var b = boxOf(body);
-  liftBarEl.style.left = num(ctm.e + ctm.a * x - b.left + body.scrollLeft) + 'px';
-  liftBarEl.style.top = num(r.top - b.top + body.scrollTop + 8) + 'px';
+  liftBarEl.style.left = num((ctm.e + ctm.a * x - side.left) / PAGE_ZOOM + body.scrollLeft) + 'px';
+  liftBarEl.style.top = num((r.top - side.top) / PAGE_ZOOM + body.scrollTop + 8) + 'px';
 }
 function setLiftMode(on){
   liftMode = on;
