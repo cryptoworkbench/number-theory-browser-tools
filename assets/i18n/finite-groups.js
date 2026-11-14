@@ -296,11 +296,11 @@
    relatedRowLabel, relSwap and relReduce (the Related groups row, the
    desktop's SUBGROUP row renamed for holding Divide, Multiply and Swap
    too, its Swap button and its Reduce to structure button), and
-   ringWheelShow, ringRawFwd, ringRawBack, ringRawCombine, ringWheelThick,
-   ringWheelThinner and ringWheelThicker (the ring menu's Congruence wheel submenu: the
+   ringWheelShow, ringRawFwd, ringRawBack, ringRawCombine, ringRawPower,
+   ringWheelThick, ringWheelThinner and ringWheelThicker (the ring menu's Congruence wheel submenu: the
    switch showing the wheel, the two switches showing the forward and the
-   backward path's raw results before reduction, ringRawCombine's switch
-   showing a combination's, and the rings' cell height with its two
+   backward path's raw results before reduction, ringRawCombine's and
+   ringRawPower's switches showing a combination's and aᵏ's walk's, and the rings' cell height with its two
    buttons).
    Every other language shows the English value through NT.i18n's
    fallback meanwhile.
@@ -1489,6 +1489,7 @@
       ringRawFwd: 'Show raw results before reduction on the forward path',
       ringRawBack: 'Show raw results before reduction on the backward path',
       ringRawCombine: 'Show raw results before reduction when a*b',
+      ringRawPower: 'Show raw results before reduction when a^k',
       ringWheelThick: 'Cell height',
       ringWheelThinner: 'Lower cells',
       ringWheelThicker: 'Higher cells',

@@ -5508,7 +5508,7 @@ function drawInner(ring, walk, cls, scale, sense, place, box, beadR, m, width, r
 // above the wedge of its residue, then comes straight back in, dashed, to
 // its bead: the reduction mod n. The raw number is written over the
 // wheel's own figure for it in the walk's colour. size 0 leaves out the
-// arrowhead.
+// arrowhead. Returns the way out's point at a share of it.
 function drawRawHop(group, h, ex, box, beadR, width, size){
   var ring = ringWheelRing(box.R), R0 = box.R + beadR + 4, foot = box.R + beadR;
   var cell = R0 + (ex.q + 0.5) * ring, font = ex.font, turn = cell - font * 0.7;
@@ -5531,6 +5531,7 @@ function drawRawHop(group, h, ex, box, beadR, width, size){
   var label = svgEl('text', { 'class': 'ring-raw', x: num(c[0]), y: num(c[1]), 'font-size': num(font), transform: 'rotate(' + num(rot) + ' ' + num(c[0]) + ' ' + num(c[1]) + ')' });
   label.textContent = String(ex.raw);
   group.appendChild(label);
+  return pt;
 }
 
 // A combination's raw result (the ring menu's choice, on the congruence
@@ -5871,18 +5872,34 @@ function drawRing(parent, G, beads, box, paint){
     var m0 = sw.walk.length, K = Math.abs(combo.k);
     var latest = function(s){ return s + 1 + m0 * Math.floor((K - s - 1) / m0); };
     var hopLap = function(s){ return lapClass(Math.floor((latest(s) - 1) / m0)); };
-    var swD = '', swLap = null;
+    // Raw results, the ring menu's choice on the congruence wheel: a hop
+    // whose unreduced x+a or x·a lies on a ring of the wheel past the first
+    // leaves the chain for it, as a path's does (see drawRawHop).
+    var swBy = combo.k < 0 ? G.inv[combo.a] : combo.a, swRaw = [];
+    var swSize = Math.max(4, Math.min(8, 110 / swSteps.length));
+    if (ringRawShown(G, 'ak')){
+      var swFont = ringWheelNumSize(G, m, box.R + beadR + 4, ringWheelRing(box.R), ringWheelDepth);
+      swSteps.forEach(function(h, s){
+        var r = G.mode === 'multiplicative' ? h.from * swBy : h.from + swBy, q = Math.floor(r / G.n);
+        if (q >= 1 && q < ringWheelDepth) swRaw[s] = { raw: r, q: q, font: swFont };
+      });
+    }
+    var swD = '', swLap = null, swOut = [];
     var flush = function(){ if (swD) swEl.appendChild(svgEl('path', { 'class': 'chord ' + swLap, d: swD, 'stroke-width': 2.6 })); swD = ''; };
     swSteps.forEach(function(h, s){
+      if (swRaw[s]){
+        flush();
+        swOut[s] = drawRawHop(swEl.appendChild(svgEl('g', { 'class': hopLap(s) })), h, swRaw[s], box, beadR, 2.6, swSize);
+        return;
+      }
       if (hopLap(s) !== swLap){ flush(); swLap = hopLap(s); }
       swD += (swD ? ' ' : '') + humpPath(box, swFoot, -1, h, !swD);
     });
     flush();
-    var swSize = Math.max(4, Math.min(8, 110 / swSteps.length));
     swSteps.forEach(function(h, s){
-      swEl.appendChild(humpArrow('chord-arrow ' + hopLap(s), box, swFoot, -1, h, swSize));
+      if (!swRaw[s]) swEl.appendChild(humpArrow('chord-arrow ' + hopLap(s), box, swFoot, -1, h, swSize));
       if (m > 40) return;
-      var p = humpPoint(box, swFoot, -1, h, 0.3);
+      var p = swRaw[s] ? swOut[s](0.3) : humpPoint(box, swFoot, -1, h, 0.3);
       var t = swEl.appendChild(svgEl('text', { 'class': 'scalar-hop-n ' + hopLap(s), x: num(p[0]), y: num(p[1]) }));
       t.textContent = String(latest(s));
     });
@@ -12417,12 +12434,15 @@ function ringWheelShown(G){ return ringWheelOn && !IS_PREVIEW && dhcWheelFits(G)
 // hop's unreduced result on the wheel and back in to its bead (see
 // drawRawHop), as the time cylinder's floor shows them; and a combination
 // a∘b runs out from a's and b's halos to its unreduced result and back in
-// to its result's (see drawRawCombine). A link's wheelraw, wheelrawback
-// and wheelrawab (1 or 0) say them for this load, ahead of storage.
+// to its result's (see drawRawCombine); and aᵏ's walk runs out to each
+// hop's unreduced result as the paths do. A link's wheelraw, wheelrawback,
+// wheelrawab and wheelrawak (1 or 0) say them for this load, ahead of
+// storage.
 var RING_RAW = {
   el: { key: 'cyclic-groups-ring-wheel-raw', param: 'wheelraw', label: 'cyclicGroups.ringRawFwd' },
   inv: { key: 'cyclic-groups-ring-wheel-raw-back', param: 'wheelrawback', label: 'cyclicGroups.ringRawBack' },
-  ab: { key: 'cyclic-groups-ring-wheel-raw-ab', param: 'wheelrawab', label: 'cyclicGroups.ringRawCombine' }
+  ab: { key: 'cyclic-groups-ring-wheel-raw-ab', param: 'wheelrawab', label: 'cyclicGroups.ringRawCombine' },
+  ak: { key: 'cyclic-groups-ring-wheel-raw-ak', param: 'wheelrawak', label: 'cyclicGroups.ringRawPower' }
 };
 var ringRawOn = {};
 Object.keys(RING_RAW).forEach(function(path){
