@@ -4636,11 +4636,23 @@ function expMax(G){ return signedExpOn(G) ? Math.floor(G.order / 2) : G.order - 
 // Reveal on hover writes its form signed or not by its own two switches,
 // the On hover slider's (state.revealSigned, state.revealSignedExp): fn
 // runs with them standing in for the No hover slider's.
+// The forms as shown (revealWas, while a reveal is being written), so the
+// widths both forms share come out the same from inside either.
+var revealWas = null;
 function asReveal(fn){
-  var was = [state.signed, state.signedExp];
+  var was = [state.signed, state.signedExp], outer = revealWas;
+  if (!outer) revealWas = was;
   state.signed = state.revealSigned;
   state.signedExp = state.revealSignedExp;
-  try { return fn(); } finally { state.signed = was[0]; state.signedExp = was[1]; }
+  try { return fn(); } finally { state.signed = was[0]; state.signedExp = was[1]; revealWas = outer; }
+}
+function asShown(fn){
+  if (!revealWas) return fn();
+  var was = [state.signed, state.signedExp], outer = revealWas;
+  state.signed = outer[0];
+  state.signedExp = outer[1];
+  revealWas = null;
+  try { return fn(); } finally { state.signed = was[0]; state.signedExp = was[1]; revealWas = outer; }
 }
 // Signed differently, an element written as it is revealed still reveals;
 // the exponents' switch counts only while the reveal writes powers.
@@ -4648,10 +4660,10 @@ function revealSignsDiffer(G){
   return !state.revealOff && !!G && (state.revealSigned !== state.signed || (revealTo(G) !== null && state.revealSignedExp !== state.signedExp));
 }
 // The widest of the two forms, so a member keeps its width whichever shows.
-function elMaxBoth(G){ return Math.max(elMax(G), state.revealOff ? 0 : asReveal(function(){ return elMax(G); })); }
-function expMaxBoth(G){ return Math.max(expMax(G), state.revealOff ? 0 : asReveal(function(){ return expMax(G); })); }
-function signRoomEl(G){ return signedOn(G) || (!state.revealOff && asReveal(function(){ return signedOn(G); })); }
-function signRoomExp(G){ return signedExpOn(G) || (!state.revealOff && asReveal(function(){ return signedExpOn(G); })); }
+function elMaxBoth(G){ return asShown(function(){ return Math.max(elMax(G), state.revealOff ? 0 : asReveal(function(){ return elMax(G); })); }); }
+function expMaxBoth(G){ return asShown(function(){ return Math.max(expMax(G), state.revealOff ? 0 : asReveal(function(){ return expMax(G); })); }); }
+function signRoomEl(G){ return asShown(function(){ return signedOn(G) || (!state.revealOff && asReveal(function(){ return signedOn(G); })); }); }
+function signRoomExp(G){ return asShown(function(){ return signedExpOn(G) || (!state.revealOff && asReveal(function(){ return signedExpOn(G); })); }); }
 // A generator as the base of a power: a negative one unbracketed, −1ᵏ, the
 // element itself raised, not the negation of a power.
 // On a curve the base is the point itself, (x, y), already bracketed.
