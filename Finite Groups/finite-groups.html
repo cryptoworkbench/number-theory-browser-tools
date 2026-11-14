@@ -2928,6 +2928,13 @@
      colour key's is: square, with only its top and bottom edges, the
      window clipping it at its sides. */
   .fs-win-body.is-ring:has(> svg.ring-svg:is(.is-zoomed, .has-wheel)) > .ring-split #subgroups-list-panel::before{ left:-100vw; right:-100vw; border-radius:0; border-inline-width:0; }
+  /* Below the panel, down to the window's bottom bar, the band wearing its
+     card (placeSubFoot), only while the card shows: at rest faint, frosted
+     over the wheel or while the panel is hot, opaque while kept solid. */
+  .sub-foot-band{ display:none; }
+  .fs-win-body.is-ring:has(> svg.ring-svg:is(.is-zoomed, .has-wheel)):has(> .ring-split:not([hidden]) #subgroups-list-panel.is-sub-on-ring) > .sub-foot-band:not([hidden]){ display:block; position:absolute; left:0; right:0; top:var(--foot-t, 0px); height:var(--foot-h, 0px); pointer-events:none; background:color-mix(in srgb, var(--text) 6%, transparent); transition:background-color .18s, backdrop-filter .18s; }
+  .fs-win-body.is-ring:has(> svg.ring-svg.has-wheel):has(> .ring-split:not([hidden]) #subgroups-list-panel.is-sub-on-ring) > .sub-foot-band:not([hidden]), .fs-win-body.is-ring:has(> svg.ring-svg:is(.is-zoomed, .has-wheel)):has(> .ring-split:not([hidden]) #subgroups-list-panel.is-sub-on-ring:is(.is-sub-hot, :has(.sub-ctls :focus-visible))) > .sub-foot-band:not([hidden]){ background-color:color-mix(in srgb, var(--panel) 55%, transparent); -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); }
+  .fs-win-body.is-ring:has(> svg.ring-svg:is(.is-zoomed, .has-wheel)):has(> .ring-split:not([hidden]) #subgroups-list-panel.is-sub-on-ring.is-solid) > .sub-foot-band.sub-foot-band:not([hidden]){ background:var(--surface); -webkit-backdrop-filter:none; backdrop-filter:none; }
   /* Frosted so, its control row names its controls in the text's full colour. */
   .fs-win-body.is-ring:has(> svg.ring-svg:is(.is-zoomed, .has-wheel)) > .ring-split #subgroups-list-panel.is-sub-on-ring:is(.is-sub-hot, :has(.sub-ctls :focus-visible)) .sub-ctls{ --text-dim:var(--text); }
   /* The forward-direction switch frosts while hovered or focused too,
@@ -3633,6 +3640,7 @@
           <div class="split-grip" id="split-grip" role="separator" aria-orientation="horizontal" aria-controls="ring-split" aria-valuemin="15" aria-valuemax="85" aria-valuenow="50" tabindex="0" title="Drag to resize; double-click to reset" data-i18n-title="cyclicGroups.resizeTitle" aria-label="Drag to resize; double-click to reset" data-i18n-aria-label="cyclicGroups.resizeTitle"></div>
           <div class="split-pane-slot" id="split-pane-slot" aria-hidden="true" hidden></div>
         </div>
+        <div class="sub-foot-band" id="sub-foot-band" aria-hidden="true" hidden></div>
         <div class="iso-pane" id="iso-pane" hidden>
           <button type="button" class="fs-win-btn is-close iso-ring-close" id="iso-ring-close"><svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true" focusable="false"><line x1="3" y1="3" x2="9" y2="9"/><line x1="9" y1="3" x2="3" y2="9"/></svg></button>
           <span class="iso-lock" id="iso-lock" title="Double-click to unlock" data-i18n-title="cyclicGroups.groupLockTitle" hidden></span>
@@ -13348,7 +13356,28 @@ function hugSubCtls(){
   subgroupsPanelEl.style.setProperty('--sub-t', num(u.top - 5 - r.top - subgroupsPanelEl.clientTop) + 'px');
   // The card runs on down over the subgroup rows, to the panel's foot.
   subgroupsPanelEl.style.setProperty('--sub-h', num(Math.max(u.bottom + 5, r.bottom) - (u.top - 5)) + 'px');
+  placeSubFoot();
   syncRingOverlap();
+}
+// Under the panel, with no colour key or table there, the band from the
+// panel's foot down to the window's bottom bar, behind the cards there (the
+// turning ruler, the arrow key): it wears the panel's card, frosted or kept
+// solid, so the ring's drawing shows nowhere sharp below the panel (the
+// split clips the card itself at its foot). Its top and height (--foot-t,
+// --foot-h) in the ring's body.
+var subFootEl = $('sub-foot-band');
+function placeSubFoot(){
+  var body = ringSvgEl.parentNode, split = $('ring-split'), bar = $('ring-bar');
+  // It follows the split into the ring's body, next to it.
+  if (split && split.parentNode === body && split.nextSibling !== subFootEl) split.after(subFootEl);
+  var under = [legendPanelEl, $('legend-panel-pane'), $('genexp-info'), $('genexp-info-pane')].some(function(el){ return el && !!el.offsetParent; });
+  var sb = split && split.offsetParent ? boxOf(split) : null, bb = bar && bar.offsetParent ? boxOf(bar) : null;
+  var h = sb && bb && !under ? bb.top - sb.bottom : 0;
+  subFootEl.hidden = !(h > 0);
+  if (h > 0){
+    subFootEl.style.setProperty('--foot-t', num(sb.bottom - boxOf(body).top - body.clientTop) + 'px');
+    subFootEl.style.setProperty('--foot-h', num(h) + 'px');
+  }
 }
 // How far the ring's drawing (its beads and its arrows) reaches from the
 // ring's centre, in the drawing's own units: sampled along every path once
