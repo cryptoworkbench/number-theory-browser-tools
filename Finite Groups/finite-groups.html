@@ -1302,9 +1302,6 @@
      the window's own opaque ground, hiding what lies under it. */
   :root.is-card-lines-solid .ring-combine-plate, :root.is-card-lines-solid .ring-combine-plate.is-hot{ fill:var(--surface); }
   :root.is-card-lines-solid .ring-combine-frost{ display:none; }
-  /* Kept frosted (Keep frosted): the tint it firms up to under the pointer,
-     kept. */
-  :root.is-card-lines-frost .ring-combine-plate{ fill:color-mix(in srgb, var(--panel) 55%, transparent); }
   .ring-wheel-lit.is-out{ opacity:0; }
   @keyframes ring-wheel-lit{ from{ opacity:0; } }
   /* The reduced bead's halo flashes three times, then is gone. */
@@ -2065,6 +2062,10 @@
   :root:not(.is-isopane):not(.is-iso-unlinked) .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > #arrange-field .iso-combine:not([hidden]):hover{ background:color-mix(in srgb, var(--text) 12%, transparent); border-color:color-mix(in srgb, var(--text) 20%, transparent); }
   :root:not(.is-isopane):not(.is-iso-unlinked) .fs-win-body.is-ring:has(> svg.ring-svg:is(.is-zoomed, .has-wheel)):has(> .iso-pane:not([hidden])) > #arrange-field .iso-combine:not([hidden]){ -webkit-backdrop-filter:blur(0px); backdrop-filter:blur(0px); transition:background .15s, border-color .15s, backdrop-filter .18s; }
   :root:not(.is-isopane):not(.is-iso-unlinked) .fs-win-body.is-ring:has(> svg.ring-svg:is(.is-zoomed, .has-wheel)):has(> .iso-pane:not([hidden])) > #arrange-field .iso-combine:not([hidden]):hover{ background-color:color-mix(in srgb, var(--panel) 55%, transparent); -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); }
+  /* Its right-click menu keeps it frosted, as over a zoomed ring under the
+     pointer, or solid, on the window's own opaque ground (state.cardLooks.iso). */
+  :root.is-card-iso-frost #arrange-field #iso-combine:not([hidden]){ background:linear-gradient(var(--panel), var(--panel)), color-mix(in srgb, var(--panel) 55%, transparent); -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); }
+  :root.is-card-iso-solid #arrange-field #iso-combine:not([hidden]){ background:var(--surface); -webkit-backdrop-filter:none; backdrop-filter:none; }
   .iso-combine .is-a{ color:var(--role-active); }
   .iso-combine .is-b{ color:var(--role-input); }
   .iso-combine .is-c{ color:var(--role-result); }
@@ -11620,11 +11621,11 @@ ringSvgEl.addEventListener('contextmenu', function(e){
       openCombineGenCtx(drawn.G, ptX(e), ptY(e), onSw);
       return;
     }
-    // On the lines' card around them, Keep solid and Keep frosted.
+    // On the lines' card around them, Keep solid alone.
     var plate = ringDynamicEl.querySelector('.ring-combine-plate');
     if (plate && onLineAt(plate)){
       setRingCtx(false);
-      fsetCtxEl.replaceChildren.apply(fsetCtxEl, combineLookItems());
+      fsetCtxEl.replaceChildren(combineSolidItem());
       if (fsetCtxEl.hidden) fsetCtxReturn = document.activeElement instanceof HTMLElement && document.activeElement !== document.body ? document.activeElement : null;
       showCtxAt(fsetCtxEl, ptX(e), ptY(e));
       return;
@@ -13780,9 +13781,11 @@ exprSlotEl.parentNode.addEventListener('contextmenu', function(e){
 // the turning ruler's own ('spin') and the arrow key's ('key'). Right-
 // clicked on an empty spot, each offers Keep solid and Keep frosted
 // (state.cardLooks, one at most per card), shared with the pane as the
-// rows' look is. The card of a ∗ b's or aᵏ's lines ('lines') offers both
-// from the ring's own menus.
-var CARD_KINDS = ['clu', 'side', 'spin', 'key', 'lines'];
+// rows' look is. The card of a ∗ b's or aᵏ's lines ('lines'), frosted
+// already, offers Keep solid alone, from the ring's own menus. Locked, a ∗ b
+// worked in both groups at once ('iso', on the line between the rings)
+// offers both on its own right click.
+var CARD_KINDS = ['clu', 'side', 'spin', 'key', 'lines', 'iso'];
 function syncCardLooks(){
   var c = document.documentElement.classList;
   CARD_KINDS.forEach(function(k){
@@ -18145,14 +18148,11 @@ function tellPowersForm(){
 function unfoldLines(G){ return foldShown(G) ? COMBINE_LIMITS / COMBINE_LINE : 0; }
 // The switchable line's menu, of one switch.
 // Keep general on the powers line; on every line, Copy these formulas.
-// Keep solid and Keep frosted, for the lines' card while it shows (over
-// the wheel).
-function combineLookItems(){
-  return ['solid', 'frost'].map(function(look){
-    return menuTick('menuitemcheckbox', translate(look === 'frost' ? 'cyclicGroups.winKeepFrosted' : 'cyclicGroups.winKeepSolid'), state.cardLooks.lines === look, function(){
-      closeFsetCtx();
-      setCardLook('lines', state.cardLooks.lines === look ? null : look);
-    });
+// Keep solid, for the lines' card while it shows (over the wheel).
+function combineSolidItem(){
+  return menuTick('menuitemcheckbox', translate('cyclicGroups.winKeepSolid'), state.cardLooks.lines === 'solid', function(){
+    closeFsetCtx();
+    setCardLook('lines', state.cardLooks.lines === 'solid' ? null : 'solid');
   });
 }
 function openCombineGenCtx(G, x, y, onSwitch){
@@ -18169,7 +18169,7 @@ function openCombineGenCtx(G, x, y, onSwitch){
     copyText(combineText());
   });
   items.push(copy);
-  if (ringDynamicEl.querySelector('.ring-combine-plate')) items.push.apply(items, combineLookItems());
+  if (ringDynamicEl.querySelector('.ring-combine-plate')) items.push(combineSolidItem());
   fsetCtxEl.replaceChildren.apply(fsetCtxEl, items);
   if (fsetCtxEl.hidden) fsetCtxReturn = document.activeElement instanceof HTMLElement && document.activeElement !== document.body ? document.activeElement : null;
   showCtxAt(fsetCtxEl, x, y);
@@ -26699,6 +26699,20 @@ function isoCombineRaw(K, x, y){
   x = balEl(K, x); y = balEl(K, y);
   return K.mode === 'additive' ? x + y : x * y;
 }
+// Right-clicked, Keep solid and Keep frosted (see CARD_KINDS).
+if (isoCombineEl) isoCombineEl.addEventListener('contextmenu', function(e){
+  e.preventDefault();
+  e.stopPropagation();
+  if (IS_MOBILE) return;
+  winCtxEl.replaceChildren.apply(winCtxEl, ROWS_LOOKS.map(function(look){
+    return menuTick('menuitemcheckbox', translate(look === 'frost' ? 'cyclicGroups.winKeepFrosted' : 'cyclicGroups.winKeepSolid'), state.cardLooks.iso === look, function(){
+      closeWinCtx();
+      setCardLook('iso', state.cardLooks.iso === look ? null : look);
+    });
+  }));
+  if (winCtxEl.hidden) winCtxReturn = document.activeElement instanceof HTMLElement && document.activeElement !== document.body ? document.activeElement : null;
+  showCtxAt(winCtxEl, ptX(e), ptY(e));
+});
 function syncIsoCombine(){
   if (IS_ISOPANE || !isoCombineEl) return;
   var G = drawn && drawn.G, sent = '';
