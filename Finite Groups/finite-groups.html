@@ -26700,7 +26700,7 @@ function syncOpenLock(){
 // and at Complete, when a row is reduced by its modulus, the column as
 // worked out in the integers before it is, congruent (≡) to the result
 // row by row modulo each group's own n, written after it as (% n).
-var isoCombineEl = $('iso-combine'), isoCombineSent = '';
+var isoCombineEl = $('iso-combine'), isoCombineSent = '', isoCombineCols = null;
 function isoCombineVec(role, top, bottom){
   var cell = function(t){ return mEl('mtd', [mEl('mn', [t], { 'class': 'is-' + role })]); };
   return mrow(mo('['), mEl('mtable', [mEl('mtr', [cell(top)]), mEl('mtr', [cell(bottom)])]), mo(']'));
@@ -26729,6 +26729,19 @@ function isoCombineLines(cols){
   });
   return lines.map(function(l){ return l.replace(/\s+$/, ''); }).join('\n');
 }
+// The same columns in LaTeX: each in \left[ \right] round a one-column
+// array, which needs no package, or (bmatrix) in amsmath's bmatrix; the
+// moduli, (\% n) over (\% n'), in an array after them.
+var ISO_LATEX = { '∗': '\\ast', '≡': '\\equiv', '×': '\\times', '·': '\\cdot', '−': '-', '𝒪': '\\mathcal{O}', '∞': '\\infty', '%': '\\%' };
+function isoCombineLatex(cols, bmatrix){
+  var tex = function(t){ return Array.from(String(t)).map(function(ch){ return ISO_LATEX[ch] ? ISO_LATEX[ch] + ' ' : ch; }).join('').replace(/ +/g, ' ').trim(); };
+  return cols.map(function(c){
+    if (typeof c === 'string') return tex(c);
+    if (c.mods) return '\\quad \\begin{array}{l} ' + c.mods.map(function(m){ return tex(m).replace(/% /, '%\\,'); }).join(' \\\\ ') + ' \\end{array}';
+    var body = tex(c[0]) + ' \\\\ ' + tex(c[1]);
+    return bmatrix ? '\\begin{bmatrix} ' + body + ' \\end{bmatrix}' : '\\left[ \\begin{array}{c} ' + body + ' \\end{array} \\right]';
+  }).join(' ');
+}
 // Each row's modulus, (% n) over (% n'), closing the reduction; a curve's
 // row, its point never worked in the integers, left without one (a
 // phantom keeping the row its height).
@@ -26742,17 +26755,36 @@ function isoCombineRaw(K, x, y){
   x = balEl(K, x); y = balEl(K, y);
   return K.mode === 'additive' ? x + y : x * y;
 }
-// Right-clicked, Keep solid and Keep frosted (see CARD_KINDS).
+// Right-clicked, its copy formats (the copy button's plain text, LaTeX
+// and LaTeX with bmatrix), then Keep solid and Keep frosted (see
+// CARD_KINDS).
+var ISO_COPY_FORMATS = [
+  { key: 'cyclicGroups.ctxCopyUnicode', as: isoCombineLines },
+  { key: 'cyclicGroups.ctxCopyLatex', as: function(cols){ return isoCombineLatex(cols, false); } },
+  { key: 'cyclicGroups.ctxCopyBmatrix', as: function(cols){ return isoCombineLatex(cols, true); } }
+];
 if (isoCombineEl) isoCombineEl.addEventListener('contextmenu', function(e){
   e.preventDefault();
   e.stopPropagation();
   if (IS_MOBILE) return;
-  winCtxEl.replaceChildren.apply(winCtxEl, ROWS_LOOKS.map(function(look){
+  var copies = isoCombineCols ? ISO_COPY_FORMATS.map(function(c){
+    var it = ctxItem('menuitem', translate(c.key));
+    markCopy(it.mark);
+    it.item.addEventListener('click', function(){
+      closeWinCtx();
+      if (isoCombineCols) copyText(c.as(isoCombineCols));
+    });
+    return it.item;
+  }) : [];
+  var sep = document.createElement('div');
+  sep.className = 'ring-ctx-sep';
+  sep.setAttribute('role', 'separator');
+  winCtxEl.replaceChildren.apply(winCtxEl, copies.concat(copies.length ? [sep] : [], ROWS_LOOKS.map(function(look){
     return menuTick('menuitemcheckbox', translate(look === 'frost' ? 'cyclicGroups.winKeepFrosted' : 'cyclicGroups.winKeepSolid'), state.cardLooks.iso === look, function(){
       closeWinCtx();
       setCardLook('iso', state.cardLooks.iso === look ? null : look);
     });
-  }));
+  })));
   if (winCtxEl.hidden) winCtxReturn = document.activeElement instanceof HTMLElement && document.activeElement !== document.body ? document.activeElement : null;
   showCtxAt(winCtxEl, ptX(e), ptY(e));
 });
@@ -26797,9 +26829,11 @@ function syncIsoCombine(){
         cols.push({ mods: [G, H].map(function(K){ return K.pts ? '' : ' (% ' + K.n + ')'; }) });
       }
       if (sent !== isoCombineSent) isoCombineEl.replaceChildren(mInline(mrow.apply(null, row), sent), copyButton(isoCombineLines(cols)));
+      isoCombineCols = cols;
     }
   }
   isoCombineEl.hidden = !sent;
+  if (!sent) isoCombineCols = null;
   if (sent === isoCombineSent) return;
   isoCombineSent = sent;
   keepLockClear();
