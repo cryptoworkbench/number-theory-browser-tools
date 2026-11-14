@@ -135,6 +135,8 @@
   svg.ring-svg{ width:100%; height:auto; display:block; overflow:visible; }
   /* The necklace turns under a drag, one bead at a time. */
   svg.ring-svg{ cursor:grab; touch-action:none; user-select:none; -webkit-user-select:none; }
+  /* Ctrl + H's height mode: a drag over the ring moves its centre up or down. */
+  :root.is-lift-mode svg.ring-svg, :root.is-lift-mode svg.ring-svg *{ cursor:ns-resize; }
   svg.ring-svg.is-turning{ cursor:grabbing; }
   /* The rotation controls sit in the diagram's bottom-left corner. */
   .rotate-ctl{ position:absolute; bottom:10px; left:12px; z-index:1; display:flex; flex-direction:column; gap:4px; font-size:.85rem; color:var(--text-dim); }
@@ -3914,6 +3916,8 @@ var genSwitchEl = $('gen-switch');
 var genBeadsEl = $('gen-beads');
 var genCtlsEl = document.querySelector('.gen-ctls');
 var ringSvgEl = $('ring-svg');
+// How far the ring's centre is lifted (Ctrl + H's height mode, below).
+var ringLift = 0;
 var ringDynamicEl = $('ring-dynamic');
 var diagramFrameEl = $('diagram-frame');
 var factsEl = $('facts');
@@ -11973,7 +11977,7 @@ function drawNecklace(G, paint){
     // Zoomed, the view shrinks or grows about the ring's centre.
     var top = ringTopCut(box), z = RING_ZOOMS[ringZoom];
     var low = SIZE + combineExtraLines(G) * COMBINE_LINE;
-    ringSvgEl.setAttribute('viewBox', [box.cx - box.cx / z, box.cy - (box.cy - top) / z, SIZE / z, (low - top) / z].map(num).join(' '));
+    ringSvgEl.setAttribute('viewBox', [box.cx - box.cx / z, box.cy - (box.cy - top) / z + ringLift, SIZE / z, (low - top) / z].map(num).join(' '));
     ringSvgEl.classList.toggle('is-zoomed', z > 1);
     refitRingWheel(box, beads.length);
   }
@@ -12374,6 +12378,73 @@ window.addEventListener('keydown', function(e){
   if (IS_PREVIEW || IS_MOBILE || !drawn || (IS_DESKTOP && !cgEntered)) return;
   e.preventDefault();
   openReduceAsk();
+});
+
+/* ---------- Ring height mode ---------- */
+// Ctrl + H turns on a mode in which the ring's centre moves up and down:
+// dragged over the ring, or with the up and down arrow keys. Esc, or
+// Ctrl + H again, turns it off. The height (ringLift, in the drawing's
+// units, up positive) shifts the view, so it holds through every redraw.
+var liftMode = false, liftDrag = null;
+var RING_LIFT_MAX = SIZE / 2, RING_LIFT_STEP = 10;
+function setRingLift(v){
+  v = Math.max(-RING_LIFT_MAX, Math.min(RING_LIFT_MAX, v));
+  var d = v - ringLift;
+  if (!d) return;
+  ringLift = v;
+  var vb = (ringSvgEl.getAttribute('viewBox') || '').split(/[\s,]+/).map(Number);
+  if (vb.length !== 4 || vb.some(isNaN)) return;
+  vb[1] += d;
+  ringSvgEl.setAttribute('viewBox', vb.map(num).join(' '));
+  var g = ringSvgEl.querySelector('.ring-wheel');
+  if (g && g.cells) refitRingWheel(ringBox(), g.cells.m);
+}
+function setLiftMode(on){
+  liftMode = on;
+  liftDrag = null;
+  document.documentElement.classList.toggle('is-lift-mode', on);
+}
+window.addEventListener('keydown', function(e){
+  if (liftMode && !e.ctrlKey && !e.metaKey && !e.altKey){
+    if (e.key === 'Escape'){ e.preventDefault(); e.stopPropagation(); setLiftMode(false); return; }
+    var step = { ArrowUp: 1, ArrowDown: -1 }[e.key];
+    if (step){
+      e.preventDefault();
+      e.stopPropagation();
+      setRingLift(ringLift + step * RING_LIFT_STEP);
+      return;
+    }
+  }
+  if (!e.ctrlKey || e.metaKey || e.altKey || e.shiftKey || e.code !== 'KeyH') return;
+  if (IS_PREVIEW || IS_MOBILE || !drawn || (IS_DESKTOP && !cgEntered)) return;
+  e.preventDefault();
+  setLiftMode(!liftMode);
+}, true);
+// In the mode a drag over the ring lifts it instead of turning it, and a
+// click there picks nothing.
+window.addEventListener('pointerdown', function(e){
+  if (!liftMode || e.button !== 0 || !ringSvgEl.contains(e.target)) return;
+  e.preventDefault();
+  e.stopPropagation();
+  var ctm = ringSvgEl.getScreenCTM();
+  liftDrag = { id: e.pointerId, y: e.clientY, lift: ringLift, scale: ctm && ctm.d ? ctm.d : 1 };
+}, true);
+window.addEventListener('pointermove', function(e){
+  if (!liftDrag || e.pointerId !== liftDrag.id) return;
+  e.preventDefault();
+  setRingLift(liftDrag.lift - (e.clientY - liftDrag.y) / liftDrag.scale);
+}, true);
+['pointerup', 'pointercancel'].forEach(function(type){
+  window.addEventListener(type, function(e){
+    if (liftDrag && e.pointerId === liftDrag.id) liftDrag = null;
+  }, true);
+});
+['click', 'dblclick', 'contextmenu'].forEach(function(type){
+  window.addEventListener(type, function(e){
+    if (!liftMode || !ringSvgEl.contains(e.target)) return;
+    e.preventDefault();
+    e.stopPropagation();
+  }, true);
 });
 
 // The ring's zoom, a step along RING_ZOOMS, from the corner's zoom pill
