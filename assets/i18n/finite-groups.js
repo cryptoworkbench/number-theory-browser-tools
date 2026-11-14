@@ -289,7 +289,8 @@
    winKeepFrosted (Keep frosted, beside the reused winKeepSolid in the
    right-click menus of the control rows, keeping all three frosted or all
    three opaque, and of the cards under the ring: the expression slider's,
-   the turning ruler's and the arrow key's).
+   the turning ruler's and the arrow key's), and liftModeHint and liftReset
+   (the bar over the ring in Ctrl + H's height mode, and its Reset).
    Every other language shows the English value through NT.i18n's
    fallback meanwhile.
 
@@ -1359,6 +1360,8 @@
       winCtxLabel: 'Window',
       winKeepSolid: 'Keep solid',
       winKeepFrosted: 'Keep frosted',
+      liftModeHint: 'Height mode: drag the ring up or down',
+      liftReset: 'Reset',
       barSwapCols: 'Swap the choices in the Size and Index columns',
       barSwapColsEc: 'Swap the choices in the Size and Cofactor columns',
       idxLagrangeOff: 'Disable Lagrange\'s notation',
