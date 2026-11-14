@@ -7369,6 +7369,15 @@ function fullscreenEl(){ return document.fullscreenElement || document.webkitFul
 // Whether the ring's body fills the diagram: always on the page, and in full screen.
 function desktopOn(){ return IS_DESKTOP || fullscreenEl() === diagramFrameEl; }
 function onFullscreenChange(){
+  // In full screen the page may have the W key to itself, so Ctrl + W
+  // toggles the congruence wheel there instead of closing the tab (see
+  // toggleRingWheel); the browser lets go of it again on leaving.
+  if (fullscreenEl() && navigator.keyboard && navigator.keyboard.lock){
+    try {
+      var held = navigator.keyboard.lock(['KeyW']);
+      if (held && held.catch) held.catch(function(){ /* not granted: Ctrl + W closes the tab as ever */ });
+    } catch (e) { /* not granted: Ctrl + W closes the tab as ever */ }
+  }
   syncPanes();
   syncHeadSwitches();
   if (drawn && !IS_PREVIEW) drawMath(drawn.G, lastSubs);
@@ -12309,6 +12318,15 @@ function toggleRingWheel(){
   try { localStorage.setItem(RING_WHEEL_KEY, ringWheelOn ? '1' : '0'); } catch (e) { /* storage unavailable */ }
   if (drawn){ redrawRing(); mirrorToUrl(drawn.G); }
 }
+// Ctrl + W (Cmd + W on a Mac) turns the wheel on and off, once the ring is
+// up and where the browser hands the keys over (in full screen, see
+// onFullscreenChange); on a curve, where it does not fit, it does nothing.
+window.addEventListener('keydown', function(e){
+  if (!(e.ctrlKey || e.metaKey) || e.altKey || e.shiftKey || e.code !== 'KeyW') return;
+  if (IS_PREVIEW || IS_MOBILE || !drawn || (IS_DESKTOP && !cgEntered)) return;
+  e.preventDefault();
+  if (dhcWheelFits(drawn.G)) toggleRingWheel();
+});
 // The main area in the ring's own units (ringWheelClip), and rings enough to
 // reach its farthest corner from the ring's centre, capped so the numbers
 // stay few enough to draw.
@@ -12743,9 +12761,10 @@ window.addEventListener('keydown', function(e){
 });
 
 /* ---------- Ring height mode ---------- */
-// Change height, in the ring's right-click menu, turns on a mode in which
-// the ring's centre moves up and down: dragged over the ring, or with the
-// up and down arrow keys. Done in its bar, Esc, or the menu item again, turns it off. The height (ringLift, in the drawing's
+// Change height, in the ring's right-click menu, or Ctrl + H, turns on a
+// mode in which the ring's centre moves up and down: dragged over the ring,
+// or with the up and down arrow keys. Done in its bar, Esc, the menu item
+// or Ctrl + H again, turns it off. The height (ringLift, in the drawing's
 // units, up positive) shifts the view, so it holds through every redraw.
 var liftMode = false, liftDrag = null;
 var RING_LIFT_MAX = SIZE / 2, RING_LIFT_STEP = 10;
@@ -12822,6 +12841,14 @@ function syncLiftUi(){
   liftBarEl.style.left = num((ctm.e + ctm.a * x - side.left) / PAGE_ZOOM + body.scrollLeft) + 'px';
   liftBarEl.style.top = num((r.top - side.top) / PAGE_ZOOM + body.scrollTop + 8) + 'px';
 }
+// Ctrl + H turns the mode on and off, once the ring is up, in place of the
+// browser's history.
+window.addEventListener('keydown', function(e){
+  if (!e.ctrlKey || e.metaKey || e.altKey || e.shiftKey || e.code !== 'KeyH') return;
+  if (IS_PREVIEW || IS_MOBILE || !drawn || (IS_DESKTOP && !cgEntered)) return;
+  e.preventDefault();
+  setLiftMode(!liftMode);
+});
 function setLiftMode(on){
   liftMode = on;
   liftDrag = null;
