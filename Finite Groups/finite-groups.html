@@ -2285,6 +2285,7 @@
      ring's three take a line of their own under its side of the row. */
   :root.is-sub-merged:not(.is-isopane) .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > .fs-win-row-gen > #gen-field > .rel-ctls, :root.is-isopane.is-pane-merged .fs-win-body.is-ring > .fs-win-row-gen > #gen-field > .rel-ctls{ order:3; flex-basis:100%; }
   .rel-btn{ display:inline-flex; align-items:center; gap:6px; }
+  .rel-btn[hidden]{ display:none; }
   .rel-btn[aria-expanded="true"]{ color:var(--text); background:color-mix(in srgb, var(--accent) 24%, transparent); }
   .rel-btn:disabled{ opacity:.4; cursor:default; background:none; }
   .rel-mark{ font-family:var(--font-math); }
@@ -3788,6 +3789,7 @@
             </span>
           </span>
           <span class="rel-ctls">
+            <button type="button" class="gen-beads rel-btn" id="rel-reduce" data-op="reduce" hidden><span class="rel-mark" aria-hidden="true">⇩</span><span data-i18n="cyclicGroups.relReduce">Reduce to structure</span></button>
             <button type="button" class="gen-beads rel-btn" id="rel-div" data-op="div" aria-haspopup="menu" aria-expanded="false"><span class="rel-mark" aria-hidden="true">÷</span><span data-i18n="cyclicGroups.cardDivide">Divide</span></button>
             <button type="button" class="gen-beads rel-btn" id="rel-mul" data-op="mul" aria-haspopup="menu" aria-expanded="false"><span class="rel-mark" aria-hidden="true">×</span><span data-i18n="cyclicGroups.cardMultiply">Multiply</span></button>
             <button type="button" class="gen-beads rel-btn" id="rel-swap" data-op="swap" aria-haspopup="menu" aria-expanded="false" title="Swap for an isomorphic group" data-i18n-title="cyclicGroups.swapIsoMenu"><span class="rel-mark" aria-hidden="true">⇆</span><span data-i18n="cyclicGroups.relSwap">Swap</span></button>
@@ -11122,9 +11124,18 @@ function setRingSwap(from, focus){
 // The Related groups row's Divide, Multiply and Swap: each opens the table
 // its entry in the right-click menus opens, under the button, the menu
 // itself shown with that table alone (is-row-sub). Greyed, saying why, as
-// those entries are.
-var relBtns = [$('rel-div'), $('rel-mul'), $('rel-swap')];
+// those entries are. Before them, while G is not its own structure
+// ⟨ℤ/|G|ℤ, +⟩, Reduce to structure takes it at once, as the menus' Reduce
+// to does, and is gone otherwise, as that entry is.
+var relBtns = [$('rel-div'), $('rel-mul'), $('rel-swap')], relReduceEl = $('rel-reduce');
+relReduceEl.addEventListener('click', function(){
+  var red = reduceSpec();
+  if (red) takeSwap(red);
+});
 function syncRelBtns(G){
+  var red = reduceSpec();
+  relReduceEl.hidden = !red || IS_MOBILE;
+  if (red) relReduceEl.title = translate('cyclicGroups.swapIsoReduce', { group: red.label });
   relBtns.forEach(function(btn){
     var op = btn.getAttribute('data-op');
     if (op === 'swap'){ btn.disabled = !swapSpecs().length; return; }

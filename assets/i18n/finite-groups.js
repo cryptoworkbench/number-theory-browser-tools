@@ -292,9 +292,9 @@
    the turning ruler's and the arrow key's), and liftMenu, liftModeHint and
    liftReset (Change height, in the ring's right-click menu, and the bar
    over the ring in the height mode it turns on, with its Reset), and
-   relatedRowLabel and relSwap (the Related groups row, the desktop's
-   SUBGROUP row renamed for holding Divide, Multiply and Swap too, and
-   its Swap button).
+   relatedRowLabel, relSwap and relReduce (the Related groups row, the
+   desktop's SUBGROUP row renamed for holding Divide, Multiply and Swap
+   too, its Swap button and its Reduce to structure button).
    Every other language shows the English value through NT.i18n's
    fallback meanwhile.
 
@@ -918,6 +918,7 @@
       genRowLabel: 'Subgroup',
       relatedRowLabel: 'Related groups',
       relSwap: 'Swap',
+      relReduce: 'Reduce to structure',
       arrangeSequential: 'Sequential',
       arrangeSequentialTitle: 'Low to high',
       arrangeSequentialCurve: 'Not available on an elliptic curve: its beads always follow the powers of a generating point',
