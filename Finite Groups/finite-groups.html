@@ -12000,7 +12000,7 @@ function drawNecklace(G, paint){
   else {
     // Zoomed, the view shrinks or grows about the ring's centre.
     var top = ringTopCut(box), z = RING_ZOOMS[ringZoom];
-    var low = SIZE + combineExtraLines(G) * COMBINE_LINE;
+    var low = SIZE + combineViewLines(G) * COMBINE_LINE;
     ringSvgEl.setAttribute('viewBox', [box.cx - box.cx / z, box.cy - (box.cy - top) / z + ringLift, SIZE / z, (low - top) / z].map(num).join(' '));
     ringSvgEl.classList.toggle('is-zoomed', z > 1);
     refitRingWheel(box, beads.length);
@@ -17482,6 +17482,12 @@ function combineExtraLines(G){
     return ex + ({ vertical: 1, chord: 3, stuck: 3, split: 2 }[kind] || 0);
   }
   return ((G.cyclic && exprBy(G) !== null) || (combo.k !== null && comboLive(G)) ? 1 : 0) + unfoldLines(G);
+}
+// The lines the ring's view makes room for under it: aᵏ's hang below the
+// view as it was before a was picked, so picking a never shrinks the ring.
+function combineViewLines(G){
+  if (combo.k !== null && comboLive(G)) return !G.pts && G.cyclic && exprBy(G) !== null ? 1 : 0;
+  return combineExtraLines(G);
 }
 // Under aᵏ's or a ∗ b's formulas, while the element expression slider writes the
 // elements as powers of a generator g (not Natural), the powers line (the
