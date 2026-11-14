@@ -991,6 +991,16 @@
   /* Raw results on the congruence wheel: a hop out to its unreduced number,
      written in the walk's colour, and the reduction back in, dashed. */
   .chord.is-reduce{ stroke-dasharray:4 3; }
+  /* A combination's raw result: a's and b's arrows, in their halos'
+     colours, meet on its cell, and the reduction runs on to the result's
+     halo in the result's. */
+  .combine-raw{ fill:none; stroke:var(--c); stroke-width:2; stroke-linejoin:round; stroke-linecap:round; pointer-events:none; }
+  .combine-raw-head{ fill:var(--c); stroke:none; pointer-events:none; }
+  :is(.combine-raw, .combine-raw-head).is-a{ --c:var(--role-active); }
+  :is(.combine-raw, .combine-raw-head).is-b{ --c:var(--role-input); }
+  :is(.combine-raw, .combine-raw-head).is-c{ --c:var(--role-result); }
+  .combine-raw.is-reduce{ stroke-dasharray:4 3; }
+  .ring-raw.is-c{ fill:var(--role-result); }
   .ring-raw{ fill:var(--walk); font-family:var(--font-mono); font-variant-numeric:tabular-nums; font-weight:700; text-anchor:middle; dominant-baseline:central; pointer-events:none; paint-order:stroke; stroke:var(--bg-1); stroke-width:3px; }
   .bead{ fill:var(--ord, var(--text-dim)); stroke:none; }
   .bead.is-nat-shown{ cursor:none; }
@@ -1202,7 +1212,7 @@
   .dh-ctl > .dh-new{ margin-left:auto; }
   .dh-ctl > .dh-colours > button{ font:inherit; font-size:.74em; line-height:1.2; padding:4px 8px; }
   .ring.is-dh > .walks{ opacity:.15; }
-  .ring.is-dh > :is(.combine-halo, .walk-scalar:not(.walk-dh)){ display:none; }
+  .ring.is-dh > :is(.combine-halo, .combine-raw-g, .walk-scalar:not(.walk-dh)){ display:none; }
   .walk-dh.is-alice{ --walk:var(--dh-alice); }
   .walk-dh.is-bob{ --walk:var(--dh-bob); }
   .dh-halo{ fill:none; stroke:var(--dh); stroke-width:3.5; pointer-events:none; filter:drop-shadow(0 0 4px var(--dh)); }
@@ -5523,6 +5533,43 @@ function drawRawHop(group, h, ex, box, beadR, width, size){
   group.appendChild(label);
 }
 
+// A combination's raw result (the ring menu's choice, on the congruence
+// wheel): a's arrow and b's leave their halos, spiral out the shorter way
+// round to the cell of the unreduced a+b or a·b, ex.q rings out above the
+// wedge of its residue, and meet there; from there one arrow comes straight
+// back in, dashed, to the result's halo: the reduction mod n. The raw
+// number is written over the wheel's own figure for it in the result's
+// colour.
+function drawRawCombine(ring, G, place, m, box, beadR, ex){
+  var R0 = box.R + beadR + 4, foot = box.R + beadR + 4, size = 6;
+  var cell = R0 + (ex.q + 0.5) * ringWheelRing(box.R), turn = cell - ex.font * 0.7;
+  var angle = function(x){ return dirSign() * 360 * place[x] / m; };
+  var to = angle(ex.c), g = svgEl('g', { 'class': 'combine-raw-g', 'aria-hidden': 'true' });
+  [['a', combo.a], ['b', combo.b]].forEach(function(r){
+    var from = angle(r[1]), d = ((to - from) % 360 + 540) % 360 - 180;
+    var samples = Math.max(16, Math.ceil(Math.abs(d) / humpCoarse)), path = '';
+    var pt = function(f){ return polar(box.cx, box.cy, foot + (turn - foot) * f, from + d * f); };
+    for (var t = 0; t <= samples; t++){
+      var q = pt(t / samples);
+      path += (t ? ' L ' : 'M ') + num(q[0]) + ' ' + num(q[1]);
+    }
+    g.appendChild(svgEl('path', { 'class': 'combine-raw is-' + r[0], d: path }));
+    var a = pt(0.49), b = pt(0.51), pm = pt(0.5);
+    g.appendChild(arrowHead('combine-raw-head is-' + r[0], pm[0], pm[1], Math.atan2(b[1] - a[1], b[0] - a[0]), size));
+  });
+  // The tip stops at the result's halo.
+  var p1 = polar(box.cx, box.cy, turn, to), p2 = polar(box.cx, box.cy, foot + 2 + size, to), tip = polar(box.cx, box.cy, foot + 2, to);
+  if (turn > foot + 2 + size) g.appendChild(svgEl('path', { 'class': 'combine-raw is-c is-reduce', d: 'M ' + num(p1[0]) + ' ' + num(p1[1]) + ' L ' + num(p2[0]) + ' ' + num(p2[1]) }));
+  g.appendChild(arrowHead('combine-raw-head is-c', p2[0], p2[1], Math.atan2(tip[1] - p1[1], tip[0] - p1[0]), size));
+  var mid = to % 360;
+  if (mid < 0) mid += 360;
+  var rot = mid > 90 && mid < 270 ? mid + 180 : mid, c = polar(box.cx, box.cy, cell, to);
+  var label = svgEl('text', { 'class': 'ring-raw is-c', x: num(c[0]), y: num(c[1]), 'font-size': num(ex.font), transform: 'rotate(' + num(rot) + ' ' + num(c[0]) + ' ' + num(c[1]) + ')' });
+  label.textContent = String(ex.raw);
+  g.appendChild(label);
+  ring.appendChild(g);
+}
+
 // A walk outside the ring, one hump per step. Returns the outermost radius
 // used.
 function drawOuter(ring, walk, cls, scale, sense, place, box, beadR, m, width, raw){
@@ -5848,6 +5895,11 @@ function drawRing(parent, G, beads, box, paint){
   // Halos past what fits before the neighbouring bead's close up, thinner
   // and thinner, into a band halfway to it.
   var haloBand = beads.length > 1 ? Math.max(10, Math.hypot(at(1)[0] - at(0)[0], at(1)[1] - at(0)[1]) / 2 - beadR - 4) : HALO_BAND;
+  // a∘b's raw result, under the halos it runs between.
+  if (ringRawShown(G, 'ab') && comboLive(G) && !comboBOnly(G) && combo.k === null && combo.b !== null && G.els.indexOf(combo.b) !== -1){
+    var abRaw = G.mode === 'multiplicative' ? combo.a * combo.b : combo.a + combo.b, abQ = Math.floor(abRaw / G.n);
+    if (abQ < ringWheelDepth) drawRawCombine(ring, G, place, m, box, beadR, { raw: abRaw, q: abQ, c: G.combine(combo.a, combo.b), font: ringWheelNumSize(G, m, box.R + beadR + 4, ringWheelRing(box.R), ringWheelDepth) });
+  }
   // With aᵏ only the last visit's halo shows, in its lap's colour.
   var lastOnly = combo.k !== null && !!scalarWalk(G);
   combineRoles(G).forEach(function(roles, a){
@@ -12363,11 +12415,14 @@ function ringWheelShown(G){ return ringWheelOn && !IS_PREVIEW && dhcWheelFits(G)
 // Reduction submenu while the wheel is on: the forward path (the walk by
 // the element) or the backward path (by its inverse) runs out to each
 // hop's unreduced result on the wheel and back in to its bead (see
-// drawRawHop), as the time cylinder's floor shows them. A link's wheelraw
-// and wheelrawback (1 or 0) say them for this load, ahead of storage.
+// drawRawHop), as the time cylinder's floor shows them; and a combination
+// a∘b runs out from a's and b's halos to its unreduced result and back in
+// to its result's (see drawRawCombine). A link's wheelraw, wheelrawback
+// and wheelrawab (1 or 0) say them for this load, ahead of storage.
 var RING_RAW = {
   el: { key: 'cyclic-groups-ring-wheel-raw', param: 'wheelraw', label: 'cyclicGroups.ringRawFwd' },
-  inv: { key: 'cyclic-groups-ring-wheel-raw-back', param: 'wheelrawback', label: 'cyclicGroups.ringRawBack' }
+  inv: { key: 'cyclic-groups-ring-wheel-raw-back', param: 'wheelrawback', label: 'cyclicGroups.ringRawBack' },
+  ab: { key: 'cyclic-groups-ring-wheel-raw-ab', param: 'wheelrawab', label: 'cyclicGroups.ringRawCombine' }
 };
 var ringRawOn = {};
 Object.keys(RING_RAW).forEach(function(path){
