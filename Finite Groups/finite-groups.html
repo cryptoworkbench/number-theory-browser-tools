@@ -12682,6 +12682,13 @@ function syncLiftUi(){
   // The lift shifts the view, so the home height is ringLift further down
   // in the drawing.
   var home = y + ringLift, left = (side.left - ctm.e) / ctm.a, right = (side.right - ctm.e) / ctm.a;
+  // Beside a pane the reference line stops at the pane's edge, so it never
+  // runs over the pane's own, broken where the pane's arm lies.
+  if (twoRings()){
+    var pr = isoPaneEl.getBoundingClientRect(), cx = ctm.e + ctm.a * x;
+    if (pr.left >= cx) right = Math.min(right, (pr.left - ctm.e) / ctm.a);
+    else if (pr.right <= cx) left = Math.max(left, (pr.right - ctm.e) / ctm.a);
+  }
   [[x, y, x, y - up], [x, y, x, y + down], [x, y, x - arm, y], [x, y, x + arm, y],
    [x - arm, home, left, home], [x + arm, home, right, home]].forEach(function(c, i){
     var el = liftLineEls[i];
