@@ -3789,10 +3789,10 @@
             </span>
           </span>
           <span class="rel-ctls">
-            <button type="button" class="gen-beads rel-btn" id="rel-reduce" data-op="reduce" hidden><span class="rel-mark" aria-hidden="true">⇩</span><span data-i18n="cyclicGroups.relReduce">Reduce to structure</span></button>
-            <button type="button" class="gen-beads rel-btn" id="rel-div" data-op="div" aria-haspopup="menu" aria-expanded="false"><span class="rel-mark" aria-hidden="true">÷</span><span data-i18n="cyclicGroups.cardDivide">Divide</span></button>
-            <button type="button" class="gen-beads rel-btn" id="rel-mul" data-op="mul" aria-haspopup="menu" aria-expanded="false"><span class="rel-mark" aria-hidden="true">×</span><span data-i18n="cyclicGroups.cardMultiply">Multiply</span></button>
-            <button type="button" class="gen-beads rel-btn" id="rel-swap" data-op="swap" aria-haspopup="menu" aria-expanded="false" title="Swap for an isomorphic group" data-i18n-title="cyclicGroups.swapIsoMenu"><span class="rel-mark" aria-hidden="true">⇆</span><span data-i18n="cyclicGroups.relSwap">Swap</span></button>
+            <button type="button" class="gen-beads rel-btn" id="rel-reduce" data-op="reduce" hidden title="Reduce to structure" aria-label="Reduce to structure" data-i18n-title="cyclicGroups.relReduce" data-i18n-aria-label="cyclicGroups.relReduce"><span class="rel-mark" aria-hidden="true">⇩</span></button>
+            <button type="button" class="gen-beads rel-btn" id="rel-div" data-op="div" aria-haspopup="menu" aria-expanded="false" title="Divide" aria-label="Divide" data-i18n-title="cyclicGroups.cardDivide" data-i18n-aria-label="cyclicGroups.cardDivide"><span class="rel-mark" aria-hidden="true">÷</span></button>
+            <button type="button" class="gen-beads rel-btn" id="rel-mul" data-op="mul" aria-haspopup="menu" aria-expanded="false" title="Multiply" aria-label="Multiply" data-i18n-title="cyclicGroups.cardMultiply" data-i18n-aria-label="cyclicGroups.cardMultiply"><span class="rel-mark" aria-hidden="true">×</span></button>
+            <button type="button" class="gen-beads rel-btn" id="rel-swap" data-op="swap" aria-haspopup="menu" aria-expanded="false" title="Swap" aria-label="Swap" data-i18n-title="cyclicGroups.relSwap" data-i18n-aria-label="cyclicGroups.relSwap"><span class="rel-mark" aria-hidden="true">⇆</span></button>
           </span>
           <span class="gen-super" id="gen-super"></span>
         </div>
@@ -11120,7 +11120,8 @@ function setRingSwap(from, focus){
   refit();
   if (focus) ringCopyEl.querySelector('button').focus();
 }
-// The Related groups row's Divide, Multiply and Swap: each opens the table
+// The Related groups row's Divide, Multiply and Swap, their symbols alone,
+// named by their tooltips: each opens the table
 // its entry in the right-click menus opens, under the button, the menu
 // itself shown with that table alone (is-row-sub). Greyed, saying why, as
 // those entries are. Before them, while G is not its own structure
@@ -11134,14 +11135,13 @@ relReduceEl.addEventListener('click', function(){
 function syncRelBtns(G){
   var red = reduceSpec();
   relReduceEl.hidden = !red || IS_MOBILE;
-  if (red) relReduceEl.title = translate('cyclicGroups.swapIsoReduce', { group: red.label });
   relBtns.forEach(function(btn){
     var op = btn.getAttribute('data-op');
     if (op === 'swap'){ btn.disabled = !swapSpecs().length; return; }
     var none = !factorRows(G, op).length;
     btn.disabled = none;
-    if (none) btn.title = translate(G.cyclic ? FACTOR_KEYS[op].none : 'cyclicGroups.cardDivideCyclic');
-    else btn.removeAttribute('title');
+    // Their tooltip names them, or, greyed, says why.
+    btn.title = translate(none ? (G.cyclic ? FACTOR_KEYS[op].none : 'cyclicGroups.cardDivideCyclic') : FACTOR_KEYS[op].item);
   });
 }
 function relOpenFrom(btn){ return !ringCtxEl.hidden && ringCtxEl.classList.contains('is-row-sub') && (ringDivFrom === btn || ringCopyFrom === btn); }
