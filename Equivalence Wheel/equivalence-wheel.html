@@ -344,6 +344,48 @@
   .euclid-unreachable-cell{ fill:none; stroke:var(--role-warn); stroke-width:2.2; stroke-dasharray:5 3; }
   #euclid-overlay .euclid-unreachable-mark{ font-weight:700; fill:var(--role-warn); }
 
+  /* arrows: arcs are drawn in along their length (dash offset) */
+  .euclid-hop, .euclid-rem, .euclid-coef, .euclid-final, .euclid-span, .euclid-orbit-star{
+    fill:none;
+    stroke-linecap:round;
+    stroke-linejoin:round;
+    transition:stroke-dashoffset var(--euclid-draw, 400ms) linear;
+  }
+  .euclid-hop{ stroke:var(--role-input); stroke-width:3.2; }
+  .euclid-rem{ stroke:var(--role-alt); stroke-width:3.2; }
+  .euclid-coef{ stroke:var(--role-active); stroke-width:3; }
+  .euclid-final{ stroke:var(--role-result); stroke-width:3.4; }
+  .euclid-off-wheel{ stroke-dasharray:7 5; }
+  .euclid-span{ stroke:var(--text-dim); stroke-width:10; stroke-opacity:.22; }
+  .euclid-orbit-star{ stroke:var(--role-special); stroke-width:2.6; stroke-linejoin:round; }
+  .euclid-arrowhead--hop{ fill:var(--role-input); }
+  .euclid-arrowhead--rem{ fill:var(--role-alt); }
+  .euclid-arrowhead--coef{ fill:var(--role-active); }
+  .euclid-arrowhead--result{ fill:var(--role-result); }
+  #euclid-overlay .euclid-arc-label{ font-size:14px; font-weight:700; fill:var(--text); }
+  .euclid-inverse-wedge{ filter:drop-shadow(0 0 8px var(--role-result)); }
+  .euclid-pulse .euclid-spot-cell{ animation:euclid-pulse 1.4s ease-in-out infinite; }
+  .euclid-flash .euclid-spot-cell{ animation:euclid-flash .9s ease-out 1; }
+  .euclid-table td.is-landing{ animation:euclid-land .9s ease-out 1 backwards; }
+  @keyframes euclid-pulse{
+    0%, 100%{ stroke-opacity:1; stroke-width:2.2px; }
+    50%{ stroke-opacity:.35; stroke-width:5px; }
+  }
+  @keyframes euclid-flash{
+    0%{ stroke-width:2.2px; }
+    35%{ stroke-width:8px; }
+    100%{ stroke-width:2.2px; }
+  }
+  @keyframes euclid-land{
+    0%{ color:var(--text); }
+    100%{ color:var(--role-result); }
+  }
+  @media (prefers-reduced-motion: reduce){
+    svg#wheel.is-euclid #wheel-dynamic{ transition:none; }
+    #euclid-overlay *{ transition:none !important; animation:none !important; }
+    .euclid-table td.is-landing{ animation:none; }
+  }
+
   /* ---------- end extended euclid overlay ---------- */
 
   @media (prefers-reduced-motion: reduce){
@@ -1081,16 +1123,6 @@
     }
   }
 
-  function drawSlide(L, f){
-    var from = posOf(f.raw);
-    var to = polar(CX, CY, ringMidR(0), cellAngle(f.r2));
-    L.appendChild(svgEl('line', { class: 'euclid-slide-path', x1: from[0], y1: from[1], x2: to[0], y2: to[1] }));
-    L.appendChild(svgEl('circle', { class: 'euclid-slide-dot', cx: to[0], cy: to[1], r: 5 }));
-    var ang = cellAngle(f.r2);
-    L.appendChild(mkText('euclid-reduce-label', reduceLabelPos(f), ang, 15,
-      (f.dir === 'down' ? '− ' : '+ ') + f.k + '·' + euclid.N));
-  }
-
   // A slide down from a ring is long, so its label sits beside the guide's
   // midpoint; a slide up out of the hole is short, so its label sits just
   // outside the ring-0 cell instead of crowding the hole.
@@ -1101,42 +1133,280 @@
     return [mid[0] + 15 * Math.cos(ang * Math.PI / 180), mid[1] + 15 * Math.sin(ang * Math.PI / 180)];
   }
 
+  /* ---------- arrows and motion ---------- */
+
+  var COLLAPSE_HOPS = 8;       // more division hops than this collapse into one labelled arc
+  var COLLAPSE_COEF = 12;      // more coefficient hops than this collapse into one trail
+  var MAX_SAMPLES = 2400;      // per path
+
+  // Every timer and animation frame is guarded by the generation counter; a
+  // redraw, Pause, Step, Instant, Exit or language switch bumps it, so a stale
+  // callback can never touch the new frame. Elements are created up front and
+  // only revealed later, so a stale callback cannot add duplicates either.
+  function later(ms, fn){
+    var my = euclid.gen;
+    setTimeout(function(){ if (my === euclid.gen && euclid.running) fn(); }, ms);
+  }
+  function runFrames(delay, dur, step, done){
+    var my = euclid.gen;
+    later(delay, function(){
+      var t0 = null;
+      function frame(ts){
+        if (my !== euclid.gen) return;
+        if (t0 === null) t0 = ts;
+        var u = Math.min(1, (ts - t0) / dur);
+        step(easeInOutCubic(u));
+        if (u < 1) requestAnimationFrame(frame);
+        else if (done) done();
+      }
+      requestAnimationFrame(frame);
+    });
+  }
+  function revealAt(el, delay, animate){
+    if (!animate) return;
+    el.style.opacity = '0';
+    el.style.transitionProperty = 'opacity';
+    el.style.transitionDuration = '.3s';
+    later(delay, function(){ el.style.opacity = '1'; });
+  }
+  function moveText(el, pos, deg){
+    var rot = textRot(deg);
+    el.setAttribute('x', pos[0]);
+    el.setAttribute('y', pos[1]);
+    el.setAttribute('transform', 'rotate(' + rot + ' ' + pos[0] + ' ' + pos[1] + ')');
+  }
+
+  function pathOf(pts){
+    var d = 'M ' + pts[0][0].toFixed(1) + ' ' + pts[0][1].toFixed(1);
+    for (var i = 1; i < pts.length; i++) d += ' L ' + pts[i][0].toFixed(1) + ' ' + pts[i][1].toFixed(1);
+    return d;
+  }
+  function wheelR(raw){ return trackR(ringOf(raw)); }
+  function rimR(){ return RIM_TRACK_R; }
+
+  // Samples one hop from raw fromRaw to raw toRaw: the angle runs unwrapped
+  // (clockwise when increasing, counter-clockwise when decreasing), and the
+  // radius moves linearly from the track of the start ring to the track of the
+  // end ring, so a hop that wraps past 0 climbs exactly one ring.
+  function hopPoints(fromRaw, toRaw, rFn, stepDeg, out, skipFirst){
+    var wa = G.wedgeAngle;
+    var a0 = (fromRaw + 0.5) * wa, a1 = (toRaw + 0.5) * wa;
+    var delta = a1 - a0;
+    var n = Math.min(MAX_SAMPLES, Math.max(2, Math.ceil(Math.abs(delta) / stepDeg)));
+    var r0 = rFn(fromRaw), r1 = rFn(toRaw);
+    for (var i = skipFirst ? 1 : 0; i <= n; i++){
+      var u = i / n;
+      out.push(polar(CX, CY, r0 + (r1 - r0) * u, a0 + delta * u));
+    }
+  }
+  function hopPath(fromRaw, toRaw, rFn){
+    var pts = [];
+    hopPoints(fromRaw, toRaw, rFn, 3, pts, false);
+    return pathOf(pts);
+  }
+  function trailPath(fromRaw, step, count, rFn){
+    var stepDeg = Math.max(3, Math.abs(step) * count * G.wedgeAngle / MAX_SAMPLES);
+    var pts = [];
+    for (var i = 0; i < count; i++) hopPoints(fromRaw + i * step, fromRaw + (i + 1) * step, rFn, stepDeg, pts, i > 0);
+    return pathOf(pts);
+  }
+  function offWheel(fromRaw, toRaw){
+    var a = ringOf(fromRaw), b = ringOf(toRaw);
+    return a < 0 || b < 0 || a >= G.depth || b >= G.depth;
+  }
+
+  // Draws a path in along its length (dash offset) from `delay` over `dur`; the
+  // dash is cleared on arrival so a dashed class (off-wheel arcs) shows again.
+  function drawIn(p, delay, dur, after){
+    var len = p.getTotalLength();
+    p.style.strokeDasharray = len + ' ' + len;
+    p.style.strokeDashoffset = String(len);
+    p.style.opacity = '0';
+    p.style.setProperty('--euclid-draw', Math.round(dur) + 'ms');
+    later(delay, function(){
+      p.style.opacity = '1';
+      void p.getBoundingClientRect();
+      p.style.strokeDashoffset = '0';
+    });
+    later(delay + dur + 40, function(){
+      p.style.strokeDasharray = '';
+      p.style.strokeDashoffset = '';
+      if (after) after();
+    });
+  }
+
+  // One arc: finished at once with its arrowhead when static; otherwise it is
+  // drawn in, and the arrowhead is added only when the line has arrived.
+  function addArc(L, d, cls, marker, animate, delay, dur, mods){
+    var p = svgEl('path', { class: cls, d: d });
+    if (mods){
+      if (mods.neg) p.classList.add(cls + '--neg');
+      if (mods.collapsed) p.classList.add(cls + '--collapsed');
+      if (mods.off) p.classList.add('euclid-off-wheel');
+    }
+    L.appendChild(p);
+    var head = function(){ if (marker) p.setAttribute('marker-end', 'url(#' + marker + ')'); };
+    if (!animate) head();
+    else drawIn(p, delay, dur, head);
+    return p;
+  }
+
+  function arcLabel(L, text, pos, deg, animate, delay){
+    var t = mkText('euclid-arc-label', pos, deg, 14, text);
+    L.appendChild(t);
+    revealAt(t, delay, animate);
+    return t;
+  }
+  function nudge(pos){
+    return [clamp(pos[0], 30, 870), clamp(pos[1], 24, 876)];
+  }
+
+  // The coefficient trail (and the finale's inverse trail): `count` hops of
+  // size `step` from raw 0, separate arrows up to COLLAPSE_COEF, then one trail.
+  function drawTrail(L, count, step, cls, marker, animate, delay, perHopMax, perHopBudget, collapsedMs, labelText){
+    var F = speedFactor();
+    var end = count * step;
+    var neg = step < 0 && cls === 'euclid-coef';
+    var finish;
+    if (count > COLLAPSE_COEF){
+      var d = trailPath(0, step, count, wheelR);
+      addArc(L, d, cls, marker, animate, delay, collapsedMs * F, { neg: neg, collapsed: true, off: offWheel(0, end) });
+      finish = delay + collapsedMs * F;
+      var ang = cellAngle(end);
+      arcLabel(L, labelText, polar(CX, CY, RIM_TRACK_R + 50, ang), ang, animate, finish);
+    } else {
+      var per = Math.min(perHopMax, perHopBudget / count) * F;
+      for (var i = 0; i < count; i++){
+        var from = i * step, to = (i + 1) * step;
+        addArc(L, hopPath(from, to, wheelR), cls, marker, animate, delay + i * per, per, { neg: neg, off: offWheel(from, to) });
+      }
+      finish = delay + count * per;
+    }
+    return finish;
+  }
+
+  function addSlide(L, f, animate, delay, dur){
+    var from = posOf(f.raw);
+    var to = polar(CX, CY, ringMidR(0), cellAngle(f.r2));
+    var ang = cellAngle(f.r2);
+    var lp = reduceLabelPos(f);
+    var line = svgEl('line', { class: 'euclid-slide-path', x1: from[0], y1: from[1], x2: animate ? from[0] : to[0], y2: animate ? from[1] : to[1] });
+    var dot = svgEl('circle', { class: 'euclid-slide-dot', cx: animate ? from[0] : to[0], cy: animate ? from[1] : to[1], r: 5 });
+    var lab = mkText('euclid-reduce-label', animate ? [from[0], from[1]] : lp, ang, 15,
+      (f.dir === 'down' ? '− ' : '+ ') + f.k + '·' + euclid.N);
+    L.appendChild(line);
+    L.appendChild(dot);
+    L.appendChild(lab);
+    if (!animate) return;
+    var landed = null;
+    runFrames(delay, dur, function(e){
+      var x = from[0] + (to[0] - from[0]) * e, y = from[1] + (to[1] - from[1]) * e;
+      line.setAttribute('x2', x); line.setAttribute('y2', y);
+      dot.setAttribute('cx', x); dot.setAttribute('cy', y);
+      moveText(lab, [x + (lp[0] - to[0]) * e, y + (lp[1] - to[1]) * e], ang);
+    }, function(){ if (landed) landed(); });
+    return function(fn){ landed = fn; };
+  }
+
   function drawBeat(L, beat, animate){
     var N = euclid.N, a = euclid.a;
+    var F = speedFactor();
     var f = euclid.steps[beat.j];
-    var q, w;
+    var q, w, g, spotEl;
     if (beat.kind === 'intro'){
-      spot(L, N, 'input');
-      spot(L, a, 'active');
+      g = spot(L, N, 'input');
+      spotEl = spot(L, a, 'active');
+      revealAt(g, 0, animate);
+      revealAt(spotEl, 700 * F, animate);
     } else if (beat.kind === 'divide'){
       L.appendChild(svgEl('path', { class: 'euclid-wedge--dividend', d: wedgePath(f.r0 % N) }));
       L.appendChild(svgEl('path', { class: 'euclid-wedge--divisor', d: wedgePath(f.r1 % N) }));
-      for (q = 1; q <= f.q; q++) spot(L, q * f.r1, 'input', { ring0: true });
-      if (f.r2 !== 0) spot(L, f.r2, 'alt', { ring0: true });
+      var landing = [];
+      for (q = 1; q <= f.q; q++) landing.push(spot(L, q * f.r1, 'input', { ring0: true }));
+      // the faint band from cell 0 to the dividend (a full circle for N itself)
+      addArc(L, hopPath(0, f.r0, rimR), 'euclid-span', null, animate, 0, 300 * F);
+      var t0 = 300 * F, hopsEnd;
+      if (f.q > COLLAPSE_HOPS){
+        var dur = 1600 * F;
+        addArc(L, hopPath(0, f.q * f.r1, rimR), 'euclid-hop', 'euclid-arrow-hop', animate, t0, dur, { collapsed: true });
+        var mid = (0.5 + (f.q * f.r1 + 0.5) ) / 2 * G.wedgeAngle;
+        arcLabel(L, f.q + ' · ' + f.r1, nudge(polar(CX, CY, RIM_TRACK_R + 20, mid)), mid, animate, t0 + dur * 0.5);
+        for (q = 1; q <= f.q; q++) revealAt(landing[q - 1], t0 + dur * q / f.q, animate);
+        hopsEnd = t0 + dur;
+      } else {
+        var per = Math.min(450, 1600 / f.q) * F;
+        for (q = 0; q < f.q; q++){
+          addArc(L, hopPath(q * f.r1, (q + 1) * f.r1, rimR), 'euclid-hop', 'euclid-arrow-hop', animate, t0 + q * per, per);
+          revealAt(landing[q], t0 + (q + 1) * per, animate);
+        }
+        hopsEnd = t0 + f.q * per;
+      }
+      if (f.r2 !== 0){
+        addArc(L, hopPath(f.q * f.r1, f.r0, rimR), 'euclid-rem', 'euclid-arrow-rem', animate, hopsEnd, 450 * F);
+        spotEl = spot(L, f.r2, 'alt', { ring0: true });
+        revealAt(spotEl, hopsEnd + 450 * F, animate);
+      }
     } else if (beat.kind === 'coef'){
-      spot(L, f.raw, 'active');
+      var cnt = Math.abs(f.t), step = f.t < 0 ? -euclid.a : euclid.a;
+      var fin = drawTrail(L, cnt, step, 'euclid-coef', 'euclid-arrow-coef', animate, 0, 380, 2000, 1800, fmtSigned(f.t) + ' · ' + a);
+      spotEl = spot(L, f.raw, 'active');
+      revealAt(spotEl, fin, animate);
     } else if (beat.kind === 'reduce'){
       var faded = spot(L, f.raw, 'active');
       faded.classList.add('euclid-faded');
-      drawSlide(L, f);
-      spot(L, f.r2, 'result', { ring0: true });
+      var landed = addSlide(L, f, animate, 250 * F, 1100 * F);
+      spotEl = spot(L, f.r2, 'result', { ring0: true });
+      if (animate){
+        spotEl.style.opacity = '0';
+        landed(function(){
+          spotEl.style.opacity = '1';
+          spotEl.classList.add('euclid-flash');
+        });
+      }
     } else if (beat.kind === 'finale'){
       if (euclid.g === 1){
         var inv = euclid.inv;
-        L.appendChild(svgEl('path', { class: 'euclid-inverse-wedge', d: wedgePath(inv) }));
-        spot(L, 1, 'result', { ring0: true, cls: 'euclid-pulse' });
+        var iw = svgEl('path', { class: 'euclid-inverse-wedge', d: wedgePath(inv) });
+        L.appendChild(iw);
+        revealAt(iw, 0, animate);
+        // the inverse trail: inv hops of a from 0 land on inv * a = 1 + m * N
+        var raw = inv * a;
+        var m = (raw - 1) / N;
+        var tEnd = drawTrail(L, inv, a, 'euclid-final', 'euclid-arrow-result', animate, 400 * F, 380, 1500, 1500, inv + ' · ' + a);
+        if (m > 0){
+          var land = spot(L, raw, 'result');
+          revealAt(land, tEnd, animate);
+        }
+        var slideEnd = tEnd;
+        if (m > 0){
+          var sl = { raw: raw, r2: 1, k: m, dir: 'down' };
+          addSlide(L, sl, animate, tEnd + 100 * F, 900 * F);
+          slideEnd = tEnd + 1000 * F;
+        }
+        var one = spot(L, 1, 'result', { ring0: true, cls: 'euclid-pulse' });
+        revealAt(one, 0, animate);
         var ia = cellAngle(inv);
-        L.appendChild(mkText('euclid-inverse-label', polar(CX, CY, OUTER_R + 62, ia), ia, 17,
-          a + '⁻¹ ≡ ' + inv + ' (mod ' + N + ')'));
+        var il = mkText('euclid-inverse-label', polar(CX, CY, OUTER_R + 62, ia), ia, 17,
+          a + '⁻¹ ≡ ' + inv + ' (mod ' + N + ')');
+        L.appendChild(il);
+        revealAt(il, slideEnd + 200 * F, animate);
       } else {
         for (w = 0; w < N; w++){
-          if (w % euclid.g === 0) L.appendChild(svgEl('path', { class: 'euclid-orbit', d: wedgePath(w) }));
-          else L.appendChild(svgEl('path', { class: 'euclid-dim-sector', d: wedgePath(w) }));
+          var sec = svgEl('path', { class: w % euclid.g === 0 ? 'euclid-orbit' : 'euclid-dim-sector', d: wedgePath(w) });
+          L.appendChild(sec);
+          revealAt(sec, 0, animate);
         }
+        // the orbit {0, a, 2a, ...} mod N as a star polygon through the ring-0 cells
+        var pts = [], v = 0;
+        do { pts.push(polar(CX, CY, ringMidR(0), cellAngle(v))); v = (v + a) % N; } while (v !== 0);
+        var star = svgEl('path', { class: 'euclid-orbit-star', d: pathOf(pts) + ' Z' });
+        L.appendChild(star);
+        if (animate) drawIn(star, 500 * F, 1400 * F);
         var ug = svgEl('g', { class: 'euclid-unreachable' });
         ug.appendChild(svgEl('path', { class: 'euclid-unreachable-cell', d: cellPath(1, 0) }));
         ug.appendChild(mkText('euclid-unreachable-mark', polar(CX, CY, ringMidR(0), cellAngle(1)), cellAngle(1), G.fontSize, '✕'));
         L.appendChild(ug);
+        revealAt(ug, 2100 * F, animate);
       }
     }
   }
@@ -1179,7 +1449,7 @@
     return row.r + ' ≡ ' + fmtSigned(row.t) + ' · ' + euclid.a + ' (mod ' + euclid.N + ')';
   }
 
-  function renderBoard(idx, beat){
+  function renderBoard(idx, beat, animate){
     var N = euclid.N, a = euclid.a;
     euclidBoard.setAttribute('data-beat', String(idx));
     euclidBoard.setAttribute('data-beat-kind', beat.kind);
@@ -1231,6 +1501,10 @@
         td.textContent = cells[c];
         if (c === 4){
           td.className = 'euclid-cong' + (shown[i].confirmed ? ' is-confirmed' : '');
+          if (animate && beat.kind === 'reduce' && i === current){
+            td.classList.add('is-landing');
+            td.style.animationDelay = Math.round(1350 * speedFactor()) + 'ms';
+          }
         }
         tr.appendChild(td);
       }
@@ -1247,6 +1521,7 @@
 
   function renderFrame(idx, animate){
     if (reducedMotion()) animate = false;
+    euclid.gen++; // any redraw invalidates the timers and frames of the previous one
     G = wheelGeometry();
     euclid.idx = idx;
     var beat = euclid.beats[idx];
@@ -1257,7 +1532,7 @@
     euclidOverlay.appendChild(beatLayer);
     drawPersist(persistLayer, idx);
     drawBeat(beatLayer, beat, animate);
-    renderBoard(idx, beat);
+    renderBoard(idx, beat, animate);
   }
 
   /* ---------- run control ---------- */

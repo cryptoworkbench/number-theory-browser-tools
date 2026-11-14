@@ -116,7 +116,7 @@ async function openPage(browser, scen, opts = {}) {
   t.shot = async name => {
     if (!SHOTS) return;
     const r = await t.ev(`(function(){var a=document.querySelector('#wheel-panel .diagram-wrap').getBoundingClientRect();return{x:a.left+scrollX,y:a.top+scrollY,w:a.width,h:a.height}})()`);
-    const { data } = await S('Page.captureScreenshot', { format: 'png', captureBeyondViewport: true, clip: { x: Math.max(0, r.x - 30), y: Math.max(0, r.y - 10), width: r.w + 60, height: r.h + 20, scale: 1 } });
+    const { data } = await S('Page.captureScreenshot', { format: 'png', captureBeyondViewport: true, clip: { x: Math.max(0, r.x - 30), y: Math.max(0, r.y - 50), width: r.w + 60, height: r.h + 60, scale: 1 } });
     const file = join(process.env.EUCLID_SHOTS || tmpdir(), `euclid-${scen}-${name}-${DAY ? 'day' : 'night'}.png`);
     writeFileSync(file, Buffer.from(data, 'base64'));
     console.log('SHOT ' + file);
@@ -257,9 +257,110 @@ SC.lang = async b => {
   await t.close();
 };
 
-// Screenshot tour (only runs when named or with --shots).
+SC.arcs = async b => {
+  const t = await openPage(b, 'arcs');
+  await t.load('?lang=en');
+  await t.runPaused(26, 7);
+  await t.stepTo(1);
+  t.check(await t.count('.euclid-hop') === 3 && await t.count('.euclid-rem') === 1, 'beat 1: 3 hops and 1 remainder arc', [await t.count('.euclid-hop'), await t.count('.euclid-rem')]);
+  await t.stepTo(2);
+  t.check(await t.count('.euclid-coef--neg') === 3, 'beat 2: 3 negative coefficient arcs', await t.count('.euclid-coef--neg'));
+  const hm = await t.texts('.euclid-hole-marker');
+  t.check(hm.some(x => x.includes('−21')), 'beat 2: hole marker -21', hm);
+  await t.stepTo(5);
+  t.check(await t.count('.euclid-coef') === 4 && await t.count('.euclid-coef--neg') === 0, 'beat 5: 4 positive coefficient arcs', [await t.count('.euclid-coef'), await t.count('.euclid-coef--neg')]);
+  const sp = await t.texts('.euclid-spot');
+  t.check(sp.includes('28'), 'beat 5: spot 28', sp);
+  await t.shot('b5');
+  await t.stepTo(9);
+  const rl = await t.texts('.euclid-reduce-label');
+  t.check(rl.length === 1 && rl[0] === '+ 3·26', 'beat 9: reduce label', rl);
+  await t.close();
+};
+
+SC.collapse = async b => {
+  const t = await openPage(b, 'collapse');
+  await t.load('?lang=en');
+  await t.runPaused(60, 7, 10);
+  await t.stepTo(1);
+  t.check(await t.count('.euclid-hop') === 8 && await t.count('.euclid-hop--collapsed') === 0, 'N=60 a=7 beat 1: 8 separate hops', [await t.count('.euclid-hop'), await t.count('.euclid-hop--collapsed')]);
+  await t.stepTo(8);
+  t.check(await t.count('.euclid-coef--collapsed') === 1 && await t.count('.euclid-coef') === 1, 'beat 8: one collapsed trail', [await t.count('.euclid-coef--collapsed'), await t.count('.euclid-coef')]);
+  const lab = await t.texts('.euclid-arc-label');
+  t.check(lab.length === 1 && lab[0] === '−17 · 7', 'beat 8: label -17 . 7', lab);
+  await t.shot('n60-b8');
+  await t.runPaused(26, 1);
+  await t.stepTo(1);
+  t.check(await t.count('.euclid-hop--collapsed') === 1 && await t.count('.euclid-hop') === 1, 'a=1 beat 1: one collapsed hop', [await t.count('.euclid-hop--collapsed'), await t.count('.euclid-hop')]);
+  const l2 = await t.texts('.euclid-arc-label');
+  t.check(l2.length === 1 && l2[0] === '26 · 1', 'a=1 beat 1: label 26 . 1', l2);
+  await t.shot('a1-b1');
+  await t.close();
+};
+
+SC.park = async b => {
+  const t = await openPage(b, 'park');
+  await t.load('?lang=en');
+  await t.setDepth(2); await t.setN(26); await t.setA(7);
+  await t.click('euclid-run'); await t.instant();
+  const badges = await t.texts('.euclid-ring-badge');
+  t.check(badges.includes('ring 4'), 'ring 4 badge', badges);
+  t.check(await t.count('.euclid-final') >= 1, 'final trail exists', await t.count('.euclid-final'));
+  await t.shot('finale');
+  await t.close();
+};
+
+SC.noinv = async b => {
+  const t = await openPage(b, 'noinv');
+  await t.load('?lang=en');
+  await t.setN(12); await t.setA(8);
+  await t.click('euclid-run'); await t.instant();
+  t.check(await t.count('.euclid-orbit') === 3, '3 orbit sectors', await t.count('.euclid-orbit'));
+  t.check(await t.count('.euclid-orbit-star') === 1, 'orbit star', await t.count('.euclid-orbit-star'));
+  t.check(await t.count('.euclid-unreachable') === 1, 'unreachable mark', await t.count('.euclid-unreachable'));
+  t.check((await t.text('#euclid-result')).includes('gcd(8, 12) = 4'), 'footer gcd', await t.text('#euclid-result'));
+  await t.shot('finale');
+  await t.close();
+};
+
+SC.reduced = async b => {
+  const t = await openPage(b, 'reduced');
+  await t.S('Emulation.setEmulatedMedia', { features: [{ name: 'prefers-reduced-motion', value: 'reduce' }] });
+  await t.load('?lang=en');
+  await t.runPaused(26, 7);
+  await t.click('euclid-step');
+  t.check(await t.count('.euclid-hop[marker-end]') === 3, 'beat 1: 3 hops with arrowheads at once', await t.count('.euclid-hop[marker-end]'));
+  const st = await t.ev(`(function(){var p=document.querySelector('.euclid-hop');return{dash:p.style.strokeDasharray,op:p.style.opacity,tr:getComputedStyle(p).transitionDuration}})()`);
+  t.check(st.dash === '' && st.op === '', 'no dash or opacity animation state', st);
+  await t.close();
+};
+
+SC.stale = async b => {
+  const t = await openPage(b, 'stale');
+  await t.load('?lang=en');
+  // a first run left on a divide beat with timers in flight, then Exit and a new run at once
+  await t.runPaused(26, 7);
+  await t.stepTo(1);
+  await t.ev(`document.getElementById('euclid-exit').click();0`);
+  await t.setA(5);
+  await t.ev(`document.getElementById('euclid-run').click();0`);
+  await sleep(3000);
+  await t.ev(`(function(){var p=document.getElementById('euclid-play');p.click();0})()`);
+  const bt = await t.stepTo(1);
+  t.check(bt === 1, 'paused and stepped to beat 1', bt);
+  await sleep(2500);
+  t.check(await t.count('.euclid-hop') === 5, 'beat 1 has exactly q = 5 hops', await t.count('.euclid-hop'));
+  t.check(await t.count('.euclid-rem') === 1, 'one remainder arc', await t.count('.euclid-rem'));
+  t.check(await t.count('#euclid-overlay .euclid-span') === 1, 'one span band', await t.count('#euclid-overlay .euclid-span'));
+  await t.close();
+};
+
+// Screenshot tours (only run when named or with --shots). `shots` shows every
+// beat's finished frame (reduced motion draws each beat at once); `animshots`
+// catches beats part-way through their animation.
 SC.shots = async b => {
   const t = await openPage(b, 'shots', { h: 1100 });
+  await t.S('Emulation.setEmulatedMedia', { features: [{ name: 'prefers-reduced-motion', value: 'reduce' }] });
   await t.load('?lang=en');
   await t.shotSel('controls-idle', '.controls');
   await t.runPaused(26, 7);
@@ -273,11 +374,34 @@ SC.shots = async b => {
   await t.runPaused(26, 7, 2);
   await t.stepTo(5); await t.shot('d2-b5');
   await t.instant(); await t.shot('d2-finale');
+  await t.runPaused(26, 1);
+  await t.stepTo(1); await t.shot('a1-b1');
+  await t.close();
+};
+
+SC.animshots = async b => {
+  const t = await openPage(b, 'animshots', { h: 1100 });
+  await t.load('?lang=en');
+  const anim = async (name, target, wait) => { await t.stepTo(target - 1); await t.click('euclid-step'); await sleep(wait); await t.shot(name); };
+  await t.runPaused(26, 7);
+  await anim('divide-mid', 1, 900);
+  await t.runPaused(26, 7);
+  await anim('coef-mid', 2, 900);
+  await t.runPaused(26, 7);
+  await anim('reduce-mid', 3, 700);
+  await t.runPaused(26, 7);
+  await anim('coef5-mid', 5, 1100);
+  await t.runPaused(26, 7);
+  await anim('finale-mid', 11, 2200);
+  await sleep(3500); await t.shot('finale-done');
+  await t.runPaused(12, 8);
+  await anim('noinv-mid', 6, 1500);
+  await sleep(2500); await t.shot('noinv-done');
   await t.close();
 };
 
 /* ---------- main ---------- */
-const only = ONLY.length ? ONLY : Object.keys(SC).filter(n => n !== 'shots' || SHOTS);
+const only = ONLY.length ? ONLY : Object.keys(SC).filter(n => !['shots', 'animshots'].includes(n) || SHOTS);
 const browser = await connect();
 for (const name of only) {
   if (!SC[name]) { out(false, name, 'unknown scenario'); continue; }
