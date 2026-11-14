@@ -12402,6 +12402,9 @@ window.addEventListener('keydown', function(e){
 // units, up positive) shifts the view, so it holds through every redraw.
 var liftMode = false, liftDrag = null;
 var RING_LIFT_MAX = SIZE / 2, RING_LIFT_STEP = 10, LIFT_AXIS_PAST = 60;
+// Within this many screen pixels of Reset's height, a drag snaps the
+// centre onto it, and holds it there until pulled further.
+var LIFT_SNAP_PX = 14;
 function setRingLift(v){
   v = Math.max(-RING_LIFT_MAX, Math.min(RING_LIFT_MAX, v));
   var d = v - ringLift;
@@ -12472,7 +12475,11 @@ window.addEventListener('keydown', function(e){
     if (step){
       e.preventDefault();
       e.stopPropagation();
-      setRingLift(ringLift + step * RING_LIFT_STEP);
+      // A step that crosses Reset's height, or ends nearer it than half a
+      // step, lands on it.
+      var next = ringLift + step * RING_LIFT_STEP;
+      if (ringLift !== 0 && (Math.sign(next) !== Math.sign(ringLift) || Math.abs(next) < RING_LIFT_STEP / 2)) next = 0;
+      setRingLift(next);
       return;
     }
   }
@@ -12493,7 +12500,8 @@ window.addEventListener('pointerdown', function(e){
 window.addEventListener('pointermove', function(e){
   if (!liftDrag || e.pointerId !== liftDrag.id) return;
   e.preventDefault();
-  setRingLift(liftDrag.lift - (e.clientY - liftDrag.y) / liftDrag.scale);
+  var v = liftDrag.lift - (e.clientY - liftDrag.y) / liftDrag.scale;
+  setRingLift(Math.abs(v) * liftDrag.scale < LIFT_SNAP_PX ? 0 : v);
 }, true);
 ['pointerup', 'pointercancel'].forEach(function(type){
   window.addEventListener(type, function(e){
