@@ -3031,6 +3031,11 @@
   :root:root.is-card-spin-solid .fs-win-body.is-ring:is(:has(> svg.ring-svg:is(.is-zoomed, .has-wheel)), .is-pane-wheel):has(> #spin-ruler) > #spin-ruler.is-own-card.is-on-ring{ background:var(--surface); -webkit-backdrop-filter:none; backdrop-filter:none; }
   :root:root.is-card-key-frost .fs-win-body.is-ring:has(> #combine-key) > #combine-key.combine-key.is-on-ring{ background:linear-gradient(var(--panel), var(--panel)), color-mix(in srgb, var(--panel) 55%, transparent); -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); }
   :root:root.is-card-key-solid .fs-win-body.is-ring:has(> #combine-key) > #combine-key.combine-key.is-on-ring{ background:var(--surface); -webkit-backdrop-filter:none; backdrop-filter:none; }
+  /* With the bottom panel up, its band down to the bottom bar takes the
+     turning ruler's card and the arrow key's card into itself: no ground,
+     edge or frost of their own, at rest, hovered or kept, the band's look
+     (the panel's, frosted, solid or faint) theirs. */
+  .fs-win-body.is-ring:has(> svg.ring-svg:is(.is-zoomed, .has-wheel)):has(> .ring-split:not([hidden]) #subgroups-list-panel.is-sub-on-ring):has(> .sub-foot-band:not([hidden])) > :is(#spin-ruler.is-own-card, #combine-key.combine-key){ background:none; box-shadow:none; border-color:transparent; -webkit-backdrop-filter:none; backdrop-filter:none; }
   /* The element expression table's card is a banner too, as the colour
      key's is: from the window's one edge to the other, its ground and its
      top and bottom edges on a layer of its own, the frost under the
@@ -13656,7 +13661,10 @@ exprSlotEl.parentNode.addEventListener('pointermove', function(e){
   tellGenHot(body.classList.contains('is-top-hot') && !!genRow() && genRow().classList.contains('is-top-row-hot'));
   tellCtlHot();
   var pr = boxOf(subgroupsPanelEl), pt = pr.top + (parseFloat(subgroupsPanelEl.style.getPropertyValue('--sub-t')) || 0);
-  subgroupsPanelEl.classList.toggle('is-sub-hot', pr.width > 0 && ptX(e) >= pr.left - 8 && ptX(e) <= pr.right + 8 && ptY(e) >= pt && ptY(e) <= pt + (parseFloat(subgroupsPanelEl.style.getPropertyValue('--sub-h')) || 0));
+  // The band under the panel, with the cards it takes in, is the panel's too.
+  var pb = pt + (parseFloat(subgroupsPanelEl.style.getPropertyValue('--sub-h')) || 0);
+  if (!subFootEl.hidden && subFootEl.offsetParent) pb = Math.max(pb, boxOf(subFootEl).bottom);
+  subgroupsPanelEl.classList.toggle('is-sub-hot', pr.width > 0 && ptX(e) >= pr.left - 8 && ptX(e) <= pr.right + 8 && ptY(e) >= pt && ptY(e) <= pb);
   var card = ringHeadEl.querySelector('.ring-hover-formula');
   if (card){
     var fr = boxOf(card);
