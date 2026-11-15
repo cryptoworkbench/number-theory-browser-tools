@@ -1030,13 +1030,13 @@
      coset's walk fades in as it is drawn — only on the step that brings it
      in (.is-coset-new), not on every redraw a turn of the ring makes. */
   .bead.is-dim, .bead-label.is-dim{ opacity:.22; }
-  .ring.is-coset-new :is(.walk-el, .walk-inv, .walk-both, .walk-duo):not(.is-past){ animation:coset-in .25s ease-out; }
+  :is(.ring, .ring-paths).is-coset-new :is(.walk-el, .walk-inv, .walk-both, .walk-duo):not(.is-past){ animation:coset-in .25s ease-out; }
   @keyframes coset-in{ from{ opacity:0; } }
   /* After a flip, the new arrows come in. */
-  .ring > :is(.walks, .walk-scalar).is-respawn{ animation:arrows-respawn .35s ease-out; }
+  :is(.ring, .ring-paths) > :is(.walks, .walk-scalar).is-respawn{ animation:arrows-respawn .35s ease-out; }
   @keyframes arrows-respawn{ from{ opacity:0; } }
-  @media (prefers-reduced-motion: reduce){ .ring > :is(.walks, .walk-scalar).is-respawn{ animation:none; } }
-  @media (prefers-reduced-motion: reduce){ .ring.is-coset-new :is(.walk-el, .walk-inv, .walk-both, .walk-duo){ animation:none; } }
+  @media (prefers-reduced-motion: reduce){ :is(.ring, .ring-paths) > :is(.walks, .walk-scalar).is-respawn{ animation:none; } }
+  @media (prefers-reduced-motion: reduce){ :is(.ring, .ring-paths).is-coset-new :is(.walk-el, .walk-inv, .walk-both, .walk-duo){ animation:none; } }
   /* Cosets already stepped past keep their walks, faded. */
   .ring.is-coset .is-past{ opacity:.28; }
   .bead-label{ fill:var(--accent-ink); font-family:var(--font-mono); font-weight:600; text-anchor:middle; dominant-baseline:central; pointer-events:none; }
@@ -1234,7 +1234,7 @@
   .dh-ctl > button:disabled{ opacity:.45; cursor:default; }
   .dh-ctl > .dh-new{ margin-left:auto; }
   .dh-ctl > .dh-colours > button{ font:inherit; font-size:.74em; line-height:1.2; padding:4px 8px; }
-  .ring.is-dh > .walks{ opacity:.15; }
+  :is(.ring, .ring-paths).is-dh > .walks{ opacity:.15; }
   .ring.is-dh > :is(.combine-halo, .combine-raw-g, .walk-scalar:not(.walk-dh)){ display:none; }
   .walk-dh.is-alice{ --walk:var(--dh-alice); }
   .walk-dh.is-bob{ --walk:var(--dh-bob); }
@@ -1309,15 +1309,31 @@
      ring turns: the host takes the ring svg's place and clip, its window the
      wheel's clip on the main area, which stays put as the wheel turns in it;
      the wheel's own clip path is left to pictures of the ring. The card's
-     blur over it has a layer of its own between the two, so a turn paints
-     only the card's patch again. */
-  .ring-wheel-host, .ring-frost-svg{ position:absolute; left:0; top:0; width:0; height:0; pointer-events:none; z-index:-2; }
+     blur over it has a layer of its own between the two, turned with it. */
+  .ring-wheel-host, .ring-frost-host, .ring-paths-host{ position:absolute; left:0; top:0; width:0; height:0; pointer-events:none; z-index:-2; }
   .ring-wheel-window{ position:absolute; overflow:hidden; }
   .ring-wheel-svg{ position:absolute; overflow:visible; will-change:transform; }
-  .ring-frost-svg{ overflow:visible; }
+  /* The card's blur: a window on the card, on its ground, the blurred wheel
+     turning in it as the wheel does; its own clip and ground are left to
+     pictures of the ring. */
+  .ring-frost-window{ position:absolute; overflow:hidden; display:none; }
+  .ring-frost-window.is-on{ display:block; }
+  :root.is-card-lines-solid .ring-frost-window{ display:none; }
+  .ring-frost-svg{ position:absolute; overflow:visible; will-change:transform; }
+  #ring-frost-svg .ring-combine-frost{ clip-path:none !important; }
+  #ring-frost-svg .ring-combine-ground{ display:none; }
   #ring-wheel-svg .ring-wheel{ clip-path:none !important; }
-  .ring-wheel-host.is-swap-hidden, .ring-frost-svg.is-swap-hidden{ visibility:hidden; }
-  :root.is-preview :is(.ring-wheel-host, .ring-frost-svg){ display:none; }
+  /* Over both, the ring's guide, cord, mirror axis and paths, which only
+     ever turn with it between redraws: a layer of their own, turned whole
+     by the compositor as the wheel is, so neither a turn nor an arrow
+     growing in the ring paints them again. */
+  .ring-paths-svg{ position:absolute; left:0; top:0; width:100%; height:100%; overflow:visible; will-change:transform; }
+  .ring-wheel-host.is-swap-hidden, .ring-frost-host.is-swap-hidden, .ring-paths-host.is-swap-hidden{ visibility:hidden; }
+  :root.is-preview :is(.ring-wheel-host, .ring-frost-host, .ring-paths-host){ display:none; }
+  /* On the stacked page the frame holds the paths' layer in front of its
+     own ground; the wheel's stay out of sight there, as they always were. */
+  :root.is-mobile .diagram-frame{ isolation:isolate; }
+  :root.is-mobile :is(.ring-wheel-host, .ring-frost-host){ display:none; }
   /* The wheel reaches up under the rows of controls (ringWheelFill): the
      ring is drawn behind them, as a zoomed ring is, and the rows frost
      over it as they do over a zoomed ring (has-wheel, see topBand). */
@@ -3572,7 +3588,8 @@
         </div>
         <div class="ring-head" id="ring-head"></div>
         <div class="ring-wheel-host" id="ring-wheel-host" aria-hidden="true"><div class="ring-wheel-window" id="ring-wheel-window"><svg class="ring-wheel-svg" id="ring-wheel-svg" viewBox="0 0 760 760" focusable="false"><g id="ring-wheel-turn"></g></svg></div></div>
-        <svg class="ring-frost-svg" id="ring-frost-svg" viewBox="0 0 760 760" aria-hidden="true" focusable="false"><g id="ring-frost-turn"></g></svg>
+        <div class="ring-frost-host" id="ring-frost-host" aria-hidden="true"><div class="ring-frost-window" id="ring-frost-window"><svg class="ring-frost-svg" id="ring-frost-svg" viewBox="0 0 760 760" focusable="false"><g id="ring-frost-turn"></g></svg></div></div>
+        <div class="ring-paths-host" id="ring-paths-host" aria-hidden="true"><svg class="ring-paths-svg" id="ring-paths-svg" viewBox="0 0 760 760" focusable="false"><g id="ring-paths-turn" class="ring-paths"></g></svg></div>
         <svg class="ring-svg" id="ring-svg" viewBox="0 0 760 760" role="img">
           <g id="ring-dynamic"></g>
           <g id="flog-layer"></g>
@@ -4089,7 +4106,19 @@ var ringSvgEl = $('ring-svg');
 // the ring's turn; the wheel lives in the ring itself while a flip carries
 // the drawing (wheelInRing).
 var wheelHostEl = $('ring-wheel-host'), wheelWindowEl = $('ring-wheel-window'), wheelLayerEl = $('ring-wheel-svg'), wheelTurnEl = $('ring-wheel-turn');
-var frostLayerEl = $('ring-frost-svg'), frostTurnEl = $('ring-frost-turn'), wheelInRing = false;
+var frostHostEl = $('ring-frost-host'), frostWindowEl = $('ring-frost-window'), frostLayerEl = $('ring-frost-svg'), frostTurnEl = $('ring-frost-turn'), wheelInRing = false;
+// The ring svg's view box mapped into its box in px (see syncWheelLayer),
+// and the card the blur's window lies on, in the ring's units.
+var ringLayerMap = null, frostCard = null;
+// A redraw for a turn alone keeps the wheel's group as it is in its layer
+// (wheelReused, see drawRingWheel), its new turn made up by the layer's own
+// (wheelTurnOffset degrees), so neither it nor the card's blur of it is
+// painted again.
+var wheelReused = false, wheelTurnOffset = 0;
+// The ring's guide, cord, mirror axis and paths have a layer of their own
+// over the wheel's (pathsTurnEl, see drawRing), turned with it and carried
+// in the ring with it.
+var pathsHostEl = $('ring-paths-host'), pathsLayerEl = $('ring-paths-svg'), pathsTurnEl = $('ring-paths-turn');
 // Where the ring's centre lies in the wheel svg, in px, for turning it.
 var wheelOrigin = null;
 function ringWheelG(){ return wheelTurnEl.querySelector('.ring-wheel') || ringDynamicEl.querySelector('.ring > .ring-wheel'); }
@@ -5917,16 +5946,19 @@ function drawRing(parent, G, beads, box, paint){
   // drawNecklace), and redrawn from the beads' places as they rearrange: in
   // its own layer under the ring, or in the ring while a flip carries it.
   if (ringWheelShown(G)){
-    var wheelEl = (wheelInRing ? ring : wheelTurnEl).appendChild(svgEl('g', { 'class': 'dhc-wheel ring-wheel', 'aria-hidden': 'true' }));
+    var wheelEl = (wheelReused && wheelTurnEl.querySelector(':scope > .ring-wheel')) || (wheelInRing ? ring : wheelTurnEl).appendChild(svgEl('g', { 'class': 'dhc-wheel ring-wheel', 'aria-hidden': 'true' }));
     ring.redrawWheel = function(places){ drawRingWheel(wheelEl, G, places || place, m, box, beadR); };
   }
-  if (state.guide) ring.appendChild(svgEl('circle', { 'class': 'guide', cx: box.cx, cy: box.cy, r: box.R }));
+  // Over it, what only turns with the ring between redraws, in its own layer
+  // (but for a preview, which has no layers).
+  var under = wheelInRing || IS_PREVIEW ? ring : pathsTurnEl;
+  if (state.guide) under.appendChild(svgEl('circle', { 'class': 'guide', cx: box.cx, cy: box.cy, r: box.R }));
   if (m > 1 && mirrorShown(G)){
     // Through the identity, wherever the turn has put it.
     var axisAt = dirSign() * 360 * place[G.identity] / m;
     var axisA = polar(box.cx, box.cy, box.R + beadR + 6, axisAt);
     var axisB = polar(box.cx, box.cy, box.R + beadR + 6, axisAt + 180);
-    ring.appendChild(svgEl('line', {
+    under.appendChild(svgEl('line', {
       'class': 'mirror-axis',
       x1: num(axisA[0]), y1: num(axisA[1]), x2: num(axisB[0]), y2: num(axisB[1])
     }));
@@ -5938,7 +5970,7 @@ function drawRing(parent, G, beads, box, paint){
       var p = at(i);
       pts.push(num(p[0]) + ',' + num(p[1]));
     }
-    ring.appendChild(svgEl('polygon', {
+    under.appendChild(svgEl('polygon', {
       'class': 'cord', points: pts.join(' '),
       'stroke-width': num(Math.max(1.5, beadR * 0.28))
     }));
@@ -6003,7 +6035,7 @@ function drawRing(parent, G, beads, box, paint){
     walksFrom(coset ? coset.start : G.identity, false);
     // The walks share one group, which a rearrangement redraws as the beads
     // move: places may then be fractional.
-    var walksEl = ring.appendChild(svgEl('g', { 'class': 'walks' }));
+    var walksEl = under.appendChild(svgEl('g', { 'class': 'walks' }));
     // Raw results, the ring menu's choices on the congruence wheel, for the
     // forward path (raw 'el', the walk by h) and the backward path ('inv',
     // by h's inverse; 'both' for the one walk standing for both): per
@@ -6106,6 +6138,8 @@ function drawRing(parent, G, beads, box, paint){
     });
   }
 
+  // The layer wears the ring's classes, for what they style in its paths.
+  if (under !== ring) pathsTurnEl.setAttribute('class', ring.getAttribute('class').replace(/^ring\b/, 'ring-paths'));
   parent.appendChild(ring);
   drawFlog(G, beads, box, beadR);
   return ring;
@@ -7775,7 +7809,7 @@ ringExitEl.addEventListener('click', exitDesktop);
 // change made elsewhere.
 var bodyHasMo = window.MutationObserver ? new MutationObserver(syncRingBodyHas) : null, bodyHasSeen = [];
 function syncRingBodyHas(){
-  [wheelHostEl, frostLayerEl].forEach(function(el){ el.classList.toggle('is-swap-hidden', ringSvgEl.classList.contains('is-swap-hidden')); });
+  [wheelHostEl, frostHostEl, pathsHostEl].forEach(function(el){ el.classList.toggle('is-swap-hidden', ringSvgEl.classList.contains('is-swap-hidden')); });
   document.querySelectorAll('.fs-win-body.is-ring').forEach(function(b){
     b.classList.toggle('has-zoomed-ring', !!b.querySelector(':scope > svg.ring-svg.is-zoomed'));
     b.classList.toggle('has-wheel-ring', !!b.querySelector(':scope > svg.ring-svg.has-wheel'));
@@ -7794,7 +7828,7 @@ if (bodyHasMo){
 // and in an isomorphism pane's ring (ringwin=1), and the rows some of them
 // share.
 var FS_PANELS = [
-  { key: 'ring', ids: ['group-controls', 'keep-top-row', 'arrange-field', 'gen-field', 'subgroup-options', 'split-btn', 'ring-head', 'ring-wheel-host', 'ring-frost-svg', 'ring-svg', 'lap-key', 'curve-plot', 'poly-plot', 'cayley-plot', 'dh-plot', 'dhc-plot', 'pizza-plot', 'fset-win-0', 'fset-win-1', 'flog-win', 'combine-win', 'expr-slot', 'spin-ruler', 'combine-key', 'akey-more', 'akey-more-top', 'legend-panel', 'legend-panel-pane', 'genexp-info', 'genexp-info-pane', 'ring-bar', 'bar-formulas-l', 'bar-formulas-r', 'ring-corner', 'formula-level', 'rotate-ctl', 'ring-split', 'iso-pane', 'iso-add', 'iso-add-left', 'ring-exit'], rows: { 'group-controls': 'ctl', 'keep-top-row': 'ctl', 'gen-field': 'gen', 'subgroup-options': 'gen', 'split-btn': 'gen' } }
+  { key: 'ring', ids: ['group-controls', 'keep-top-row', 'arrange-field', 'gen-field', 'subgroup-options', 'split-btn', 'ring-head', 'ring-wheel-host', 'ring-frost-host', 'ring-paths-host', 'ring-svg', 'lap-key', 'curve-plot', 'poly-plot', 'cayley-plot', 'dh-plot', 'dhc-plot', 'pizza-plot', 'fset-win-0', 'fset-win-1', 'flog-win', 'combine-win', 'expr-slot', 'spin-ruler', 'combine-key', 'akey-more', 'akey-more-top', 'legend-panel', 'legend-panel-pane', 'genexp-info', 'genexp-info-pane', 'ring-bar', 'bar-formulas-l', 'bar-formulas-r', 'ring-corner', 'formula-level', 'rotate-ctl', 'ring-split', 'iso-pane', 'iso-add', 'iso-add-left', 'ring-exit'], rows: { 'group-controls': 'ctl', 'keep-top-row': 'ctl', 'gen-field': 'gen', 'subgroup-options': 'gen', 'split-btn': 'gen' } }
 ];
 // Earlier versions kept a simulated desktop's windows under this key; nothing
 // reads it any more, so a visit clears it.
@@ -12625,13 +12659,19 @@ function fitRingHead(){
 function ringDrawn(G){ return !!G && G.order <= MAX_DRAW; }
 function drawNecklace(G, paint){
   ringSvgEl.setAttribute('viewBox', '0 0 ' + SIZE + ' ' + SIZE);
-  // The wheel's layer and the card's blur are drawn again with the ring,
-  // unless a slow step keeps the ring (and so the wheel) as it is.
+  // The layers are drawn again with the ring, unless a slow step keeps the
+  // ring (and so the wheel) as it is; a turn alone keeps the wheel and the
+  // card's blur of it too, where it can (see drawRingWheel).
+  wheelReused = !!(ringKept && !ringKept.ring && !wheelInRing && !ringWheelUpright && ringWheelShown(G) && wheelTurnEl.querySelector(':scope > .ring-wheel'));
   if (!(ringKept && ringKept.ring)){
-    frostTurnEl.replaceChildren();
-    wheelTurnEl.replaceChildren();
-    frostTurnEl.removeAttribute('transform');
+    if (!wheelReused){
+      frostTurnEl.replaceChildren();
+      wheelTurnEl.replaceChildren();
+      wheelTurnOffset = 0;
+    }
+    pathsTurnEl.replaceChildren();
     turnWheelLayer(0);
+    placeFrostWindow();
   }
   var subs = [], kept = ringKept;
   // Kept in place with the ring itself, or moved into the new drawing.
@@ -12689,17 +12729,22 @@ function drawNecklace(G, paint){
     ringSvgEl.classList.toggle('is-zoomed', z > 1);
     syncRingBodyHas();
     refitRingWheel(box, beads.length);
+    // Without a wheel, which takes it with its own, the paths' layer still
+    // takes the ring svg's place.
+    if (!ringKept && !ringWheelG()) syncWheelLayer();
     syncLiftUi();
   }
+  wheelReused = false;
 }
 // The wheel's layer takes the ring svg's place, size, view box and clip,
 // so the two draw as one: read while the layout is fresh from the fill.
 function syncWheelLayer(){
   // Moved by however far it lies from the ring svg now, in the page's px.
-  var r = boxOf(ringSvgEl), l = boxOf(wheelHostEl), hs = wheelHostEl.style, fs = frostLayerEl.style;
-  var left = (parseFloat(hs.left) || 0) + r.left - l.left, top = (parseFloat(hs.top) || 0) + r.top - l.top;
+  // (The paths' host, laid out wherever the wheel's may be hidden, is the one measured.)
+  var r = boxOf(ringSvgEl), l = boxOf(pathsHostEl), hs = wheelHostEl.style, fs = frostHostEl.style, ps = pathsHostEl.style;
+  var left = (parseFloat(ps.left) || 0) + r.left - l.left, top = (parseFloat(ps.top) || 0) + r.top - l.top;
   var clip = getComputedStyle(ringSvgEl).clipPath, vb = ringSvgEl.viewBox.baseVal, vbText = ringSvgEl.getAttribute('viewBox');
-  [hs, fs].forEach(function(st){
+  [hs, fs, ps].forEach(function(st){
     st.left = num(left) + 'px';
     st.top = num(top) + 'px';
     st.width = num(r.width) + 'px';
@@ -12707,10 +12752,12 @@ function syncWheelLayer(){
   });
   hs.clipPath = clip;
   fs.clipPath = clip;
+  ps.clipPath = clip;
   // The view box fitted into the box and centred in it, as the ring svg draws it.
   var k = vb && vb.width ? Math.min(r.width / vb.width, r.height / vb.height) : 1;
   var ox = vb ? (r.width - vb.width * k) / 2 - vb.x * k : 0, oy = vb ? (r.height - vb.height * k) / 2 - vb.y * k : 0;
   var c = ringWheelClip ? { x: ox + ringWheelClip.x * k, y: oy + ringWheelClip.y * k, w: ringWheelClip.w * k, h: ringWheelClip.h * k } : { x: -r.width, y: -r.height, w: 3 * r.width, h: 3 * r.height };
+  ringLayerMap = { k: k, ox: ox, oy: oy, w: r.width, h: r.height };
   var ws = wheelWindowEl.style, ss = wheelLayerEl.style;
   ws.left = num(c.x) + 'px';
   ws.top = num(c.y) + 'px';
@@ -12723,21 +12770,65 @@ function syncWheelLayer(){
   var box = ringBox();
   wheelOrigin = [ox + box.cx * k, oy + box.cy * k];
   ss.transformOrigin = num(wheelOrigin[0]) + 'px ' + num(wheelOrigin[1]) + 'px';
-  [wheelLayerEl, frostLayerEl].forEach(function(el){ if (el.getAttribute('viewBox') !== vbText) el.setAttribute('viewBox', vbText); });
+  pathsLayerEl.style.transformOrigin = ss.transformOrigin;
+  frostLayerEl.style.transformOrigin = ss.transformOrigin;
+  placeFrostWindow();
+  [wheelLayerEl, frostLayerEl, pathsLayerEl].forEach(function(el){ if (el.getAttribute('viewBox') !== vbText) el.setAttribute('viewBox', vbText); });
 }
 // The wheel turned with the ring, by the compositor alone.
 function turnWheelLayer(angle){
-  var v = angle ? 'rotate(' + num(angle) + 'deg)' : '';
-  if (wheelLayerEl.style.transform !== v) wheelLayerEl.style.transform = v;
+  var v = angle ? 'rotate(' + num(angle) + 'deg)' : '', w = angle + wheelTurnOffset ? 'rotate(' + num(angle + wheelTurnOffset) + 'deg)' : '';
+  if (wheelLayerEl.style.transform !== w) wheelLayerEl.style.transform = w;
+  if (frostLayerEl.style.transform !== w) frostLayerEl.style.transform = w;
+  if (pathsLayerEl.style.transform !== v) pathsLayerEl.style.transform = v;
+}
+// The wheel's group (or a copy of it) turned as drawing it again now would
+// turn it, at rest: by its turn, its clip turned back.
+function trueWheelTurn(g, live){
+  var turn = live.turn || 0, box = ringBox(), rect = g.querySelector('.ring-wheel-clip > rect');
+  if (turn) g.setAttribute('transform', 'rotate(' + num(turn) + ' ' + box.cx + ' ' + box.cy + ')');
+  else g.removeAttribute('transform');
+  if (rect){
+    if (turn) rect.setAttribute('transform', 'rotate(' + num(-0 - turn) + ' ' + box.cx + ' ' + box.cy + ')');
+    else rect.removeAttribute('transform');
+  }
+}
+// The layer's make-up turn folded back into the wheel's group, which a
+// flip or rearrangement carries in the ring.
+function foldWheelTurn(){
+  var g = wheelTurnEl.querySelector(':scope > .ring-wheel');
+  wheelTurnOffset = 0;
+  if (!g || g.drawnTurn === g.turn) return;
+  trueWheelTurn(g, g);
+  g.drawnTurn = g.turn;
+}
+// The blur's window on the card, while the blur is in its layer, with the
+// blurred wheel's svg laid in it where the ring svg lies.
+function placeFrostWindow(){
+  var on = !!(frostCard && ringLayerMap && frostTurnEl.querySelector(':scope > .ring-combine-frost'));
+  frostWindowEl.classList.toggle('is-on', on);
+  if (!on) return;
+  var m = ringLayerMap, c = frostCard, win = { x: m.ox + c.x * m.k, y: m.oy + c.y * m.k, w: c.width * m.k, h: c.height * m.k }, ws = frostWindowEl.style, ss = frostLayerEl.style;
+  ws.left = num(win.x) + 'px';
+  ws.top = num(win.y) + 'px';
+  ws.width = num(win.w) + 'px';
+  ws.height = num(win.h) + 'px';
+  ws.borderRadius = num(c.rx * m.k) + 'px';
+  ss.left = num(-win.x) + 'px';
+  ss.top = num(-win.y) + 'px';
+  ss.width = num(m.w) + 'px';
+  ss.height = num(m.h) + 'px';
 }
 // A flip carries the wheel with the ring's drawing, as it always did: it
 // goes into the ring (in front of the rest, the card's blur after it), and
 // back to its layer when the flip is over.
 function wheelIntoRing(ring){
-  var parts = Array.prototype.slice.call(wheelTurnEl.children).concat(Array.prototype.slice.call(frostTurnEl.children));
+  foldWheelTurn();
+  var parts = ringLayerParts(false);
   turnWheelLayer(0);
   if (parts.length) ring.insertBefore(parts.reduce(function(f, el){ f.appendChild(el); return f; }, document.createDocumentFragment()), ring.firstChild);
   wheelInRing = true;
+  placeFrostWindow();
 }
 function wheelOutOfRing(){
   wheelInRing = false;
@@ -12745,18 +12836,35 @@ function wheelOutOfRing(){
   if (!ring) return;
   ring.querySelectorAll(':scope > .ring-wheel').forEach(function(el){ wheelTurnEl.appendChild(el); });
   ring.querySelectorAll(':scope > .ring-combine-frost').forEach(function(el){ frostTurnEl.appendChild(el); });
-  var tf = ring.getAttribute('transform'), at = /rotate\((-?[\d.]+)/.exec(tf || '');
-  if (tf) frostTurnEl.setAttribute('transform', tf); else frostTurnEl.removeAttribute('transform');
+  if (!IS_PREVIEW){
+    ring.querySelectorAll(':scope > :is(.guide, .mirror-axis, .cord, .walks)').forEach(function(el){ pathsTurnEl.appendChild(el); });
+    pathsTurnEl.setAttribute('class', ring.getAttribute('class').replace(/^ring\b/, 'ring-paths'));
+  }
+  var at = /rotate\((-?[\d.]+)/.exec(ring.getAttribute('transform') || '');
   turnWheelLayer(at ? +at[1] : 0);
+  placeFrostWindow();
 }
 // A copy of the ring svg for a picture of it (the PNG, the swap): the
 // wheel's layer put back in the copy's ring, in front, as it lies under it.
 function ringSvgWithWheel(clone){
   var ring = clone.querySelector('.ring'), parts = document.createDocumentFragment();
-  Array.prototype.forEach.call(wheelTurnEl.children, function(el){ parts.appendChild(el.cloneNode(true)); });
-  Array.prototype.forEach.call(frostTurnEl.children, function(el){ parts.appendChild(el.cloneNode(true)); });
+  ringLayerParts(true).forEach(function(el){ parts.appendChild(el); });
   if (ring && parts.firstChild) ring.insertBefore(parts, ring.firstChild);
   return clone;
+}
+// What the layers hold, in the order the ring draws it under the rest:
+// the wheel, the card's blur, then the guide, cord, mirror axis and paths
+// (copies, for a picture).
+function ringLayerParts(copies){
+  var parts = [];
+  [wheelTurnEl, frostTurnEl, pathsTurnEl].forEach(function(host){
+    Array.prototype.forEach.call(host.children, function(el){
+      var copy = copies ? el.cloneNode(true) : el;
+      if (copies && el.drawnTurn !== el.turn) trueWheelTurn(copy, el);
+      parts.push(copy);
+    });
+  });
+  return parts;
 }
 // The congruence wheel, filled out to the ring's area as it is now: on
 // every redraw, and whenever that area changes size (a pane opened or
@@ -12793,6 +12901,7 @@ if (typeof ResizeObserver === 'function' && !IS_PREVIEW){
 function refitShownWheel(){
   var g = ringWheelG();
   if (g && g.cells) refitRingWheel(ringBox(), g.cells.m);
+  else if (drawn) syncWheelLayer();
 }
 
 // Congruence wheel (the main area's menu): the Equivalence Wheel
@@ -12968,7 +13077,7 @@ var COMBINE_CARD_PAD = 10;
 function cardCombineLines(G){
   // A slow step keeps the blur drawn last time (its copy of the kept wheel
   // costs the most to build) and only moves its plate: kept, or dropped here.
-  var keptFrost = ringKept && ringKept.ring ? frostTurnEl.querySelector(':scope > .ring-combine-frost') : null;
+  var keptFrost = ringKept && (ringKept.ring || wheelReused) ? frostTurnEl.querySelector(':scope > .ring-combine-frost') : null;
   var dropKept = function(){ if (keptFrost) keptFrost.remove(); };
   if (!ringWheelShown(G)){ dropKept(); return; }
   var lines = ringDynamicEl.querySelectorAll('.ring-combine-box, text.ring-combine, .ring-combine-copy');
@@ -12979,6 +13088,7 @@ function cardCombineLines(G){
   var x0 = ext.x0, y0 = ext.y0, x1 = ext.x1, y1 = ext.y1;
   var card = { x: num(x0 - COMBINE_CARD_PAD), y: num(y0 - COMBINE_CARD_PAD / 2), width: num(x1 - x0 + 2 * COMBINE_CARD_PAD), height: num(y1 - y0 + COMBINE_CARD_PAD), rx: 10 };
   ringDynamicEl.insertBefore(svgEl('rect', Object.assign({ 'class': 'ring-combine-plate' }, card)), lines[0]);
+  frostCard = card;
   wheel.id = 'ring-wheel-el';
   if (keptFrost){
     // Its two rects take the new plate, as new ones would have it.
@@ -12998,6 +13108,7 @@ function cardCombineLines(G){
   }
   var turnedBy = /rotate\((-?[\d.]+)/.exec(ring.getAttribute('transform') || '');
   if (turnedBy) turnRingWheelClip(ring, +turnedBy[1], ringBox());
+  placeFrostWindow();
   syncCombineCardHot(combineCardPointer);
 }
 // How far some of the ring's drawn elements reach, { x0, y0, x1, y1 } in
@@ -13109,6 +13220,7 @@ function groundCombineCard(){
   for (var el = ringSvgEl; el && el.nodeType === 1; el = el.parentNode) key += '|' + el.getAttribute('class') + '/' + (el.getAttribute('style') || '');
   if (!groundCache || groundCache.key !== key) groundCache = { key: key, fill: groundBehind(ringSvgEl) };
   ground.style.fill = groundCache.fill;
+  frostWindowEl.style.backgroundColor = groundCache.fill;
 }
 new MutationObserver(groundCombineCard).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
 // Its tint firms up while the pointer is over the plate.
@@ -13145,17 +13257,38 @@ var wheelWalk = 0, wheelLit = [];
 // the next ring's wheel instead of being drawn again.
 var wheelKept = null;
 function drawRingWheel(g, G, place, m, box, beadR){
-  var N = G.n, ring = ringWheelRing(box.R), R0 = box.R + beadR + 4, depth = ringWheelDepth, outer = R0 + depth * ring, wedge = 360 / m;
-  g.replaceChildren();
-  g.removeAttribute('clip-path');
-  g.turn = 0;
+  var N = G.n, ring = ringWheelRing(box.R), R0 = box.R + beadR + 4, depth = ringWheelDepth, outer = R0 + depth * ring, wedge = 360 / m, turn = 0;
   if (!ringWheelUpright && place[G.identity] !== undefined){
     var at0 = place[G.identity];
-    g.turn = dirSign() * 360 * at0 / m;
+    turn = dirSign() * 360 * at0 / m;
     var shifted = {};
     Object.keys(place).forEach(function(x){ shifted[x] = (((place[x] - at0) % m) + m) % m; });
     place = shifted;
   }
+  var keep = ringWheelUpright ? null : [G.key, m, dirSign(), num(box.cx), num(box.cy), num(R0), num(ring), depth, G.els.map(function(x){ return place[x]; }).join(',')].join('|');
+  var clipKey = ringWheelClip ? [ringWheelClip.x, ringWheelClip.y, ringWheelClip.w, ringWheelClip.h].map(num).join(',') : '';
+  // The same wheel kept in its layer through a turn alone: only its turn
+  // changes, made up by the layer's, and its % n turned upright again.
+  if (keep && wheelKept && wheelKept.key === keep && wheelKept.g === g && wheelKept.clip === clipKey && g.parentNode === wheelTurnEl && !wheelInRing){
+    g.turn = turn;
+    wheelTurnOffset = turn - (g.drawnTurn || 0);
+    var kept = g.querySelector(':scope > .dhc-wheel-mod');
+    if (kept){
+      if (turn) kept.setAttribute('transform', 'rotate(' + num(-turn) + ' ' + box.cx + ' ' + box.cy + ')');
+      else kept.removeAttribute('transform');
+    }
+    wheelLit.forEach(function(c){ if (g.contains(c.el)) c.el.classList.add('is-kept'); });
+    // Its clip and the blur's turned back as drawing it again turns them.
+    var clipTurn = /rotate\((-?[\d.]+)/.exec(g.parentNode.getAttribute('transform') || '');
+    if (ringWheelClip && (clipTurn || turn)) turnRingWheelClip(g.parentNode, clipTurn ? +clipTurn[1] : 0, box);
+    var turnedBy = /rotate\((-?[\d.]+)/.exec((ringDynamicEl.querySelector(':scope > .ring') || g).getAttribute('transform') || '');
+    turnWheelLayer(turnedBy ? +turnedBy[1] : 0);
+    return;
+  }
+  g.replaceChildren();
+  g.removeAttribute('clip-path');
+  g.turn = g.drawnTurn = turn;
+  if (g.parentNode === wheelTurnEl) wheelTurnOffset = 0;
   if (g.turn) g.setAttribute('transform', 'rotate(' + num(g.turn) + ' ' + box.cx + ' ' + box.cy + ')');
   else g.removeAttribute('transform');
   if (ringWheelClip){
@@ -13165,10 +13298,9 @@ function drawRingWheel(g, G, place, m, box, beadR){
     var turnedBy = /rotate\((-?[\d.]+)/.exec(g.parentNode.getAttribute('transform') || '');
     if (turnedBy || g.turn) turnRingWheelClip(g.parentNode, turnedBy ? +turnedBy[1] : 0, box);
   }
-  var keep = ringWheelUpright ? null : [G.key, m, dirSign(), num(box.cx), num(box.cy), num(R0), num(ring), depth, G.els.map(function(x){ return place[x]; }).join(',')].join('|');
   if (keep && wheelKept && wheelKept.key === keep) wheelKept.nodes.forEach(function(el){ g.appendChild(el); });
   else drawRingWheelCells(g, G, place, m, box, R0, ring, depth, outer, wedge);
-  wheelKept = keep ? { key: keep, nodes: Array.prototype.slice.call(g.querySelectorAll(':scope > .dhc-wheel-band, :scope > .dhc-wheel-ring, :scope > .dhc-wheel-num')) } : null;
+  wheelKept = keep ? { key: keep, g: g, clip: clipKey, nodes: Array.prototype.slice.call(g.querySelectorAll(':scope > .dhc-wheel-band, :scope > .dhc-wheel-ring, :scope > .dhc-wheel-num')) } : null;
   // What a tap on a cell needs to find it (see ringWheelCellAt).
   g.cells = { G: G, place: place, m: m, cx: box.cx, cy: box.cy, R0: R0, ring: ring, depth: depth };
   // Cells lit by a tap stay lit through the redraw, under the numbers,
@@ -13224,10 +13356,11 @@ function ringWheelCellAt(e){
   var pt = ringSvgEl.createSVGPoint();
   pt.x = e.clientX;
   pt.y = e.clientY;
-  var rect = g.querySelector('.ring-wheel-clip > rect'), rm = rect && rect.getScreenCTM();
-  if (rm){
-    var q = pt.matrixTransform(rm.inverse());
-    if (q.x < +rect.getAttribute('x') || q.y < +rect.getAttribute('y') || q.x > +rect.getAttribute('x') + +rect.getAttribute('width') || q.y > +rect.getAttribute('y') + +rect.getAttribute('height')) return null;
+  // The clip stays put on the main area, in the drawing's unturned frame.
+  var dm = ringWheelClip && ringDynamicEl.getScreenCTM();
+  if (dm){
+    var q = pt.matrixTransform(dm.inverse()), w = ringWheelClip;
+    if (q.x < w.x || q.y < w.y || q.x > w.x + w.w || q.y > w.y + w.h) return null;
   }
   var p = pt.matrixTransform(gm.inverse()), dx = p.x - c.cx, dy = p.y - c.cy;
   var j = Math.floor((Math.hypot(dx, dy) - c.R0) / c.ring);
@@ -13455,6 +13588,7 @@ function setRingLift(v){
   ringSvgEl.setAttribute('viewBox', vb.map(num).join(' '));
   var g = ringWheelG();
   if (g && g.cells) refitRingWheel(ringBox(), g.cells.m);
+  else syncWheelLayer();
   syncLiftUi();
   tellLift();
   // The address takes the height once a drag or the keys rest a moment.
@@ -13960,10 +14094,25 @@ function measureRingReach(){
   if (!bead || !ringDynamicEl.getCTM()){ ringReachUnits = null; return; }
   var box = ringBox(), far = box.R + parseFloat(bead.getAttribute('r'));
   var into = ringDynamicEl.getCTM().inverse();
-  Array.prototype.slice.call(ringDynamicEl.querySelectorAll('path')).concat(Array.prototype.slice.call(wheelTurnEl.querySelectorAll('path'))).forEach(function(p){
-    var m = p.getCTM(), len, bb;
+  // A layer's paths are taken into its turn group's frame, the drawing's
+  // own unturned frame, by their own transforms, whether or not the layer
+  // has its size yet.
+  var inLayer = function(el, host){
+    var m = ringSvgEl.createSVGMatrix();
+    for (var e = el; e && e !== host; e = e.parentNode){
+      var t = e.transform && e.transform.baseVal.consolidate();
+      if (t) m = t.matrix.multiply(m);
+    }
+    return m;
+  };
+  var paths = Array.prototype.map.call(ringDynamicEl.querySelectorAll('path'), function(p){ return [p, null]; });
+  [wheelTurnEl, pathsTurnEl].forEach(function(host){
+    host.querySelectorAll('path').forEach(function(p){ paths.push([p, host]); });
+  });
+  paths.forEach(function(ph){
+    var p = ph[0], m = ph[1] ? inLayer(p, ph[1]) : p.getCTM(), len, bb;
     if (!m) return;
-    m = into.multiply(m);
+    if (!ph[1]) m = into.multiply(m);
     // A path whose box lies within the reach found so far adds nothing:
     // every point sampled on it lies in its box.
     try { bb = p.getBBox(); } catch (err) { bb = null; }
@@ -15510,6 +15659,7 @@ function placeCombineCard(G){
   if (at !== 'card'){
     ringDynamicEl.querySelectorAll('.ring-combine-plate, .ring-combine-frost, .ring-combine-copy.is-card').forEach(function(el){ el.remove(); });
     frostTurnEl.querySelectorAll('.ring-combine-frost').forEach(function(el){ el.remove(); });
+    placeFrostWindow();
     var area = ringDynamicEl.querySelector('.ring-combine-area');
     if (area) area.remove();
   }
@@ -20270,7 +20420,6 @@ function spinAngle(angle){
   if (!ring) return;
   var box = ringBox();
   ring.setAttribute('transform', 'rotate(' + num(angle) + ' ' + box.cx + ' ' + box.cy + ')');
-  frostTurnEl.setAttribute('transform', ring.getAttribute('transform'));
   if (!wheelInRing) turnWheelLayer(angle);
   turnRingWheelClip(ring, angle, box);
   ring.querySelectorAll('.bead-label').forEach(function(t){
@@ -25938,9 +26087,9 @@ function portableFont(resolved){
 // an opaque background in the page's own background color.
 function snapshotRing(){
   // The wheel's layer is baked as the ring is, then put back in the copy.
-  var clone = ringSvgEl.cloneNode(true), wheelCopy = wheelTurnEl.cloneNode(true), frostCopy = frostTurnEl.cloneNode(true);
-  var liveNodes = Array.prototype.slice.call(ringSvgEl.querySelectorAll('*')).concat(Array.prototype.slice.call(wheelTurnEl.querySelectorAll('*')), Array.prototype.slice.call(frostTurnEl.querySelectorAll('*')));
-  var cloneNodes = Array.prototype.slice.call(clone.querySelectorAll('*')).concat(Array.prototype.slice.call(wheelCopy.querySelectorAll('*')), Array.prototype.slice.call(frostCopy.querySelectorAll('*')));
+  var clone = ringSvgEl.cloneNode(true), wheelCopy = wheelTurnEl.cloneNode(true), frostCopy = frostTurnEl.cloneNode(true), pathsCopy = pathsTurnEl.cloneNode(true);
+  var liveNodes = Array.prototype.slice.call(ringSvgEl.querySelectorAll('*')).concat(Array.prototype.slice.call(wheelTurnEl.querySelectorAll('*')), Array.prototype.slice.call(frostTurnEl.querySelectorAll('*')), Array.prototype.slice.call(pathsTurnEl.querySelectorAll('*')));
+  var cloneNodes = Array.prototype.slice.call(clone.querySelectorAll('*')).concat(Array.prototype.slice.call(wheelCopy.querySelectorAll('*')), Array.prototype.slice.call(frostCopy.querySelectorAll('*')), Array.prototype.slice.call(pathsCopy.querySelectorAll('*')));
   for (var i = 0; i < liveNodes.length; i++){
     var resolved = getComputedStyle(liveNodes[i]);
     for (var p = 0; p < PAINT_PROPS.length; p++){
@@ -25951,8 +26100,11 @@ function snapshotRing(){
       cloneNodes[i].setAttribute('font-family', portableFont(resolved.getPropertyValue('font-family')));
     }
   }
+  var liveWheel = wheelTurnEl.querySelector(':scope > .ring-wheel');
+  if (liveWheel && liveWheel.drawnTurn !== liveWheel.turn) trueWheelTurn(wheelCopy.querySelector(':scope > .ring-wheel'), liveWheel);
   var cloneRing = clone.querySelector('.ring');
   if (cloneRing){
+    while (pathsCopy.lastChild) cloneRing.insertBefore(pathsCopy.lastChild, cloneRing.firstChild);
     while (frostCopy.lastChild) cloneRing.insertBefore(frostCopy.lastChild, cloneRing.firstChild);
     while (wheelCopy.lastChild) cloneRing.insertBefore(wheelCopy.lastChild, cloneRing.firstChild);
   }
