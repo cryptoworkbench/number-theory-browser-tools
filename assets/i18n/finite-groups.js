@@ -305,7 +305,10 @@
    the rings' cell height with its two buttons and its reset button),
    and isoCopyLatex and ctxCopyBmatrix (the copy entries of the
    right-click menu of a ∗ b worked in both groups at once, giving LaTeX
-   with one-column arrays and LaTeX in amsmath's bmatrix).
+   with one-column arrays and LaTeX in amsmath's bmatrix), and
+   combineArrows, combineArrowsInstant and combineArrowsSlow (the Arrows
+   heading in the aᵏ button's right-click menu and its two choices: aᵏ's
+   arrows drawn at once, or each new one growing along its path).
    Every other language shows the English value through NT.i18n's
    fallback meanwhile.
 
@@ -897,6 +900,9 @@
       combineSqmLtr: 'Left to right: from the top bit down',
       combineSqmRtl: 'Right to left: through the powers of two',
       combineSqmOff: 'Off',
+      combineArrows: 'Arrows',
+      combineArrowsInstant: 'Instant',
+      combineArrowsSlow: 'Slow',
       combineScalarKMod: 'Every element\'s order divides the group\'s cardinality {n}, so k = {k} combines an element with itself just as k = {r} does: {k} mod {n} = {r}. Click to reduce k to {r}',
       combineScalarTimes: 'How many times to combine the element with itself: any integer, 0 giving the identity and a negative number the inverse\'s multiples',
       combineExpWrap: 'Exponents add: {i} + {j} = {sum}. The group has {n} elements, so {g} has order {n} and {gn} is the identity. Exponents therefore count modulo the group\'s cardinality {n}: {sum} mod {n} = {k}, so {gsum} = {gk}.',
