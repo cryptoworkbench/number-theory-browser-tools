@@ -5548,8 +5548,11 @@ function drawRawHop(group, h, ex, box, beadR, width, size){
     var a = pt(0.49), b = pt(0.51), pm = pt(0.5);
     group.appendChild(arrowHead('chord-arrow', pm[0], pm[1], Math.atan2(b[1] - a[1], b[0] - a[0]), size));
   }
+  // The reduction is drawn from the bead out, so its dashes count from the
+  // bead: every reduction down to one bead, from whichever cell, dashes in
+  // step with the others along their shared stretch.
   var p1 = polar(box.cx, box.cy, turn, to), p2 = polar(box.cx, box.cy, foot, to);
-  group.appendChild(svgEl('path', { 'class': 'chord is-reduce', d: 'M ' + num(p1[0]) + ' ' + num(p1[1]) + ' L ' + num(p2[0]) + ' ' + num(p2[1]), 'stroke-width': width }));
+  group.appendChild(svgEl('path', { 'class': 'chord is-reduce', d: 'M ' + num(p2[0]) + ' ' + num(p2[1]) + ' L ' + num(p1[0]) + ' ' + num(p1[1]), 'stroke-width': width }));
   var mid = to % 360;
   if (mid < 0) mid += 360;
   var rot = mid > 90 && mid < 270 ? mid + 180 : mid, c = polar(box.cx, box.cy, cell, to);
@@ -19186,10 +19189,11 @@ function slowRig(g, pt, size, label, k, m0, cell){
   var reduce = g.querySelector('.is-reduce'), later = [reduce, g.querySelector('.ring-raw')];
   if (A.grow && A.cell && reduce){
     // The reduction line is drawn live, from the cell in to the bead.
+    // Its path runs from the bead (r2) out to the cell (r1).
     var ends = reduce.getAttribute('d').match(/-?[\d.]+/g).map(Number);
     slowLive.reduce = reduce;
-    slowLive.r1 = [ends[0], ends[1]];
-    slowLive.r2 = [ends[2], ends[3]];
+    slowLive.r1 = [ends[2], ends[3]];
+    slowLive.r2 = [ends[0], ends[1]];
     slowLive.after = [later[1]].filter(Boolean);
     slowLive.label = label;
   } else if (A.grow) slowLive.after = later.concat([label]).filter(Boolean);
@@ -19253,8 +19257,11 @@ function slowApplyCell(L, A, t){
   var diveAt = A.walked === undefined ? Infinity : A.walked - A.t0, backAt = diveAt + W;
   var r = t < diveAt ? 0 : slowDive(A.cell.stops, Math.min(1, (t - diveAt) / W));
   L.main.setAttribute('d', slowPath(L.pt, q));
+  // Drawn from the tip out to the cell, its dashes shifted to fall where
+  // the whole line's do, counted from the bead.
   var tip = slowLerp(L.r1, L.r2, r);
-  L.reduce.setAttribute('d', 'M ' + num(L.r1[0]) + ' ' + num(L.r1[1]) + ' L ' + num(tip[0]) + ' ' + num(tip[1]));
+  L.reduce.setAttribute('d', 'M ' + num(tip[0]) + ' ' + num(tip[1]) + ' L ' + num(L.r1[0]) + ' ' + num(L.r1[1]));
+  L.reduce.setAttribute('stroke-dashoffset', num(Math.hypot(L.r2[0] - tip[0], L.r2[1] - tip[1])));
   L.after.forEach(function(el){ el.style.visibility = t < SLOW_GROW ? 'hidden' : ''; });
   if (L.label) L.label.style.visibility = t < backAt ? 'hidden' : '';
   if (!L.head) return;
