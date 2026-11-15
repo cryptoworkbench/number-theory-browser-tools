@@ -13128,7 +13128,7 @@ function turnRingWheelClip(ring, angle, box){
 // and in the ring, under the beads, the wheel drawn again blurred, clipped
 // to the plate, on the window's own ground hiding the sharp wheel there. Plate and clips are laid in the ring's unturned frame,
 // so they stay put while the ring turns (turnRingWheelClip).
-var COMBINE_CARD_PAD = 10;
+var COMBINE_CARD_PAD = 10, cardExtKept = null;
 function cardCombineLines(G){
   // A slow step keeps the blur drawn last time (its copy of the kept wheel
   // costs the most to build) and only moves its plate: kept, or dropped here.
@@ -13138,7 +13138,12 @@ function cardCombineLines(G){
   var lines = ringDynamicEl.querySelectorAll('.ring-combine-box, text.ring-combine, .ring-combine-copy');
   var ring = ringDynamicEl.querySelector('.ring'), wheel = ring && ringWheelG();
   if (!lines.length || !wheel || (keptFrost && wheel.parentNode !== wheelTurnEl)){ dropKept(); if (!lines.length || !wheel) return; keptFrost = null; }
-  var ext = combineExtent(lines);
+  // Lines kept as they were through a turn alone keep their reach, which
+  // measuring again would lay the page out for.
+  var els = Array.prototype.slice.call(lines), ext;
+  var same = ringKept && ringKept.lines && cardExtKept && cardExtKept.els.length === els.length && els.every(function(el, i){ return el === cardExtKept.els[i]; });
+  ext = same ? cardExtKept.ext : combineExtent(lines);
+  cardExtKept = ext ? { els: els, ext: ext } : null;
   if (!ext){ dropKept(); return; }
   var x0 = ext.x0, y0 = ext.y0, x1 = ext.x1, y1 = ext.y1;
   var card = { x: num(x0 - COMBINE_CARD_PAD), y: num(y0 - COMBINE_CARD_PAD / 2), width: num(x1 - x0 + 2 * COMBINE_CARD_PAD), height: num(y1 - y0 + COMBINE_CARD_PAD), rx: 10 };
@@ -19435,6 +19440,9 @@ function drawCombineLine(G, y){
   // A cell is [role, text] (the role colours it; null: plain), or a list
   // of them set together.
   var rows, tipAt = null, tipTo = null, tip = null, free = false, switchRow = -1, fold = null;
+  // The given line is fitted with the rest measured, after all are in
+  // place, so the page is laid out once for them.
+  var fitLater = null;
   if (G.pts){
     // A curve's rows each stand alone, centred (no columns shared).
     free = true;
@@ -19448,7 +19456,7 @@ function drawCombineLine(G, y){
     sgk.textContent = signed(combo.k);
     translateInto(sg, 'cyclicGroups.combineScalarGiven', { a: sga, k: sgk });
     ringDynamicEl.appendChild(sg);
-    fitText(sg);
+    fitLater = sg;
     y += COMBINE_LINE;
     free = true;
     rows = sqmRows(G, mod);
@@ -19461,7 +19469,7 @@ function drawCombineLine(G, y){
     sk.textContent = signed(k);
     translateInto(given, 'cyclicGroups.combineScalarGiven', { a: sa, k: sk });
     ringDynamicEl.appendChild(given);
-    fitText(given);
+    fitLater = given;
     y += COMBINE_LINE;
     // k is blue, as b is: a's exponent (yellow) and k mix into the green
     // product. g itself stays plain wherever it is written, the reduced
@@ -19634,7 +19642,7 @@ function drawCombineLine(G, y){
     });
     below += COMBINE_LINE + (big ? COMBINE_LIMITS : 0);
   });
-  var lines = rows.map(function(row, r){
+  var built = rows.map(function(row, r){
     var t = svgEl('text', { 'class': 'ring-combine' + (r === switchRow ? ' is-switch' : ''), x: 0, y: rowY[r], direction: 'ltr', style: 'text-anchor:start' });
     // A part's third entry sets it small: 'sup' raised, a big operator's
     // limits 'hi' over and 'lo' under it, stacked; 'bigop' sets ∑ or ∏ large.
@@ -19652,6 +19660,10 @@ function drawCombineLine(G, y){
     });
     t.setAttribute('data-plain', combinePlain(row));
     box.appendChild(t);
+    return cells;
+  });
+  if (fitLater) fitText(fitLater);
+  var lines = built.map(function(cells, r){
     // Free lines stand alone, but for those joined to the first, or those
     // of one group (rows.groups) sharing their columns.
     if (free && (rows.groups ? !r || rows.groups[r] !== rows.groups[r - 1] : !(r > 0 && r < (rows.joined || 0)))) cols = [];
