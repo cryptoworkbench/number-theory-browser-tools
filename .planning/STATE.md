@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-10-02)
 Phase: 4 — Continued Fractions Tool
 Plan: Not started
 Status: Ready to plan
-Last activity: 2026-11-15 - Completed quick task 261115-dz0: Equivalence Wheel Algebra window (English only)
+Last activity: 2026-11-15 - Completed quick task 261115-eew: Finite Groups aᵏ Slow arrows (English only)
 
 Progress: [█████████░] 86%
 
@@ -700,6 +700,7 @@ None yet.
 | 261110-swh | Cyclic Groups: isomorphic swap keeps On hover ± buttons | 2026-11-10 | ec0d50b | [261110-swh-cyclic-groups-swap-keeps-hover-signed](./quick/261110-swh-cyclic-groups-swap-keeps-hover-signed/) |
 | 261114-ru6 | Equivalence Wheel: animated Extended Euclidean algorithm over the wheel (English only) | 2026-11-15 | 6823fb5, 3ffd131 | [261114-ru6-equivalence-wheel-animated-extended-eucl](./quick/261114-ru6-equivalence-wheel-animated-extended-eucl/) |
 | 261115-dz0 | Equivalence Wheel: Algebra window writing out the Extended Euclid run (English only) | 2026-11-15 | eeca211 | [261115-dz0-equivalence-wheel-algebra-window-for-the](./quick/261115-dz0-equivalence-wheel-algebra-window-for-the/) |
+| 261115-eew | Finite Groups: aᵏ Slow arrows, growing and recolouring one step at a time (English only) | 2026-11-15 | cb6cfe0 | [261115-eew-finite-groups-a-slow-arrow-mode](./quick/261115-eew-finite-groups-a-slow-arrow-mode/) |
 | fast | Cyclic Groups DH time cylinder, Per hop: hairline slice rims so the grey beads stay visible | 2026-11-04 | e6f0b6c | — |
 | fast | Cyclic Groups: Subgroup switched off keeps the group's name in the subgroup row, without G and ⟨h⟩ | 2026-11-04 | 20274e9 | — |
 | fast | Cyclic Groups: Diffie-Hellman Colours switch, Alice and Bob in own colours or the forward/backward path colours | 2026-11-04 | 5bd6ece | — |
@@ -971,4 +972,4 @@ Last session: 2026-10-03
 Stopped at: Quick task 261005-dn2 complete — Venn Diagram double-click respects thumbnail scroll
 Resume file: None
 
-Last activity: 2026-11-15 - Completed quick task 261115-dz0: Equivalence Wheel Algebra window (English only)
+Last activity: 2026-11-15 - Completed quick task 261115-eew: Finite Groups aᵏ Slow arrows (English only)
