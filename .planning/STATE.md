@@ -706,6 +706,7 @@ None yet.
 | 261115-pf1 | Finite Groups: main-area animation performance from Chrome traces (branch perf-main-area-animation) | 2026-11-15 | 7c91a45 | [261115-pf1-finite-groups-main-area-animation-perf](./quick/261115-pf1-finite-groups-main-area-animation-perf/) |
 | 261115-sp1 | Finite Groups: remaining animation spikes (branch perf-animation-spikes) | 2026-11-15 | 156fda6 | [261115-sp1-finite-groups-animation-spikes](./quick/261115-sp1-finite-groups-animation-spikes/) |
 | 261115-wl1 | Finite Groups: congruence wheel in its own compositor layer, in-place slow steps (branch perf-wheel-layer) | 2026-11-15 | 4eaf59b | [261115-wl1-finite-groups-wheel-layer](./quick/261115-wl1-finite-groups-wheel-layer/) |
+| 261115-rl1 | Finite Groups: ring paths in their own layer, card blur turned by the compositor, wheel kept through turns (branch perf-ring-layers) | 2026-11-15 | b39dc2e | [261115-rl1-finite-groups-ring-layers](./quick/261115-rl1-finite-groups-ring-layers/) |
 | 261115-fm2 | Finite Groups: forward/backward path overlaps drawn in the both-paths green | 2026-11-15 | f3d01dd | [261115-fm2-finite-groups-shared-forward-backward-pa](./quick/261115-fm2-finite-groups-shared-forward-backward-pa/) |
 | fast | Cyclic Groups DH time cylinder, Per hop: hairline slice rims so the grey beads stay visible | 2026-11-04 | e6f0b6c | — |
 | fast | Cyclic Groups: Subgroup switched off keeps the group's name in the subgroup row, without G and ⟨h⟩ | 2026-11-04 | 20274e9 | — |
