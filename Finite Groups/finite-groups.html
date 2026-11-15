@@ -6047,6 +6047,75 @@ function drawRing(parent, G, beads, box, paint){
   // repeats; a later lap's numbers replace the earlier ones.
   var dhIn = dhLive(G) ? dhReach(G) : null;
   if (dhIn) drawDhRing(ring, G, place, box, beadR, m, at);
+  drawRingCombo(ring, G, beads, place, box, beadR, m, at);
+
+  beads.forEach(function(a, i){
+    var p = at(i);
+    var look = paint(a);
+    var attrs = {
+      'class': 'bead ' + look.cls + ((coset && !coset.members[a]) || (dhIn && !dhIn[a]) ? ' is-dim' : '') + (a === isoHot ? ' is-iso-hot' : ''),
+      cx: num(p[0]), cy: num(p[1]), r: num(beadR),
+      'data-el': a, 'data-order': G.orders[a]
+    };
+    if (look.style) attrs.style = look.style;
+    ring.appendChild(svgEl('circle', attrs));
+  });
+
+  if (beadR >= 9){
+    var eg = exprBy(G), elog = eg === null ? null : exprLog(G, eg);
+    var rt = revealTo(G), rlog = rt === null ? null : revealLog(G, rt);
+    // Leading zeros, when the Numerical panel's Line up numbers asks for
+    // them, pad a number to the width of the group's largest and an exponent
+    // to the width of the largest exponent.
+    // In the signed form the zeros pad the digits, after the sign.
+    var pad = padNum;
+    var maxEl = elMaxBoth(G), maxExp = expMaxBoth(G);
+    beads.forEach(function(a, i){
+      var p = at(i);
+      var power = function(g, log){ return ecMult(G) ? pad(balExp(G, log[a]), maxExp) + 'P' : padBase(G, g) + superscript(pad(balExp(G, log[a]), maxExp)); };
+      // A point's power, (x,y)ᵏ, is set in the narrower sans (brackets, comma
+      // and the small exponent), sized to its estimated width.
+      var ptPowSize = function(t){ return Math.round(Math.max(7, Math.min(beadR * 1.05, beadR * 1.8 / labelEms(t)))); };
+      var natural = function(){ return natPow(G.pts ? elText(G, a, true) : pad(balEl(G, a), maxEl), G); };
+      var text = elog ? power(eg, elog) : natural();
+      // An expressed, padded or signed label wider than two characters
+      // shrinks to stay in its bead.
+      var shrink = elog || !state.natExpOff || state.subPad || state.signed || state.signedExp;
+      var size = beadR * 1.05 * (shrink ? Math.min(1, 2.2 / text.length) : 1);
+      var ptPow = !!(G.pts && !(elog && ecMult(G)));
+      if (ptPow) size = ptPowSize(text);
+      var label = svgEl('text', { 'class': ((coset && !coset.members[a]) || (dhIn && !dhIn[a]) ? 'bead-label is-dim' : 'bead-label') + (ptPow ? ' is-pt-pow' : ''), x: num(p[0]), y: num(p[1]), 'font-size': Math.round(shrink ? Math.max(size, 7) : size), 'data-el': a });
+      beadText(label, text);
+      label.setAttribute('data-text', text);
+      // The label the reveal shows: the natural number, or the picked
+      // generator's power.
+      var revealed = eg !== rt || revealSignsDiffer(G);
+      if (revealed){
+        var nat = asReveal(function(){ return rlog ? power(rt, rlog) : natural(); }), natShrink = rlog || !state.natExpOff || state.subPad || state.revealSigned || state.revealSignedExp;
+        var natSize = beadR * 1.05 * (natShrink || G.pts ? Math.min(1, 2.2 / nat.length) : 1);
+        label.setAttribute('data-expr', text);
+        label.setAttribute('data-expr-size', label.getAttribute('font-size'));
+        label.setAttribute('data-nat', nat);
+        label.setAttribute('data-nat-size', Math.round(natShrink ? Math.max(natSize, 7) : natSize));
+        if (ptPow) label.setAttribute('data-expr-pt', '1');
+        // A curve's point revealed, (x,y) or its power, is in the sans.
+        if (G.pts && !(rlog && ecMult(G))){ label.setAttribute('data-nat-pt', '1'); label.setAttribute('data-nat-size', ptPowSize(nat)); }
+      }
+      ring.appendChild(label);
+      if (revealed) natLabel(label, a === natHot);
+    });
+  }
+
+  parent.appendChild(ring);
+  drawFlog(G, beads, box, beadR);
+  return ring;
+}
+
+// What the ring shows of the combination, after its paths and before its
+// beads: aᵏ's walk, a∘b's raw result and the halos, appended to ring (the
+// ring itself, or, for a slow step to the next k, a fragment put back in
+// their place, see patchRingCombo).
+function drawRingCombo(ring, G, beads, place, box, beadR, m, at){
   var sw = scalarWalk(G);
   if (sw && m > 1){
     var swFoot = box.R - beadR;
@@ -6148,67 +6217,21 @@ function drawRing(parent, G, beads, box, paint){
       ring.appendChild(svgEl('circle', attrs));
     });
   });
-
-  beads.forEach(function(a, i){
-    var p = at(i);
-    var look = paint(a);
-    var attrs = {
-      'class': 'bead ' + look.cls + ((coset && !coset.members[a]) || (dhIn && !dhIn[a]) ? ' is-dim' : '') + (a === isoHot ? ' is-iso-hot' : ''),
-      cx: num(p[0]), cy: num(p[1]), r: num(beadR),
-      'data-el': a, 'data-order': G.orders[a]
-    };
-    if (look.style) attrs.style = look.style;
-    ring.appendChild(svgEl('circle', attrs));
-  });
-
-  if (beadR >= 9){
-    var eg = exprBy(G), elog = eg === null ? null : exprLog(G, eg);
-    var rt = revealTo(G), rlog = rt === null ? null : revealLog(G, rt);
-    // Leading zeros, when the Numerical panel's Line up numbers asks for
-    // them, pad a number to the width of the group's largest and an exponent
-    // to the width of the largest exponent.
-    // In the signed form the zeros pad the digits, after the sign.
-    var pad = padNum;
-    var maxEl = elMaxBoth(G), maxExp = expMaxBoth(G);
-    beads.forEach(function(a, i){
-      var p = at(i);
-      var power = function(g, log){ return ecMult(G) ? pad(balExp(G, log[a]), maxExp) + 'P' : padBase(G, g) + superscript(pad(balExp(G, log[a]), maxExp)); };
-      // A point's power, (x,y)ᵏ, is set in the narrower sans (brackets, comma
-      // and the small exponent), sized to its estimated width.
-      var ptPowSize = function(t){ return Math.round(Math.max(7, Math.min(beadR * 1.05, beadR * 1.8 / labelEms(t)))); };
-      var natural = function(){ return natPow(G.pts ? elText(G, a, true) : pad(balEl(G, a), maxEl), G); };
-      var text = elog ? power(eg, elog) : natural();
-      // An expressed, padded or signed label wider than two characters
-      // shrinks to stay in its bead.
-      var shrink = elog || !state.natExpOff || state.subPad || state.signed || state.signedExp;
-      var size = beadR * 1.05 * (shrink ? Math.min(1, 2.2 / text.length) : 1);
-      var ptPow = !!(G.pts && !(elog && ecMult(G)));
-      if (ptPow) size = ptPowSize(text);
-      var label = svgEl('text', { 'class': ((coset && !coset.members[a]) || (dhIn && !dhIn[a]) ? 'bead-label is-dim' : 'bead-label') + (ptPow ? ' is-pt-pow' : ''), x: num(p[0]), y: num(p[1]), 'font-size': Math.round(shrink ? Math.max(size, 7) : size), 'data-el': a });
-      beadText(label, text);
-      label.setAttribute('data-text', text);
-      // The label the reveal shows: the natural number, or the picked
-      // generator's power.
-      var revealed = eg !== rt || revealSignsDiffer(G);
-      if (revealed){
-        var nat = asReveal(function(){ return rlog ? power(rt, rlog) : natural(); }), natShrink = rlog || !state.natExpOff || state.subPad || state.revealSigned || state.revealSignedExp;
-        var natSize = beadR * 1.05 * (natShrink || G.pts ? Math.min(1, 2.2 / nat.length) : 1);
-        label.setAttribute('data-expr', text);
-        label.setAttribute('data-expr-size', label.getAttribute('font-size'));
-        label.setAttribute('data-nat', nat);
-        label.setAttribute('data-nat-size', Math.round(natShrink ? Math.max(natSize, 7) : natSize));
-        if (ptPow) label.setAttribute('data-expr-pt', '1');
-        // A curve's point revealed, (x,y) or its power, is in the sans.
-        if (G.pts && !(rlog && ecMult(G))){ label.setAttribute('data-nat-pt', '1'); label.setAttribute('data-nat-size', ptPowSize(nat)); }
-      }
-      ring.appendChild(label);
-      if (revealed) natLabel(label, a === natHot);
-    });
-  }
-
-  parent.appendChild(ring);
+}
+// A slow step's redraw of the kept ring: what follows k (drawRingCombo)
+// goes and is drawn again before the first bead, where drawRing puts it,
+// with the card's blur and the beads' reduction pulses, which a new
+// drawing would not carry over, and the fixed logarithm drawn again.
+function patchRingCombo(ring, G, beads, box){
+  var m = beads.length, beadR = beadRadius(m, box.R), place = {};
+  beads.forEach(function(a, i){ place[a] = i; });
+  var at = function(i){ return polar(box.cx, box.cy, box.R, dirSign() * 360 * i / m); };
+  ring.querySelectorAll(':scope > .walk-scalar, :scope > .combine-raw-g, :scope > .combine-halo, :scope > .ring-combine-frost, :scope > .bead-reduced').forEach(function(el){ el.remove(); });
+  var into = document.createDocumentFragment();
+  drawRingCombo(into, G, beads, place, box, beadR, m, at);
+  ring.insertBefore(into, ring.querySelector(':scope > .bead'));
+  ringReachUnits = null;
   drawFlog(G, beads, box, beadR);
-  return ring;
 }
 
 // A bead's label, its exponent as a raised run of plain, smaller digits:
@@ -12602,12 +12625,17 @@ function fitRingHead(){
 function ringDrawn(G){ return !!G && G.order <= MAX_DRAW; }
 function drawNecklace(G, paint){
   ringSvgEl.setAttribute('viewBox', '0 0 ' + SIZE + ' ' + SIZE);
-  wheelTurnEl.replaceChildren();
+  // The wheel's layer is drawn again with the ring, unless a slow step
+  // keeps the ring (and so the wheel) as it is; the card's blur always is.
   frostTurnEl.replaceChildren();
-  frostTurnEl.removeAttribute('transform');
-  turnWheelLayer(0);
+  if (!(ringKept && ringKept.ring)){
+    wheelTurnEl.replaceChildren();
+    frostTurnEl.removeAttribute('transform');
+    turnWheelLayer(0);
+  }
   var subs = [], kept = ringKept;
-  if (kept) kept.heads.forEach(function(el){ ringDynamicEl.appendChild(el); });
+  // Kept in place with the ring itself, or moved into the new drawing.
+  if (kept){ if (!kept.ring) kept.heads.forEach(function(el){ ringDynamicEl.appendChild(el); }); }
   else ringDynamicEl.appendChild(drawText('ring-title is-plain', SIZE / 2, 44, coset
     ? translate(G.mode === 'additive' ? 'cyclicGroups.cosetTitleAdd' : 'cyclicGroups.cosetTitleMul',
         { a: elText(G, coset.start), h: elText(G, shownGen(G)), set: '{' + lap(G, shownGen(G), G.orders[shownGen(G)], coset.start).map(function(x){ return elText(G, x); }).join(', ') + '}' })
@@ -12634,7 +12662,8 @@ function drawNecklace(G, paint){
     var bigNote = drawText('ring-too-big', box.cx, box.cy, translate('cyclicGroups.ringTooBig', { group: G.label, count: G.order, max: MAX_DRAW }));
     ringDynamicEl.appendChild(bigNote);
     fitText(bigNote);
-  } else drawRing(ringDynamicEl, G, beads, box, paint);
+  } else if (kept && kept.ring) patchRingCombo(kept.ring, G, beads, box);
+  else drawRing(ringDynamicEl, G, beads, box, paint);
   ringSvgEl.classList.toggle('has-wheel', !big && ringWheelShown(G));
   syncRingBodyHas();
   syncLapKey(G);
@@ -12736,6 +12765,16 @@ function refitRingWheel(box, m){
   var wheelRing = ringDynamicEl.querySelector('.ring');
   if (!wheelRing || !wheelRing.redrawWheel) return;
   var depth = ringWheelDepth;
+  // Kept as it was for a slow step: only the cells lit through the redraw
+  // are marked as kept, as drawing it again marks them, and its clips
+  // turned as drawRingWheel turns them.
+  if (ringKept && ringKept.ring){
+    var kept = ringWheelG(), host = kept && kept.parentNode, turnedBy = host && /rotate\((-?[\d.]+)/.exec(host.getAttribute('transform') || '');
+    if (!kept) return;
+    wheelLit.forEach(function(c){ if (kept.contains(c.el)) c.el.classList.add('is-kept'); });
+    if (ringWheelClip && (turnedBy || kept.turn)) turnRingWheelClip(host, turnedBy ? +turnedBy[1] : 0, box);
+    return;
+  }
   if (!ringKept){
     ringWheelFill(box, beadRadius(m, box.R), m);
     syncWheelLayer();
@@ -15224,7 +15263,16 @@ function redrawRing(){
   var turnOnly = ringTurnOnly && !IS_PREVIEW && !coset, stepOnly = ringStepOnly && !turnOnly && !IS_PREVIEW && !coset;
   ringKept = turnOnly || stepOnly ? keptRingParts(stepOnly) : null;
   if (turnOnly) keepRingReach(true);
-  ringDynamicEl.replaceChildren();
+  // A slow step keeps the drawn ring itself too, beads, wheel and paths,
+  // and redraws only what follows k in it (patchRingCombo), while no
+  // rearrangement or flip is carrying the drawing.
+  var oldRing = stepOnly && ringKept && !arranging && !flipping ? ringDynamicEl.querySelector(':scope > .ring') : null;
+  if (oldRing){
+    ringKept.ring = oldRing;
+    Array.prototype.slice.call(ringDynamicEl.children).forEach(function(el){
+      if (el !== oldRing && ringKept.heads.indexOf(el) === -1) el.remove();
+    });
+  } else ringDynamicEl.replaceChildren();
   drawNecklace(drawn.G, drawn.paint);
   ringKept = null;
   if (turnOnly) keepRingReach(false);
