@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-10-02)
 Phase: 4 — Continued Fractions Tool
 Plan: Not started
 Status: Ready to plan
-Last activity: 2026-11-10 - Completed quick task 261110-swh: Cyclic Groups swap keeps On hover signed forms
+Last activity: 2026-11-15 - Completed quick task 261114-ru6: Equivalence Wheel Extended Euclid animation (English only)
 
 Progress: [█████████░] 86%
 
@@ -698,6 +698,7 @@ None yet.
 | 261110-nea | Cyclic Groups: natural exponents symbol lined up, tick at the end | 2026-11-10 | 1170a2d | [261110-nea-cyclic-groups-natural-exponents-align](./quick/261110-nea-cyclic-groups-natural-exponents-align/) |
 | 261110-sws | Cyclic Groups: isomorphic swap keeps signed element and exponent | 2026-11-10 | 17d4b82 | [261110-sws-cyclic-groups-swap-keeps-signed](./quick/261110-sws-cyclic-groups-swap-keeps-signed/) |
 | 261110-swh | Cyclic Groups: isomorphic swap keeps On hover ± buttons | 2026-11-10 | ec0d50b | [261110-swh-cyclic-groups-swap-keeps-hover-signed](./quick/261110-swh-cyclic-groups-swap-keeps-hover-signed/) |
+| 261114-ru6 | Equivalence Wheel: animated Extended Euclidean algorithm over the wheel (English only) | 2026-11-15 | 6823fb5, 3ffd131 | [261114-ru6-equivalence-wheel-animated-extended-eucl](./quick/261114-ru6-equivalence-wheel-animated-extended-eucl/) |
 | fast | Cyclic Groups DH time cylinder, Per hop: hairline slice rims so the grey beads stay visible | 2026-11-04 | e6f0b6c | — |
 | fast | Cyclic Groups: Subgroup switched off keeps the group's name in the subgroup row, without G and ⟨h⟩ | 2026-11-04 | 20274e9 | — |
 | fast | Cyclic Groups: Diffie-Hellman Colours switch, Alice and Bob in own colours or the forward/backward path colours | 2026-11-04 | 5bd6ece | — |
@@ -969,4 +970,4 @@ Last session: 2026-10-03
 Stopped at: Quick task 261005-dn2 complete — Venn Diagram double-click respects thumbnail scroll
 Resume file: None
 
-Last activity: 2026-11-10 - Completed quick task 261110-swh: Cyclic Groups swap keeps On hover signed forms
+Last activity: 2026-11-15 - Completed quick task 261114-ru6: Equivalence Wheel Extended Euclid animation (English only)

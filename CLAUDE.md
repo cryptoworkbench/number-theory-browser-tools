@@ -12,7 +12,7 @@ Each tool lives in its own top-level directory named after the tool, containing 
 
 - `Factor Tree/factor-tree.html` — animated prime factor tree (recursive factorization diagram, SVG-rendered)
 - `Fermats Method/fermats-method.html` — visualizes integer factoring via Fermat's method (search for a² − N = b²)
-- `Equivalence Wheel/equivalence-wheel.html` — "Equivalence Wheel," a modular arithmetic visualizer using pizza-slice sectors
+- `Equivalence Wheel/equivalence-wheel.html` — "Equivalence Wheel," a modular arithmetic visualizer using pizza-slice sectors, with an animated Extended Euclid overlay (hop arcs, ring-climbing coefficient trails and reduction slides over the dimmed wheel, plus a step table) that finds a⁻¹ mod N
 - `RSA/rsa.html` — walks through RSA key generation, encryption, and a brute-force factoring attack demo (Bob/Alice/Eve narrative)
 - `Sieve Of Eratosthenes/sieve-of-eratosthenes.html` — animated sieve grid with playback controls and audio chimes on primes found
 - `Finite Groups/finite-groups.html` — "Finite Groups" (formerly Cyclic Groups: its `cyclicGroups` i18n namespace and `cyclic-groups-*` storage keys keep the old name), a windowed desktop that fills the browser window under the site header: the ring of a group's elements, its subgroups and isomorphisms in movable, snapping Ring windows (extra Ring windows are `?ringwin=1` iframes of the page), with a corner button for true browser full screen; a browser that reports itself mobile (or `?mobile=1`) gets the stacked single-column page instead, with no intro, windows or full screen
