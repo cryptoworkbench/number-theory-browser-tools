@@ -992,7 +992,10 @@
      written in the walk's colour, and the reduction back in, dashed. */
   .chord.is-reduce{ stroke-dasharray:4 3; }
   .walk-shared-line{ fill:none; stroke:var(--arrow-both); stroke-linecap:round; stroke-linejoin:round; pointer-events:none; }
-  .walk-shared-line.is-reduce{ stroke-dasharray:4 3; stroke-linecap:butt; }
+  /* Dashed exactly as the reduction lines under it (round caps, as on
+     .chord), its dashes counted from the line's start (stroke-dashoffset,
+     set by markSharedWalks), so they lie on theirs. */
+  .walk-shared-line.is-reduce{ stroke-dasharray:4 3; }
   /* A combination's raw result: a's and b's arrows, in their halos'
      colours, meet on its cell, and the reduction runs on to the result's
      halo in the result's. */
@@ -5660,10 +5663,12 @@ function markSharedWalks(walksEl, width){
   // or a shared foot are drawn.
   var shared = svgEl('g', { 'class': 'walk-shared', 'aria-hidden': 'true' });
   fwd.forEach(function(l){
-    var run = [], runLen = 0;
+    var run = [], runLen = 0, runFrom = 0, along = 0, last = null;
     var flush = function(){
       if (run.length > 1 && runLen >= SHARED_MIN){
-        shared.appendChild(svgEl('path', { 'class': 'walk-shared-line' + (l.dash ? ' is-reduce' : ''), 'stroke-width': width, d: run.map(function(p, i){ return (i ? 'L ' : 'M ') + num(p[0]) + ' ' + num(p[1]); }).join(' ') }));
+        var attrs = { 'class': 'walk-shared-line' + (l.dash ? ' is-reduce' : ''), 'stroke-width': width, d: run.map(function(p, i){ return (i ? 'L ' : 'M ') + num(p[0]) + ' ' + num(p[1]); }).join(' ') };
+        if (l.dash) attrs['stroke-dashoffset'] = num(-runFrom);
+        shared.appendChild(svgEl('path', attrs));
       }
       run = [];
       runLen = 0;
@@ -5672,7 +5677,10 @@ function markSharedWalks(walksEl, width){
       var a = l.pts[s], b = l.pts[s + 1] || a, n = Math.max(1, Math.ceil(Math.hypot(b[0] - a[0], b[1] - a[1]) / 2));
       for (var t = 0; t < (s + 1 < l.pts.length ? n : 1); t++){
         var p = [a[0] + (b[0] - a[0]) * t / n, a[1] + (b[1] - a[1]) * t / n];
+        if (last) along += Math.hypot(p[0] - last[0], p[1] - last[1]);
+        last = p;
         if (near(p)){
+          if (!run.length) runFrom = along;
           if (run.length) runLen += Math.hypot(p[0] - run[run.length - 1][0], p[1] - run[run.length - 1][1]);
           run.push(p);
         } else flush();
@@ -12652,8 +12660,8 @@ window.addEventListener('keydown', function(e){
   if (dhcWheelFits(drawn.G)) toggleRingWheel();
 });
 // The main area in the ring's own units (ringWheelClip), and rings enough to
-// reach its farthest corner from the ring's centre, capped so the numbers
-// stay few enough to draw.
+// reach its farthest corner from the ring's centre (as it is unzoomed, when
+// zoomed in), capped so the numbers stay few enough to draw.
 function ringWheelFill(box, beadR, m){
   var r = boxOf(ringSvgEl), vb = ringSvgEl.viewBox.baseVal, ring = ringWheelRing(box.R);
   ringWheelClip = null;
@@ -12682,6 +12690,10 @@ function ringWheelFill(box, beadR, m){
   var y0 = vb.y + (top - oy) / k, y1 = vb.y + (bottom - oy) / k;
   ringWheelClip = { x: x0, y: y0, w: x1 - x0, h: y1 - y0 };
   var far = Math.max.apply(null, [[x0, y0], [x1, y0], [x0, y1], [x1, y1]].map(function(c){ return Math.hypot(c[0] - box.cx, c[1] - box.cy); }));
+  // Zoomed in, the view shrinks about the ring's centre, but the wheel
+  // keeps the rings it has unzoomed: the raw results reaching out to them
+  // stay drawn (running off the view) rather than giving way to plain hops.
+  far *= Math.max(1, RING_ZOOMS[ringZoom]);
   ringWheelDepth = clamp(Math.ceil((far - box.R - beadR) / ring), 1, Math.max(1, Math.floor(3000 / m)));
 }
 // The clip stays put while the ring turns: its rectangle is turned back by
