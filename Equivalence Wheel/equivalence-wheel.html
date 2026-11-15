@@ -386,6 +386,80 @@
     .euclid-table td.is-landing{ animation:none; }
   }
 
+  /* The Algebra window: the run written out as text, line by line, in step
+     with the beats on the wheel; each line's bar takes its arrows' colour. */
+  .euclid-pad{
+    position:fixed;
+    top:72px;
+    right:16px;
+    z-index:40;
+    width:min(420px, calc(100vw - 32px));
+    max-height:calc(100vh - 96px);
+    display:flex;
+    flex-direction:column;
+    background:var(--surface);
+    border:1px solid var(--panel-border-strong);
+    border-radius:12px;
+    box-shadow:0 12px 32px color-mix(in srgb, var(--bg) 55%, transparent);
+    overflow:hidden;
+  }
+  .euclid-pad[hidden]{ display:none; }
+  .euclid-pad-bar{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    padding:8px 8px 8px 14px;
+    background:linear-gradient(var(--surface-alt), var(--surface-alt)), var(--surface);
+    border-bottom:1px solid var(--panel-border);
+    cursor:grab;
+    user-select:none;
+    touch-action:none;
+  }
+  .euclid-pad.is-dragging .euclid-pad-bar{ cursor:grabbing; }
+  .euclid-pad-title{ flex:1; font-size:13.5px; font-weight:600; color:var(--text); }
+  .euclid-pad-min{
+    width:26px; height:26px;
+    border:1px solid var(--panel-border);
+    border-radius:6px;
+    background:var(--surface);
+    color:var(--text);
+    font-size:16px;
+    line-height:1;
+    cursor:pointer;
+  }
+  .euclid-pad-min:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
+  .euclid-pad.is-min .euclid-pad-body{ display:none; }
+  .euclid-pad.is-min .euclid-pad-bar{ border-bottom:none; }
+  .euclid-pad-body{ overflow-y:auto; padding:10px 12px 14px; }
+  .euclid-pad-lines{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:2px; }
+  .euclid-pad-line{
+    --pad-c:var(--panel-border-strong);
+    display:flex;
+    gap:10px;
+    align-items:baseline;
+    padding:4px 8px;
+    border-left:3px solid var(--pad-c);
+    border-radius:0 6px 6px 0;
+    cursor:pointer;
+    color:var(--text-dim);
+  }
+  .euclid-pad-line:hover{ background:color-mix(in srgb, var(--text) 6%, transparent); }
+  .euclid-pad-line.is-now{ background:var(--slot-a-soft); color:var(--text); }
+  .euclid-pad-line--divide{ --pad-c:var(--role-input); }
+  .euclid-pad-line--coef{ --pad-c:var(--role-active); }
+  .euclid-pad-line--reduce, .euclid-pad-line--finale{ --pad-c:var(--role-result); }
+  .euclid-pad-line--head{ border-left-color:transparent; padding-top:10px; font-size:12px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; }
+  .euclid-pad-line--head:first-child{ padding-top:4px; }
+  .euclid-pad-line--head.is-now{ background:none; }
+  .euclid-pad-tag{ flex:0 0 5.5em; font-size:11.5px; color:var(--text-dim); }
+  .euclid-pad-math{ font-family:var(--font-mono); font-variant-numeric:tabular-nums; font-size:13.5px; white-space:pre-wrap; }
+  .euclid-pad-note{ font-size:13px; line-height:1.5; }
+  .euclid-pad-line.is-key .euclid-pad-math{ font-weight:700; color:var(--role-result); }
+  @media (max-width: 760px){
+    .euclid-pad{ top:auto !important; left:8px !important; right:8px; bottom:8px; width:auto; max-height:45vh; }
+    .euclid-pad-bar{ cursor:default; }
+  }
+
   /* ---------- end extended euclid overlay ---------- */
 
   @media (prefers-reduced-motion: reduce){
@@ -398,7 +472,7 @@
   @media print{
     @page{ margin:14mm; }
     .site-header, .controls, .ref, .mode-tabs{ display:none !important; }
-    .euclid-board, #euclid-overlay{ display:none !important; }
+    .euclid-board, #euclid-overlay, .euclid-pad{ display:none !important; }
     svg#wheel.is-euclid #wheel-dynamic{ opacity:1 !important; filter:none !important; }
     .wrap{ max-width:none; padding:0; }
     .diagram-frame{ max-width:120mm; margin:0 auto; }
@@ -413,7 +487,7 @@
      content, so they read left to right exactly as in English. Translated
      prose (lede, notes, captions, role words) stays right-to-left. */
   :root[dir="rtl"] .euclid-table :is(caption, th:not(.mono)){ unicode-bidi:plaintext; }
-  :root[dir="rtl"] :is(.diagram-frame, .ref-list, .ref-head .count, .field .val, .caption .mono, .caption .slot-a, .caption .slot-b, .caption .slot-sum, .euclid-table tbody, .euclid-table tfoot, .euclid-table th.mono){
+  :root[dir="rtl"] :is(.diagram-frame, .ref-list, .ref-head .count, .field .val, .caption .mono, .caption .slot-a, .caption .slot-b, .caption .slot-sum, .euclid-table tbody, .euclid-table tfoot, .euclid-table th.mono, .euclid-pad-math){
     direction: ltr;
     unicode-bidi: isolate;
   }
@@ -609,6 +683,16 @@
       <ul class="ref-list" id="ref-list"></ul>
     </div>
   </div>
+
+  <aside class="euclid-pad" id="euclid-pad" aria-labelledby="euclid-pad-title" hidden>
+    <div class="euclid-pad-bar" id="euclid-pad-bar">
+      <span class="euclid-pad-title" id="euclid-pad-title" data-i18n="wheel.euclidPadTitle">Algebra</span>
+      <button type="button" class="euclid-pad-min" id="euclid-pad-min" aria-expanded="true" aria-controls="euclid-pad-body" aria-label="Minimise" data-i18n-aria-label="wheel.euclidPadMinimise">&minus;</button>
+    </div>
+    <div class="euclid-pad-body" id="euclid-pad-body">
+      <ol class="euclid-pad-lines" id="euclid-pad-lines"></ol>
+    </div>
+  </aside>
 
   <footer>
     <span id="formula-line"></span>
@@ -1533,7 +1617,175 @@
     drawPersist(persistLayer, idx);
     drawBeat(beatLayer, beat, animate);
     renderBoard(idx, beat, animate);
+    renderPad(idx);
   }
+
+  /* ---------- algebra window ---------- */
+
+  // The run written out the way it is done on paper: each line carries the
+  // beat that reveals it, so the window grows in step with the wheel, and a
+  // click on a line pauses there. Formulas are notation, built here; the
+  // prose around them comes from whole-sentence templates.
+
+  var euclidPad = document.getElementById('euclid-pad');
+  var euclidPadBar = document.getElementById('euclid-pad-bar');
+  var euclidPadMin = document.getElementById('euclid-pad-min');
+  var euclidPadBody = document.getElementById('euclid-pad-body');
+  var euclidPadLines = document.getElementById('euclid-pad-lines');
+
+  var SUB_DIGITS = '₀₁₂₃₄₅₆₇₈₉';
+  function sub(n){ return String(n).replace(/\d/g, function(d){ return SUB_DIGITS[+d]; }); }
+  // c · u, with a coefficient of 1 or −1 written as u or −u.
+  function term(c, u){ return c === 1 ? String(u) : (c === -1 ? '−' + u : fmtSigned(c) + ' · ' + u); }
+  // x · u + y · v, a negative y written as a subtraction.
+  function lin(x, u, y, v){
+    if (x === 0) return term(y, v);
+    if (y === 0) return term(x, u);
+    return term(x, u) + (y < 0 ? ' − ' + term(-y, v) : ' + ' + term(y, v));
+  }
+
+  function padLines(){
+    var N = euclid.N, a = euclid.a, g = euclid.g, out = [];
+    var add = function(beat, kind, o){ out.push({ beat: beat, kind: kind, tag: o.tag || '', math: o.math || '', note: o.note || '', key: !!o.key }); };
+    var head = function(beat, text){ out.push({ beat: beat, kind: 'head', head: text }); };
+
+    head(0, translate('wheel.euclidPadSetup'));
+    add(0, 'intro', { note: translate('wheel.euclidPadGoal', { a: a, n: N }) });
+    add(0, 'intro', { note: translate('wheel.euclidPadInvariant', { a: a, n: N }) });
+    add(0, 'intro', { math: 'r' + sub(0) + ' = ' + N + ' = ' + lin(1, N, 0, a) + '    (s' + sub(0) + ' = 1, t' + sub(0) + ' = 0)' });
+    add(0, 'intro', { math: 'r' + sub(1) + ' = ' + a + ' = ' + term(1, a) + '    (s' + sub(1) + ' = 0, t' + sub(1) + ' = 1)' });
+
+    for (var j = 0; j < euclid.steps.length; j++){
+      var f = euclid.steps[j], i = j + 1;
+      var bd = beatIndex('divide', j);
+      head(bd, translate('wheel.euclidPadStep', { i: i }));
+      if (f.r2 === 0){
+        add(bd, 'divide', { tag: translate('wheel.euclidPadTagDivide'), math: f.r0 + ' = ' + f.q + ' · ' + f.r1 + ' + 0' });
+        add(bd, 'divide', { note: translate('wheel.euclidPadStop', { n: N, a: a, g: g }) });
+        continue;
+      }
+      add(bd, 'divide', { tag: translate('wheel.euclidPadTagDivide'), math: f.r0 + ' = ' + f.q + ' · ' + f.r1 + ' + ' + f.r2 + '    (q' + sub(i) + ' = ' + f.q + ')' });
+      add(bd, 'divide', { tag: translate('wheel.euclidPadTagSo'), math: 'r' + sub(i + 1) + ' = ' + f.r2 + ' = ' + f.r0 + ' − ' + f.q + ' · ' + f.r1 });
+      var bc = beatIndex('coef', j);
+      add(bc, 'coef', { tag: 't' + sub(i + 1), math: 't' + sub(i - 1) + ' − q' + sub(i) + ' · t' + sub(i) + ' = ' + fmtSigned(f.tPrev) + ' − ' + f.q + ' · ' + fmtParen(f.tCur) + ' = ' + fmtSigned(f.t) });
+      add(bc, 'coef', { tag: 's' + sub(i + 1), math: 's' + sub(i - 1) + ' − q' + sub(i) + ' · s' + sub(i) + ' = ' + fmtSigned(f.sPrev) + ' − ' + f.q + ' · ' + fmtParen(f.sCur) + ' = ' + fmtSigned(f.s) });
+      add(bc, 'coef', { tag: translate('wheel.euclidPadTagSo'), math: f.r2 + ' = ' + lin(f.s, N, f.t, a) });
+      var br = beatIndex('reduce', j);
+      var prod = term(f.t, a);
+      add(br, 'reduce', { tag: translate('wheel.euclidPadTagReduce'), math: prod + (prod === fmtSigned(f.raw) ? '' : ' = ' + fmtSigned(f.raw)) + ' = ' + f.r2 + (f.s < 0 ? ' + ' + (-f.s) + ' · ' + N : (f.s > 0 ? ' − ' + f.s + ' · ' + N : '')) });
+      add(br, 'reduce', { tag: translate('wheel.euclidPadTagMod', { n: N }), math: f.r2 + ' ≡ ' + fmtSigned(f.t) + ' · ' + a + ' (mod ' + N + ')', key: true });
+    }
+
+    var bf = euclid.beats.length - 1;
+    head(bf, translate('wheel.euclidPadResult'));
+    add(bf, 'finale', { tag: translate('wheel.euclidPadTagBezout'), math: 'gcd(' + N + ', ' + a + ') = ' + g + ' = ' + lin(euclid.sg, N, euclid.tg, a) });
+    if (g === 1){
+      var raw = euclid.inv * a;
+      add(bf, 'finale', { tag: translate('wheel.euclidPadTagMod', { n: N }), math: '1 ≡ ' + fmtSigned(euclid.tg) + ' · ' + a + ' (mod ' + N + ')' });
+      add(bf, 'finale', { tag: translate('wheel.euclidPadTagInverse'), math: a + '⁻¹ ≡ ' + (euclid.tg === euclid.inv ? '' : fmtSigned(euclid.tg) + ' ≡ ') + euclid.inv + ' (mod ' + N + ')', key: true });
+      add(bf, 'finale', { tag: translate('wheel.euclidPadTagCheck'), math: a + ' · ' + euclid.inv + ' = ' + raw + ' = ' + ((raw - 1) / N) + ' · ' + N + ' + 1  ✓' });
+    } else {
+      add(bf, 'finale', { note: translate('wheel.euclidPadNoInverse', { a: a, n: N, g: g }), key: true });
+    }
+
+    // Back-substitution: the same identity worked from the last division up,
+    // replacing one remainder at a time by the division that produced it.
+    var L = -1;
+    for (var k = 0; k < euclid.steps.length; k++) if (euclid.steps[k].r2 !== 0) L = k;
+    if (L >= 1){
+      head(bf, translate('wheel.euclidPadBack'));
+      var top = euclid.steps[L], x = 1, y = -top.q;
+      add(bf, 'finale', { math: g + ' = ' + lin(x, top.r0, y, top.r1) });
+      for (var m = L; m >= 1; m--){
+        var p = euclid.steps[m - 1];
+        var expr = '(' + p.r0 + ' − ' + p.q + ' · ' + p.r1 + ')';
+        add(bf, 'finale', { math: '  = ' + term(x, p.r1) + (y < 0 ? ' − ' + term(-y, expr) : ' + ' + term(y, expr)) });
+        var nx = y, ny = x - y * p.q;
+        x = nx; y = ny;
+        add(bf, 'finale', { math: '  = ' + lin(x, p.r0, y, p.r1) });
+      }
+    }
+    return out;
+  }
+
+  function renderPad(idx){
+    var lines = padLines(), now = null;
+    euclidPadLines.replaceChildren();
+    lines.forEach(function(ln){
+      if (ln.beat > idx) return;
+      var li = document.createElement('li');
+      li.className = 'euclid-pad-line euclid-pad-line--' + ln.kind + (ln.beat === idx ? ' is-now' : '') + (ln.key ? ' is-key' : '');
+      li.setAttribute('data-beat', String(ln.beat));
+      if (ln.kind === 'head'){
+        li.textContent = ln.head;
+      } else {
+        if (ln.tag || ln.math){
+          var tag = document.createElement('span');
+          tag.className = 'euclid-pad-tag';
+          tag.textContent = ln.tag;
+          li.appendChild(tag);
+        }
+        var body = document.createElement('span');
+        body.className = ln.math ? 'euclid-pad-math' : 'euclid-pad-note';
+        body.textContent = ln.math || ln.note;
+        li.appendChild(body);
+      }
+      li.addEventListener('click', function(){ jumpToBeat(ln.beat); });
+      euclidPadLines.appendChild(li);
+      if (ln.beat === idx && !now) now = li;
+    });
+    // Keep the newest lines in view without scrolling the page itself.
+    var last = euclidPadLines.lastElementChild;
+    if (last){
+      var target = now || last;
+      var top = target.offsetTop - euclidPadBody.offsetTop;
+      var bottom = last.offsetTop - euclidPadBody.offsetTop + last.offsetHeight;
+      var view = euclidPadBody.clientHeight;
+      euclidPadBody.scrollTop = bottom - top > view ? top - 8 : Math.max(0, bottom - view + 14);
+    }
+  }
+
+  function jumpToBeat(idx){
+    if (!euclid.running) return;
+    euclid.gen++;
+    clearTimeout(euclid.timer);
+    euclid.playing = false;
+    goToBeat(idx, false);
+  }
+
+  euclidPadMin.addEventListener('click', function(){
+    var min = euclidPad.classList.toggle('is-min');
+    euclidPadMin.textContent = min ? '+' : '−';
+    euclidPadMin.setAttribute('aria-expanded', min ? 'false' : 'true');
+    euclidPadMin.setAttribute('aria-label', translate(min ? 'wheel.euclidPadRestore' : 'wheel.euclidPadMinimise'));
+  });
+
+  // Dragged by its title bar, kept inside the viewport.
+  var padDrag = null;
+  euclidPadBar.addEventListener('pointerdown', function(ev){
+    if (ev.button !== 0 || ev.target.closest('button')) return;
+    if (window.matchMedia && window.matchMedia('(max-width: 760px)').matches) return;
+    var box = euclidPad.getBoundingClientRect();
+    padDrag = { dx: ev.clientX - box.left, dy: ev.clientY - box.top };
+    euclidPad.classList.add('is-dragging');
+    euclidPadBar.setPointerCapture(ev.pointerId);
+    ev.preventDefault();
+  });
+  euclidPadBar.addEventListener('pointermove', function(ev){
+    if (!padDrag) return;
+    var w = euclidPad.offsetWidth, h = euclidPadBar.offsetHeight;
+    var x = clamp(ev.clientX - padDrag.dx, 0, Math.max(0, window.innerWidth - w));
+    var y = clamp(ev.clientY - padDrag.dy, 0, Math.max(0, window.innerHeight - h));
+    euclidPad.style.left = x + 'px';
+    euclidPad.style.top = y + 'px';
+    euclidPad.style.right = 'auto';
+  });
+  function endPadDrag(){
+    padDrag = null;
+    euclidPad.classList.remove('is-dragging');
+  }
+  euclidPadBar.addEventListener('pointerup', endPadDrag);
+  euclidPadBar.addEventListener('pointercancel', endPadDrag);
 
   /* ---------- run control ---------- */
 
@@ -1575,13 +1827,13 @@
 
   function buildRun(N, a){
     var res = euclidSteps(N, a);
-    var rows = [{ r: N, t: 0, q: null }, { r: a, t: 1, q: null }];
+    var rows = [{ r: N, s: 1, t: 0, q: null }, { r: a, s: 0, t: 1, q: null }];
     var steps = [];
     var j;
     for (j = 0; j < res.steps.length; j++){
       var s = res.steps[j];
       rows[j + 1].q = s.q;
-      rows.push({ r: s.r, t: s.t, q: null });
+      rows.push({ r: s.r, s: s.s, t: s.t, q: null });
     }
     for (j = 0; j < res.steps.length; j++){
       var st = res.steps[j];
@@ -1592,7 +1844,8 @@
       else { k = Math.ceil(-raw / N); dir = 'up'; }
       steps.push({
         r0: st.a, r1: st.b, q: st.q, r2: st.r,
-        tPrev: rows[j].t, tCur: rows[j + 1].t, t: t, raw: raw, k: k, dir: dir
+        tPrev: rows[j].t, tCur: rows[j + 1].t, t: t, raw: raw, k: k, dir: dir,
+        sPrev: rows[j].s, sCur: rows[j + 1].s, s: rows[j + 2].s
       });
     }
     var beats = [{ kind: 'intro', j: -1 }];
@@ -1611,6 +1864,7 @@
     euclid.a = a;
     euclid.g = res.gcd;
     euclid.tg = res.t;
+    euclid.sg = res.s;
     euclid.inv = res.gcd === 1 ? (((res.t % N) + N) % N) : null;
   }
 
@@ -1634,6 +1888,7 @@
     wheelSvg.classList.add('is-euclid');
     euclidBoard.hidden = false;
     euclidPlayback.hidden = false;
+    euclidPad.hidden = false;
     caption.hidden = true;
     goToBeat(0, true);
     schedule();
@@ -1646,6 +1901,7 @@
     wheelSvg.classList.remove('is-euclid');
     euclidBoard.hidden = true;
     euclidPlayback.hidden = true;
+    euclidPad.hidden = true;
     euclidNote.hidden = true;
     caption.hidden = false;
     euclid.running = false;
@@ -1701,6 +1957,7 @@
 
   function rerenderEuclidOnLangChange(){
     updateControls();
+    euclidPadMin.setAttribute('aria-label', translate(euclidPad.classList.contains('is-min') ? 'wheel.euclidPadRestore' : 'wheel.euclidPadMinimise'));
     if (!euclid.running) return;
     euclid.gen++;
     renderFrame(euclid.idx, false);
