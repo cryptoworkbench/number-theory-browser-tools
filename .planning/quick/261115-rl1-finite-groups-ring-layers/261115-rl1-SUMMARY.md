@@ -34,3 +34,28 @@ commit: b39dc2e
 ## Remaining
 - With the wheel and raw results, the lit cells' fades (CSS opacity on SVG cells) repaint the wheel layer and the blur every frame. Moving them out would tint the digits.
 - The ring svg's own arrows and halos re-raster as the arrows grow.
+
+## Second round (asked: less stutter with the wheel on, without the lit cells' visual change)
+- What drawRingCombo draws (aᵏ's walk with the growing arrow, a∗b's raw result, the halos) is in its own compositor-turned layer (`#ring-combo-host`, `comboHost`). A growing arrow re-rasters only that layer. Cosets' past walks fade again in the paths layer (`:is(.ring, .ring-paths).is-coset .is-past`).
+- A turn alone keeps the paths layer as it was, turned by the layer (`pathsReused`, `pathsTurnOffset`, `foldPathsTurn`, `turnPathsBy`). It isn't kept while raw results are written on the paths.
+- The lines under the ring are measured in one layout (`drawCombineLine` builds all rows first, `fitLater`). A turn alone keeps the card's measured reach (`cardExtKept`).
+- No backdrop blur where none shows: the cards' `::before` grounds rest at `none` instead of `blur(0px)`, and the band behind the top rows blurs only while it shows.
+- Tried and dropped:
+  - a live mirror of the wheel for the card's blur instead of `<use>`: less layout, but more GPU raster;
+  - setting the ring svg's viewBox once: no measurable gain, and it changed text measurement slightly;
+  - a bounded square for the wheel layer: no fewer rasters.
+
+## Results after round two (3 interleaved runs; main → branch)
+- Slow aᵏ, Keep result on top, wheel and raw results:
+  - frames over 50 ms 49 → 17, frames over 33 ms 204 → 146;
+  - p99 100 → 67 ms;
+  - GPU raster 5.29 → 3.17 s;
+  - main-thread tasks over 50 ms 16 (1.2 s) → 7 (0.44 s).
+- The same without the wheel: frames over 33 ms 145 → 15; GPU raster 5.3 → 2.0 s.
+
+## Verified
+- Debug harness, all 10 cases: patched steps and turn-only redraws equal full redraws. Kept paths match within 0.017 screen px, compared by sampled geometry.
+- Screenshots of 24 desktop scenes plus previews, ring windows and mobile.
+  - Against main: only anti-aliasing differences, plus the rotated-bitmap resampling of the kept wheel and paths after turns.
+  - Against the previous commit for the backdrop change: no pixel over threshold.
+- PNG export renders the same as main's (within 9 px of anti-aliasing). The kept paths get a rotate() instead of recomputed coordinates.
