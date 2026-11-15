@@ -702,6 +702,7 @@ None yet.
 | 261115-dz0 | Equivalence Wheel: Algebra window writing out the Extended Euclid run (English only) | 2026-11-15 | eeca211 | [261115-dz0-equivalence-wheel-algebra-window-for-the](./quick/261115-dz0-equivalence-wheel-algebra-window-for-the/) |
 | 261115-eew | Finite Groups: aᵏ Slow arrows, growing and recolouring one step at a time (English only) | 2026-11-15 | cb6cfe0 | [261115-eew-finite-groups-a-slow-arrow-mode](./quick/261115-eew-finite-groups-a-slow-arrow-mode/) |
 | 261115-kr1 | Finite Groups: congruence wheel Keep the numbers readable at every turn, off by default (English only) | 2026-11-15 | 3429198 | [261115-kr1-finite-groups-wheel-readable-at-every-turn](./quick/261115-kr1-finite-groups-wheel-readable-at-every-turn/) |
+| 261115-cw1 | Finite Groups: a ∗ b / aᵏ card minimizable and detachable into a window (English only) | 2026-11-15 | 7b24cff | [261115-cw1-finite-groups-combine-card-window](./quick/261115-cw1-finite-groups-combine-card-window/) |
 | 261115-fm2 | Finite Groups: forward/backward path overlaps drawn in the both-paths green | 2026-11-15 | f3d01dd | [261115-fm2-finite-groups-shared-forward-backward-pa](./quick/261115-fm2-finite-groups-shared-forward-backward-pa/) |
 | fast | Cyclic Groups DH time cylinder, Per hop: hairline slice rims so the grey beads stay visible | 2026-11-04 | e6f0b6c | — |
 | fast | Cyclic Groups: Subgroup switched off keeps the group's name in the subgroup row, without G and ⟨h⟩ | 2026-11-04 | 20274e9 | — |
