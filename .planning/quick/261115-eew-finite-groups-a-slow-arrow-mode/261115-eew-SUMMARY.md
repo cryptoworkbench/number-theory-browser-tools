@@ -2,7 +2,7 @@
 status: complete
 quick_id: 261115-eew
 date: 2026-11-15
-commits: [cb6cfe0, 31475eb]
+commits: [cb6cfe0, 31475eb, 17e7474]
 ---
 
 # 261115-eew: Finite Groups aᵏ Slow arrows
@@ -16,3 +16,8 @@ commits: [cb6cfe0, 31475eb]
 ## Follow-up (31475eb)
 
 - Slow mode: a growing arrow out to a congruence-wheel cell (raw aᵏ results on) lights that cell when its head arrives and walks it down to its bead (walkWheelCell, the double-tap animation); the next arrow waits for the walk. Extra time per such arrow: max(0, (q+1)·min(260, 2600/(q+1)) − 260) ms for a cell q rings out: +260 ms (q=1), +520 ms (q=2), up to +2340 ms (q≥9). Arrows ending on a bead are unchanged.
+
+## Follow-up 2 (17e7474)
+
+- A hop out to a cell: spiral grows (520 ms); the cell walk starts as the head arrives and the dashed reduction line grows inward with it, the head at its tip in each cell as that cell lights and at the bead with the halo; then the head returns up the line and along the spiral to the middle (SLOW_BACK_CELL 420 ms). Such an arrow now takes 520 + (q+1)·min(260, 2600/(q+1)) + 420 ms: 1.46 s for q=1, 1.72 s for q=2, 3.54 s at the 2.6 s cap (a plain arrow 0.78 s).
+- Verified with rAF replaced by a 16 ms timer (the automated tab throttled rAF to ~1 fps): head at the reduce-line tip at 528/788/~1050 ms matching the lit cells and halo, home by ~1440 ms; no console errors.
