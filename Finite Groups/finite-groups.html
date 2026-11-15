@@ -991,6 +991,8 @@
   /* Raw results on the congruence wheel: a hop out to its unreduced number,
      written in the walk's colour, and the reduction back in, dashed. */
   .chord.is-reduce{ stroke-dasharray:4 3; }
+  .walk-shared-line{ fill:none; stroke:var(--arrow-both); stroke-linecap:round; stroke-linejoin:round; pointer-events:none; }
+  .walk-shared-line.is-reduce{ stroke-dasharray:4 3; stroke-linecap:butt; }
   /* A combination's raw result: a's and b's arrows, in their halos'
      colours, meet on its cell, and the reduction runs on to the result's
      halo in the result's. */
@@ -5612,6 +5614,75 @@ function drawOuter(ring, walk, cls, scale, sense, place, box, beadR, m, width, r
   return foot + peakMax;
 }
 
+// Where the forward path and the backward path run over each other (their
+// lines on the ring, or out on the congruence wheel a spiral or a dashed
+// reduction from the same cell), the shared stretch is drawn over both in
+// the colour of both paths, --arrow-both (see .walk-both). Lines are read
+// back from the drawn paths, all straight-segment polylines; shared lines
+// coincide to the drawn precision, so the tolerance is tight and a stretch
+// must run SHARED_MIN px, which leaves out shallow crossings.
+var SHARED_EPS = 0.35, SHARED_MIN = 16, SHARED_CELL = 8;
+function markSharedWalks(walksEl, width){
+  var lines = function(sel){
+    var out = [];
+    walksEl.querySelectorAll(sel).forEach(function(el){
+      var dash = el.classList.contains('is-reduce'), pts = null;
+      (el.getAttribute('d') || '').replace(/([ML])\s*(-?[\d.]+)\s+(-?[\d.]+)/g, function(_, c, x, y){
+        if (c === 'M' || !pts){ pts = []; out.push({ pts: pts, dash: dash }); }
+        pts.push([+x, +y]);
+      });
+    });
+    return out;
+  };
+  var path = ':is(path.chord, path.outer-arc)';
+  var fwd = lines('.walk-el ' + path), bwd = lines('.walk-inv ' + path);
+  if (!fwd.length || !bwd.length) return;
+  // The backward path's segments, binned by the cells of a grid they cross.
+  var grid = {}, key = function(i, j){ return i + ',' + j; };
+  bwd.forEach(function(l){
+    for (var s = 1; s < l.pts.length; s++){
+      var a = l.pts[s - 1], b = l.pts[s];
+      var i0 = Math.floor((Math.min(a[0], b[0]) - SHARED_EPS) / SHARED_CELL), i1 = Math.floor((Math.max(a[0], b[0]) + SHARED_EPS) / SHARED_CELL);
+      var j0 = Math.floor((Math.min(a[1], b[1]) - SHARED_EPS) / SHARED_CELL), j1 = Math.floor((Math.max(a[1], b[1]) + SHARED_EPS) / SHARED_CELL);
+      for (var i = i0; i <= i1; i++) for (var j = j0; j <= j1; j++) (grid[key(i, j)] = grid[key(i, j)] || []).push([a, b]);
+    }
+  });
+  var near = function(p){
+    var segs = grid[key(Math.floor(p[0] / SHARED_CELL), Math.floor(p[1] / SHARED_CELL))];
+    return !!segs && segs.some(function(sg){
+      var a = sg[0], b = sg[1], dx = b[0] - a[0], dy = b[1] - a[1], len = dx * dx + dy * dy;
+      var u = len ? Math.max(0, Math.min(1, ((p[0] - a[0]) * dx + (p[1] - a[1]) * dy) / len)) : 0;
+      return Math.hypot(p[0] - a[0] - u * dx, p[1] - a[1] - u * dy) <= SHARED_EPS;
+    });
+  };
+  // A forward line, filled in to points 2px apart, in runs on and off the
+  // backward path; the runs on it long enough to be more than a crossing
+  // or a shared foot are drawn.
+  var shared = svgEl('g', { 'class': 'walk-shared', 'aria-hidden': 'true' });
+  fwd.forEach(function(l){
+    var run = [], runLen = 0;
+    var flush = function(){
+      if (run.length > 1 && runLen >= SHARED_MIN){
+        shared.appendChild(svgEl('path', { 'class': 'walk-shared-line' + (l.dash ? ' is-reduce' : ''), 'stroke-width': width, d: run.map(function(p, i){ return (i ? 'L ' : 'M ') + num(p[0]) + ' ' + num(p[1]); }).join(' ') }));
+      }
+      run = [];
+      runLen = 0;
+    };
+    for (var s = 0; s < l.pts.length; s++){
+      var a = l.pts[s], b = l.pts[s + 1] || a, n = Math.max(1, Math.ceil(Math.hypot(b[0] - a[0], b[1] - a[1]) / 2));
+      for (var t = 0; t < (s + 1 < l.pts.length ? n : 1); t++){
+        var p = [a[0] + (b[0] - a[0]) * t / n, a[1] + (b[1] - a[1]) * t / n];
+        if (near(p)){
+          if (run.length) runLen += Math.hypot(p[0] - run[run.length - 1][0], p[1] - run[run.length - 1][1]);
+          run.push(p);
+        } else flush();
+      }
+    }
+    flush();
+  });
+  if (shared.firstChild) walksEl.appendChild(shared);
+}
+
 // The identity's walk never leaves it: one loop from its bead back to it,
 // outside or inside the ring, turning the way the beads count. Returns the
 // outermost radius used. In a cardinality colour (paint, an .ord-* class)
@@ -5870,6 +5941,7 @@ function drawRing(parent, G, beads, box, paint){
       walks.forEach(function(w){
         if (w.side === 'inside' && !w.loop && !w.duo) drawInner(walksEl, w.walk, w.cls, w.scale, w.sense, places, box, beadR, m, width, rawFor(w));
       });
+      markSharedWalks(walksEl, width);
       return edge;
     };
     outerEdge = Math.max(outerEdge, ring.redrawWalks(place));
