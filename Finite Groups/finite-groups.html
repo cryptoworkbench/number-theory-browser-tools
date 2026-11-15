@@ -4119,6 +4119,10 @@ var ringLayerMap = null, frostCard = null;
 // (wheelTurnOffset degrees), so neither it nor the card's blur of it is
 // painted again.
 var wheelReused = false, wheelTurnOffset = 0;
+// The paths' layer likewise, while no raw result is written on it (its
+// numbers are turned to read upright where they stand): pathsReused,
+// pathsTurnOffset.
+var pathsReused = false, pathsTurnOffset = 0;
 // The ring's guide, cord, mirror axis and paths have a layer of their own
 // over the wheel's (pathsTurnEl, see drawRing), turned with it and carried
 // in the ring with it.
@@ -5957,8 +5961,11 @@ function drawRing(parent, G, beads, box, paint){
   // Over it, what only turns with the ring between redraws, in its own layer
   // (but for a preview, which has no layers).
   var under = wheelInRing || IS_PREVIEW ? ring : pathsTurnEl;
-  if (state.guide) under.appendChild(svgEl('circle', { 'class': 'guide', cx: box.cx, cy: box.cy, r: box.R }));
-  if (m > 1 && mirrorShown(G)){
+  // A turn alone keeps them as they were, turned by the layer (see
+  // drawNecklace).
+  var keptPaths = pathsReused && under === pathsTurnEl ? pathsTurnEl.querySelector(':scope > .walks') : null;
+  if (state.guide && !keptPaths) under.appendChild(svgEl('circle', { 'class': 'guide', cx: box.cx, cy: box.cy, r: box.R }));
+  if (m > 1 && mirrorShown(G) && !keptPaths){
     // Through the identity, wherever the turn has put it.
     var axisAt = dirSign() * 360 * place[G.identity] / m;
     var axisA = polar(box.cx, box.cy, box.R + beadR + 6, axisAt);
@@ -5969,7 +5976,7 @@ function drawRing(parent, G, beads, box, paint){
     }));
   }
 
-  if (state.cord && m > 1){
+  if (state.cord && m > 1 && !keptPaths){
     var pts = [];
     for (var i = 0; i < m; i++){
       var p = at(i);
@@ -6040,7 +6047,7 @@ function drawRing(parent, G, beads, box, paint){
     walksFrom(coset ? coset.start : G.identity, false);
     // The walks share one group, which a rearrangement redraws as the beads
     // move: places may then be fractional.
-    var walksEl = under.appendChild(svgEl('g', { 'class': 'walks' }));
+    var walksEl = keptPaths || under.appendChild(svgEl('g', { 'class': 'walks' }));
     // Raw results, the ring menu's choices on the congruence wheel, for the
     // forward path (raw 'el', the walk by h) and the backward path ('inv',
     // by h's inverse; 'both' for the one walk standing for both): per
@@ -6059,6 +6066,9 @@ function drawRing(parent, G, beads, box, paint){
     ring.redrawWalks = function(places){
       var edge = box.R + beadR;
       ring.walkPlaces = places;
+      if (pathsTurnOffset && walksEl.parentNode === pathsTurnEl) foldPathsTurn();
+      walksEl.removeAttribute('transform');
+      walksEl.drawnAt = places[G.identity];
       walksEl.replaceChildren();
       walks.forEach(function(w){
         if (w.duo) edge = Math.max(edge, drawDuo(walksEl, w.walk, w.cls, w.side, places, box, beadR, m, width, w.paint, w.paint ? 0 : 1, w.open));
@@ -6075,7 +6085,11 @@ function drawRing(parent, G, beads, box, paint){
       markSharedWalks(walksEl, width);
       return edge;
     };
-    outerEdge = Math.max(outerEdge, ring.redrawWalks(place));
+    if (keptPaths){
+      ring.walkPlaces = place;
+      pathsTurnOffset = dirSign() * 360 * (place[G.identity] - keptPaths.drawnAt) / m;
+      turnWheelLayer(0);
+    } else outerEdge = Math.max(outerEdge, ring.redrawWalks(place));
   }
 
   // An element combined with itself k times: the walk from the identity
@@ -12674,13 +12688,17 @@ function drawNecklace(G, paint){
   // ring (and so the wheel) as it is; a turn alone keeps the wheel and the
   // card's blur of it too, where it can (see drawRingWheel).
   wheelReused = !!(ringKept && !ringKept.ring && !wheelInRing && !ringWheelUpright && ringWheelShown(G) && wheelTurnEl.querySelector(':scope > .ring-wheel'));
+  pathsReused = !!(ringKept && !ringKept.ring && !wheelInRing && !IS_PREVIEW && pathsTurnEl.querySelector(':scope > .walks') && !pathsTurnEl.querySelector('.ring-raw'));
   if (!(ringKept && ringKept.ring)){
     if (!wheelReused){
       frostTurnEl.replaceChildren();
       wheelTurnEl.replaceChildren();
       wheelTurnOffset = 0;
     }
-    pathsTurnEl.replaceChildren();
+    if (!pathsReused){
+      pathsTurnEl.replaceChildren();
+      pathsTurnOffset = 0;
+    }
     comboTurnEl.replaceChildren();
     turnWheelLayer(0);
     placeFrostWindow();
@@ -12746,7 +12764,7 @@ function drawNecklace(G, paint){
     if (!ringKept && !ringWheelG()) syncWheelLayer();
     syncLiftUi();
   }
-  wheelReused = false;
+  wheelReused = pathsReused = false;
 }
 // The wheel's layer takes the ring svg's place, size, view box and clip,
 // so the two draw as one: read while the layout is fresh from the fill.
@@ -12794,8 +12812,27 @@ function turnWheelLayer(angle){
   var v = angle ? 'rotate(' + num(angle) + 'deg)' : '', w = angle + wheelTurnOffset ? 'rotate(' + num(angle + wheelTurnOffset) + 'deg)' : '';
   if (wheelLayerEl.style.transform !== w) wheelLayerEl.style.transform = w;
   if (frostLayerEl.style.transform !== w) frostLayerEl.style.transform = w;
-  if (pathsLayerEl.style.transform !== v) pathsLayerEl.style.transform = v;
+  var pv = angle + pathsTurnOffset ? 'rotate(' + num(angle + pathsTurnOffset) + 'deg)' : '';
+  if (pathsLayerEl.style.transform !== pv) pathsLayerEl.style.transform = pv;
   if (comboLayerEl.style.transform !== v) comboLayerEl.style.transform = v;
+}
+// The paths' layer's make-up turn written into its drawing, element by
+// element (or into copies of them, for a picture).
+function turnPathsBy(els, by){
+  var box = ringBox();
+  els.forEach(function(el){
+    var tf = el.getAttribute('transform');
+    el.setAttribute('transform', 'rotate(' + num(by) + ' ' + box.cx + ' ' + box.cy + ')' + (tf ? ' ' + tf : ''));
+  });
+}
+function foldPathsTurn(){
+  var by = pathsTurnOffset, walks = pathsTurnEl.querySelector(':scope > .walks');
+  pathsTurnOffset = 0;
+  if (!by) return;
+  turnPathsBy(Array.prototype.slice.call(pathsTurnEl.children), by);
+  if (walks && drawn) walks.drawnAt += by * drawn.G.order / (dirSign() * 360);
+  var at = /rotate\((-?[\d.]+)/.exec((ringDynamicEl.querySelector(':scope > .ring') || pathsTurnEl).getAttribute('transform') || '');
+  turnWheelLayer(at ? +at[1] : 0);
 }
 // The wheel's group (or a copy of it) turned as drawing it again now would
 // turn it, at rest: by its turn, its clip turned back.
@@ -12839,6 +12876,7 @@ function placeFrostWindow(){
 // back to its layer when the flip is over.
 function wheelIntoRing(ring){
   foldWheelTurn();
+  foldPathsTurn();
   var parts = ringLayerParts(false);
   turnWheelLayer(0);
   if (parts.length) ring.insertBefore(parts.reduce(function(f, el){ f.appendChild(el); return f; }, document.createDocumentFragment()), ring.firstChild);
@@ -12877,6 +12915,7 @@ function ringLayerParts(copies){
     Array.prototype.forEach.call(host.children, function(el){
       var copy = copies ? el.cloneNode(true) : el;
       if (copies && el.drawnTurn !== el.turn) trueWheelTurn(copy, el);
+      if (copies && host === pathsTurnEl && pathsTurnOffset) turnPathsBy([copy], pathsTurnOffset);
       parts.push(copy);
     });
   });
@@ -26118,6 +26157,7 @@ function snapshotRing(){
   }
   var liveWheel = wheelTurnEl.querySelector(':scope > .ring-wheel');
   if (liveWheel && liveWheel.drawnTurn !== liveWheel.turn) trueWheelTurn(wheelCopy.querySelector(':scope > .ring-wheel'), liveWheel);
+  if (pathsTurnOffset) turnPathsBy(Array.prototype.slice.call(pathsCopy.children), pathsTurnOffset);
   var cloneRing = clone.querySelector('.ring');
   if (cloneRing){
     while (comboCopy.lastChild) cloneRing.insertBefore(comboCopy.lastChild, cloneRing.firstChild);
