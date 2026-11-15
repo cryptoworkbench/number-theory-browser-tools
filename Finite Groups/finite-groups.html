@@ -1147,6 +1147,16 @@
   .fs-win-body.is-ring > .flog-win{ justify-self:start; width:max-content; max-width:calc(100% - 16px); max-height:none; }
   .flog-win .lap-key-head{ gap:6px; }
   .flog-win .lap-key-head > h2{ flex:1 1 auto; min-width:0; }
+  /* a ∗ b's and aᵏ's lines detached from the ring into a window of their
+     own (see placeCombineCard): the lines at the size they had under the
+     ring, their copy buttons showing while the pointer is over it. */
+  :root.is-mobile .combine-win{ display:none !important; }
+  .fs-win-body.is-ring > .combine-win{ justify-self:start; width:max-content; max-width:calc(100% - 16px); max-height:none; }
+  .combine-win .lap-key-head{ gap:6px; }
+  .combine-win .lap-key-head > h2{ flex:1 1 auto; min-width:0; }
+  .combine-win-svg{ display:block; max-width:100%; height:auto; overflow:visible; }
+  .combine-win-svg .ring-combine{ user-select:text; -webkit-user-select:text; cursor:text; }
+  .combine-win:hover .ring-combine-copy{ opacity:1; pointer-events:auto; }
   .flog-note{ margin:0; max-width:300px; font-size:.8rem; line-height:1.35; color:var(--text-dim); text-align:center; align-self:center; }
   .flog-math{ overflow:visible; pointer-events:none; }
   .flog-math-box{ display:grid; align-items:center; width:100%; height:100%; direction:ltr; }
@@ -3591,6 +3601,10 @@
         <section class="curve-plot flog-win" id="flog-win" aria-labelledby="flog-title" hidden>
           <div class="lap-key-head"><h2 id="flog-title" data-i18n="cyclicGroups.flogTitle">Fixed logarithm</h2><button type="button" class="fs-win-btn lap-key-min" id="flog-min" title="Minimize" aria-label="Minimize" data-i18n-title="cyclicGroups.lapKeyMin" data-i18n-aria-label="cyclicGroups.lapKeyMin"><svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true" focusable="false"><line x1="3" y1="6" x2="9" y2="6"/></svg></button><button type="button" class="fs-win-btn lap-key-min is-close" id="flog-close" title="Close" aria-label="Close" data-i18n-title="cyclicGroups.dhClose" data-i18n-aria-label="cyclicGroups.dhClose"><svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true" focusable="false"><line x1="3" y1="3" x2="9" y2="9"/><line x1="9" y1="3" x2="3" y2="9"/></svg></button></div>
           <div class="fmap-win-body" id="flog-body"></div>
+        </section>
+        <section class="curve-plot combine-win" id="combine-win" aria-labelledby="combine-win-title" hidden>
+          <div class="lap-key-head"><h2 id="combine-win-title"></h2><button type="button" class="fs-win-btn lap-key-min" id="combine-win-dock" title="Put it back in its place under the ring" aria-label="Put it back in its place under the ring" data-i18n-title="cyclicGroups.combineCardDock" data-i18n-aria-label="cyclicGroups.combineCardDock"><svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true" focusable="false"><path d="M10.5 1.5 6 6"/><path d="M6 2.5V6h3.5"/><path d="M4.5 2.5H2v7.5h7.5V7.5"/></svg></button><button type="button" class="fs-win-btn lap-key-min" id="combine-win-min" title="Minimize" aria-label="Minimize" data-i18n-title="cyclicGroups.lapKeyMin" data-i18n-aria-label="cyclicGroups.lapKeyMin"><svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true" focusable="false"><line x1="3" y1="6" x2="9" y2="6"/></svg></button></div>
+          <svg class="combine-win-svg" id="combine-win-svg"></svg>
         </section>
         <div class="expr-slot" id="expr-slot" hidden>
           <span class="expr-name" aria-hidden="true"></span>
@@ -6630,6 +6644,11 @@ function barPlotTasks(i, G){
       tellPane({ ringhost: 'flogopen' });
     }));
   }
+  if (i === 0 && combineTaskShown){
+    var cname = translate(combineTaskShown === 'ak' ? 'cyclicGroups.combineWinAk' : 'cyclicGroups.combineWinAb');
+    var cshow = translate(combineTaskShown === 'ak' ? 'cyclicGroups.combineWinShowAk' : 'cyclicGroups.combineWinShowAb');
+    tasks.push(barTask(cname, cshow, cshow, 'combine', function(){ setCombineCard(combineCardBack[combineCardKind()]); }));
+  }
   if (i === 0 && lapKeyOn && !lapKeyOpen){
     var laps = translate('cyclicGroups.lapKeyTitle');
     tasks.push(barTask(laps, translate('cyclicGroups.lapKeyShow'), translate('cyclicGroups.lapKeyShow'), 'lap', function(){ openLapKey(); blinkLinked(lapKeyEl); }));
@@ -6654,6 +6673,9 @@ function barTask(text, title, label, kind, open){
   } else if (kind === 'flog'){
     icon.appendChild(svgEl('path', { d: 'M1.5 10.5V1.5M1.5 10.5H10.5' }));
     icon.appendChild(svgEl('path', { d: 'M2.6 10.5C3.2 6.5 5.5 4.6 10.5 4' }));
+  } else if (kind === 'combine'){
+    icon.appendChild(svgEl('rect', { x: 1.5, y: 3, width: 9, height: 6, rx: 1.5 }));
+    icon.appendChild(svgEl('path', { d: 'M3.5 6h5' }));
   } else if (kind === 'lap'){
     icon.appendChild(svgEl('circle', { cx: 6, cy: 6, r: 4.5 }));
     icon.appendChild(svgEl('circle', { cx: 6, cy: 6, r: 2 }));
@@ -7680,7 +7702,7 @@ ringExitEl.addEventListener('click', exitDesktop);
 // and in an isomorphism pane's ring (ringwin=1), and the rows some of them
 // share.
 var FS_PANELS = [
-  { key: 'ring', ids: ['group-controls', 'keep-top-row', 'arrange-field', 'gen-field', 'subgroup-options', 'split-btn', 'ring-head', 'ring-svg', 'lap-key', 'curve-plot', 'poly-plot', 'cayley-plot', 'dh-plot', 'dhc-plot', 'pizza-plot', 'fset-win-0', 'fset-win-1', 'flog-win', 'expr-slot', 'spin-ruler', 'combine-key', 'akey-more', 'akey-more-top', 'legend-panel', 'legend-panel-pane', 'genexp-info', 'genexp-info-pane', 'ring-bar', 'bar-formulas-l', 'bar-formulas-r', 'ring-corner', 'formula-level', 'rotate-ctl', 'ring-split', 'iso-pane', 'iso-add', 'iso-add-left', 'ring-exit'], rows: { 'group-controls': 'ctl', 'keep-top-row': 'ctl', 'gen-field': 'gen', 'subgroup-options': 'gen', 'split-btn': 'gen' } }
+  { key: 'ring', ids: ['group-controls', 'keep-top-row', 'arrange-field', 'gen-field', 'subgroup-options', 'split-btn', 'ring-head', 'ring-svg', 'lap-key', 'curve-plot', 'poly-plot', 'cayley-plot', 'dh-plot', 'dhc-plot', 'pizza-plot', 'fset-win-0', 'fset-win-1', 'flog-win', 'combine-win', 'expr-slot', 'spin-ruler', 'combine-key', 'akey-more', 'akey-more-top', 'legend-panel', 'legend-panel-pane', 'genexp-info', 'genexp-info-pane', 'ring-bar', 'bar-formulas-l', 'bar-formulas-r', 'ring-corner', 'formula-level', 'rotate-ctl', 'ring-split', 'iso-pane', 'iso-add', 'iso-add-left', 'ring-exit'], rows: { 'group-controls': 'ctl', 'keep-top-row': 'ctl', 'gen-field': 'gen', 'subgroup-options': 'gen', 'split-btn': 'gen' } }
 ];
 // Earlier versions kept a simulated desktop's windows under this key; nothing
 // reads it any more, so a visit clears it.
@@ -11782,7 +11804,7 @@ ringSvgEl.addEventListener('contextmenu', function(e){
     var plate = ringDynamicEl.querySelector('.ring-combine-plate');
     if (plate && onLineAt(plate)){
       setRingCtx(false);
-      fsetCtxEl.replaceChildren(combineSolidItem());
+      fsetCtxEl.replaceChildren.apply(fsetCtxEl, [combineSolidItem()].concat(combineCardItems()));
       if (fsetCtxEl.hidden) fsetCtxReturn = document.activeElement instanceof HTMLElement && document.activeElement !== document.body ? document.activeElement : null;
       showCtxAt(fsetCtxEl, ptX(e), ptY(e));
       return;
@@ -12543,6 +12565,7 @@ function drawNecklace(G, paint){
   drawPolyPlot(G);
   drawCayley(G);
   if (!big){ drawCombineLine(G, SIZE - 16); combineCopies(); cardCombineLines(G); }
+  placeCombineCard(G);
   syncCombineKMod(G);
   if (IS_PREVIEW) cropToRing();
   // On screen the captions sit over the diagram, so the view starts just
@@ -12843,6 +12866,30 @@ function combineCopies(){
     });
     group.appendChild(btn);
   });
+  // Beside the first line's, Detach into a window and Minimize (see
+  // placeCombineCard).
+  var top = combineCardAvail() && combineExtent([texts[0]]);
+  if (top){
+    var area = group.querySelector('.ring-combine-area'), cy = (top.y0 + top.y1) / 2;
+    [['cyclicGroups.combineCardDetach', ['M7 1.5h3.5V5', 'M10.5 1.5 6 6', 'M4.5 2.5H2v7.5h7.5V7.5'], 'win'],
+      ['cyclicGroups.lapKeyMin', ['M3 6h6'], 'min']].forEach(function(b, i){
+      var bx = x + (i + 1) * (COMBINE_COPY_W + 4);
+      var btn = svgEl('g', { 'class': 'ring-combine-copy is-card', role: 'button', tabindex: '0', 'data-title': translate(b[0]), 'aria-label': translate(b[0]) });
+      btn.appendChild(svgEl('rect', { x: num(bx), y: num(cy - COMBINE_COPY_H / 2), width: COMBINE_COPY_W, height: COMBINE_COPY_H, rx: 4 }));
+      var glyph = btn.appendChild(svgEl('g', { transform: 'translate(' + num(bx + 1) + ' ' + num(cy - 6) + ')' }));
+      b[1].forEach(function(d){ glyph.appendChild(svgEl('path', { d: d })); });
+      var go = function(){ setCombineCard(b[2]); };
+      btn.addEventListener('pointerdown', function(e){ e.stopPropagation(); });
+      btn.addEventListener('click', function(e){ e.stopPropagation(); go(); });
+      btn.addEventListener('keydown', function(e){
+        if (e.key !== 'Enter' && e.key !== ' ') return;
+        e.preventDefault();
+        go();
+      });
+      group.appendChild(btn);
+    });
+    area.setAttribute('width', num(+area.getAttribute('width') + 2 * (COMBINE_COPY_W + 4)));
+  }
   ringDynamicEl.appendChild(group);
   syncCombineCardHot(combineCardPointer);
 }
@@ -13791,7 +13838,7 @@ function syncRingOverlap(){
 // there as the main area's controls are, frosted while the pointer or the
 // focus is in it; off the ring, it is as ever.
 var winHeld = null;
-function ringWins(){ return [curvePlotEl, polyPlotEl, cayleyEl, $('dh-plot'), $('dhc-plot'), $('pizza-plot'), $('fset-win-0'), $('fset-win-1'), $('flog-win')].filter(Boolean); }
+function ringWins(){ return [curvePlotEl, polyPlotEl, cayleyEl, $('dh-plot'), $('dhc-plot'), $('pizza-plot'), $('fset-win-0'), $('fset-win-1'), $('flog-win'), $('combine-win')].filter(Boolean); }
 function syncWinsOnRing(over){
   ringWins().forEach(function(w){
     w.classList.toggle('is-on-ring', !w.hidden && !w.classList.contains('is-docked') && !w.classList.contains('is-docked-foot') && over(boxOf(w)));
@@ -15107,6 +15154,119 @@ function openLapKey(){
   if (drawn) syncLapKey(drawn.G);
   lapKeyWin.place(lapKeyWin.at.x, lapKeyWin.at.y);
 }
+
+/* ---------- a ∗ b and aᵏ in a window ---------- */
+// The lines a ∗ b or aᵏ is worked out in (the card on the congruence wheel)
+// stand in their place under the ring ('card'), or are detached into a
+// window of their own that moves like the plots' ('win'), or are minimized
+// into the bottom bar ('min'); a ∗ b and aᵏ each keep their own choice,
+// kept in storage. Not on a phone, in a preview or in a pane.
+var COMBINE_CARD_KEY = 'cyclic-groups-combine-card';
+var combineCardAt = (function(){
+  var v = null;
+  try { v = JSON.parse(localStorage.getItem(COMBINE_CARD_KEY)); } catch (e) { /* storage unavailable */ }
+  var ok = function(m){ return m === 'win' || m === 'min' ? m : 'card'; };
+  return { ab: ok(v && v.ab), ak: ok(v && v.ak) };
+})();
+var combineWinEl = $('combine-win'), combineWinSvgEl = $('combine-win-svg');
+var combineWin = plotWindow(combineWinEl, null);
+var combineTaskShown = null, combineWinFrom = null;
+// Where the bar's task brings minimized lines back to: where they were.
+var combineCardBack = { ab: 'card', ak: 'card' };
+function combineCardAvail(){ return !IS_MOBILE && !IS_PREVIEW && !IS_ISOPANE; }
+function combineCardKind(){ return combo.k !== null ? 'ak' : 'ab'; }
+// to: 'card', 'win' or 'min'. Detached, the window comes up where the
+// lines stood.
+function setCombineCard(to){
+  var kind = combineCardKind();
+  if (combineCardAt[kind] === to) return;
+  if (to === 'min') combineCardBack[kind] = combineCardAt[kind];
+  combineWinFrom = to === 'win' ? combineLinesBox() : null;
+  combineCardAt[kind] = to;
+  try { localStorage.setItem(COMBINE_CARD_KEY, JSON.stringify(combineCardAt)); } catch (e) { /* storage unavailable */ }
+  if (drawn) redrawRing();
+}
+// On screen, where the lines are now, under the ring or in the window.
+function combineLinesBox(){
+  var l = Infinity, t = Infinity, r = -Infinity, b = -Infinity;
+  combineLineEls().forEach(function(el){
+    var x = boxOf(el);
+    if (!x.width) return;
+    l = Math.min(l, x.left); t = Math.min(t, x.top); r = Math.max(r, x.right); b = Math.max(b, x.bottom);
+  });
+  return r > l ? { left: l, top: t } : null;
+}
+// The window's and the menus' entries: Detach into a window, Put it back in
+// its place under the ring, Minimize, as fits where the lines are.
+function combineCardItems(){
+  if (!combineCardAvail()) return [];
+  var at = combineCardAt[combineCardKind()], items = [];
+  var item = function(key, to){
+    var it = ctxItem('menuitem', translate(key), false);
+    it.item.addEventListener('click', function(){ closeFsetCtx(); setCombineCard(to); });
+    items.push(it.item);
+  };
+  if (at === 'card') item('cyclicGroups.combineCardDetach', 'win');
+  else item('cyclicGroups.combineCardDock', 'card');
+  item('cyclicGroups.lapKeyMin', 'min');
+  return items;
+}
+// Every redraw, once the lines are drawn under the ring: detached, they
+// move into the window (without the card's plate and blur and its own two
+// buttons), at the size they had there; minimized, they go, leaving a task
+// in the bar that brings them back where they were.
+function placeCombineCard(G){
+  combineWinSvgEl.replaceChildren();
+  var parts = Array.prototype.filter.call(ringDynamicEl.children, function(el){
+    return el.matches('.ring-combine-box, text.ring-combine, .ring-combine-copies');
+  });
+  var kind = combineCardKind(), at = parts.length && combineCardAvail() ? combineCardAt[kind] : 'card';
+  if (at !== 'card'){
+    ringDynamicEl.querySelectorAll('.ring-combine-plate, .ring-combine-frost, .ring-combine-copy.is-card').forEach(function(el){ el.remove(); });
+    var area = ringDynamicEl.querySelector('.ring-combine-area');
+    if (area) area.remove();
+  }
+  if (at === 'win'){
+    var ext = combineExtent(parts), ctm = ringSvgEl.getScreenCTM(), k = ctm ? Math.hypot(ctm.a, ctm.b) : 1;
+    if (ext){
+      var pad = 4, w = ext.x1 - ext.x0 + 2 * pad, h = ext.y1 - ext.y0 + 2 * pad;
+      combineWinSvgEl.setAttribute('viewBox', [ext.x0 - pad, ext.y0 - pad, w, h].map(num).join(' '));
+      combineWinSvgEl.setAttribute('width', num(w * k));
+      combineWinSvgEl.setAttribute('height', num(h * k));
+    }
+    parts.forEach(function(el){ combineWinSvgEl.appendChild(el); });
+  } else if (at === 'min') parts.forEach(function(el){ el.remove(); });
+  $('combine-win-title').textContent = translate(kind === 'ak' ? 'cyclicGroups.combineWinAk' : 'cyclicGroups.combineWinAb');
+  var spawned = combineWinEl.hidden && at === 'win';
+  combineWinEl.hidden = at !== 'win';
+  var task = at === 'min' ? kind : null;
+  if (task !== combineTaskShown){
+    combineTaskShown = task;
+    syncBarFormulas();
+  }
+  if (combineWinEl.hidden) return;
+  if (spawned){
+    combineWin.place(combineWin.at.x, combineWin.at.y);
+    var from = combineWinFrom, now = boxOf(combineWinSvgEl);
+    if (from && now.width) combineWin.place(combineWin.at.x + from.left - now.left, combineWin.at.y + from.top - now.top);
+    else ringWins().forEach(function(w){ if (w !== combineWinEl) unstack(combineWinEl, combineWin, w); });
+  }
+  combineWinFrom = null;
+}
+$('combine-win-dock').addEventListener('click', function(){ setCombineCard('card'); });
+$('combine-win-min').addEventListener('click', function(){
+  setCombineCard('min');
+  var task = $('bar-formulas-l').querySelector('.bar-task.is-combine');
+  if (task) task.focus();
+});
+// Its lines have the menu they have under the ring.
+combineWinSvgEl.addEventListener('contextmenu', function(e){
+  e.preventDefault();
+  e.stopPropagation();
+  if (!drawn) return;
+  setRingCtx(false);
+  openCombineGenCtx(drawn.G, ptX(e), ptY(e), !!(e.target.closest && e.target.closest('.is-switch')) && unfoldShown(drawn.G));
+});
 
 /* ---------- the fixed logarithm ---------- */
 // Opened from the ring's right-click menu, its window turns it on: the
@@ -18385,6 +18545,7 @@ function openCombineGenCtx(G, x, y, onSwitch){
   });
   items.push(copy);
   if (ringDynamicEl.querySelector('.ring-combine-plate')) items.push(combineSolidItem());
+  items = items.concat(combineCardItems());
   fsetCtxEl.replaceChildren.apply(fsetCtxEl, items);
   if (fsetCtxEl.hidden) fsetCtxReturn = document.activeElement instanceof HTMLElement && document.activeElement !== document.body ? document.activeElement : null;
   showCtxAt(fsetCtxEl, x, y);
@@ -18731,16 +18892,20 @@ function combinePlain(row){
 }
 // Every line under the ring, from the given down, one per line.
 function combineText(){
-  return Array.prototype.map.call(ringDynamicEl.querySelectorAll('text.ring-combine'), function(t){
+  return combineLineEls().map(function(t){
     return t.getAttribute('data-plain') || t.textContent.trim();
   }).filter(function(t){ return t; }).join('\n');
+}
+// They lie under the ring, or in their own window (placeCombineCard).
+function combineLineEls(){
+  return Array.prototype.slice.call(ringDynamicEl.querySelectorAll('text.ring-combine')).concat(Array.prototype.slice.call(combineWinSvgEl.querySelectorAll('text.ring-combine')));
 }
 // A selection over them copies each line touched in its plain form.
 document.addEventListener('copy', function(e){
   var sel = window.getSelection();
   if (!sel || !sel.rangeCount || !e.clipboardData) return;
   var range = sel.getRangeAt(0);
-  var picked = Array.prototype.filter.call(ringDynamicEl.querySelectorAll('text.ring-combine'), function(t){
+  var picked = combineLineEls().filter(function(t){
     return range.intersectsNode(t);
   });
   if (!picked.length) return;

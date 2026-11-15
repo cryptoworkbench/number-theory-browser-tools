@@ -304,6 +304,10 @@
    backward path's raw results before reduction, ringRawCombine's and
    ringRawPower's switches showing a combination's and aᵏ's walk's, and
    the rings' cell height with its two buttons and its reset button),
+   and combineCardDetach, combineCardDock, combineWinAb, combineWinAk,
+   combineWinShowAb and combineWinShowAk (a ∗ b's and aᵏ's lines detached
+   into a window and put back, the window's titles, and its task in the
+   bottom bar while minimized),
    and isoCopyLatex and ctxCopyBmatrix (the copy entries of the
    right-click menu of a ∗ b worked in both groups at once, giving LaTeX
    with one-column arrays and LaTeX in amsmath's bmatrix), and
@@ -1498,6 +1502,12 @@
       dhCylWheelRaw: 'Show raw results before reduction',
       ringWheelShow: 'Show the congruence wheel',
       ringWheelUpright: 'Keep the numbers readable at every turn',
+      combineCardDetach: 'Detach into a window',
+      combineCardDock: 'Put it back in its place under the ring',
+      combineWinAb: 'a ∗ b',
+      combineWinAk: 'aᵏ',
+      combineWinShowAb: 'Show a ∗ b',
+      combineWinShowAk: 'Show aᵏ',
       ringRawFwd: 'Show raw results before reduction on the forward path',
       ringRawBack: 'Show raw results before reduction on the backward path',
       ringRawCombine: 'Show raw results before reduction when a*b',
