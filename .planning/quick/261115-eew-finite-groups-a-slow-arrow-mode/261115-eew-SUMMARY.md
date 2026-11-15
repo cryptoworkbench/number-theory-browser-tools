@@ -2,7 +2,7 @@
 status: complete
 quick_id: 261115-eew
 date: 2026-11-15
-commits: [cb6cfe0, 31475eb, 17e7474, a7ad780]
+commits: [cb6cfe0, 31475eb, 17e7474, a7ad780, 7f29ff3]
 ---
 
 # 261115-eew: Finite Groups aᵏ Slow arrows
@@ -26,3 +26,9 @@ commits: [cb6cfe0, 31475eb, 17e7474, a7ad780]
 
 - The head no longer rides back: at the destination it fades out (first ~35% of SLOW_BACK, now 300 ms) while a head at the path's middle fades in and shrinks from 2.6× onto its place (slowDropHead). SLOW_BACK_CELL removed. Plain arrow 0.82 s; arrow out to a cell 520 + walk + 300 ms (1.34 s for q=1, 1.60 s for q=2, 3.42 s at the cap).
 - Verified (rAF swapped for a 16 ms timer): tip opacity 1→0, drop opacity 0→1 with scale 2.6→1, landing on the drawn arrow's head position, for a plain hop and a cell hop.
+
+## Follow-up 4 (7f29ff3): Slow a ∗ b
+
+- state.combineSlowAb (URL combineslowab=1, pane-shared), set from a new right-click menu on the a ∗ b button (Arrows: Instant / Slow, the existing combineArrows* strings).
+- abSlowStart (from combinePick once a and b are both picked) / abTick / abApply: with the raw a ∗ b result shown, a's and b's spirals grow together (SLOW_GROW), then walkWheelCell on the result's cell while the dashed reduction grows and the result's head dives in step with the cell walk; a's and b's heads use slowDropHead. Without the raw result a ∗ b draws no arrows, so nothing animates.
+- Verified (rAF swapped for a 16 ms timer), ℤ/12ℤ+ 9 ∗ 8 = 17 ≡ 5: grow to ~520 ms, cell lit ~660 ms, dive to the halo with the cell walk, heads dropped, final redraw ~1.15 s; menu shows the choice; no console errors.
