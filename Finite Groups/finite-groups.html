@@ -1282,6 +1282,7 @@
   /* Filled, the time cylinder's window takes in the exchange's controls in
      a column on its right, the Diffie–Hellman window giving them up. */
   .fs-win-body.is-ring > .dh-plot.is-merged{ display:none; }
+  .fs-win-body.is-ring > .dhc-plot.is-filled{ border-radius:0; }
   .fs-win-body.is-ring > .dhc-plot.has-dh{ display:grid; grid-template-columns:minmax(0, 1fr) min(400px, 40%); grid-template-rows:auto minmax(0, 1fr) auto auto; column-gap:14px; }
   .dhc-plot.has-dh > .lap-key-head{ grid-column:1 / -1; }
   .dhc-plot.has-dh > .dhc-view{ grid-column:1; grid-row:2; }
@@ -17675,7 +17676,7 @@ syncDhcMode();
 
 /* ---------- filling the Ring window with the time cylinder ---------- */
 // The head button makes the window as large as the room under the Ring
-// window's rows and above its bottom bar allows, and puts it back at its
+// window's rows and above its bottom bar allows, edge to edge, and puts it back at its
 // earlier size and place when pressed again; a grip drag or a double click
 // on the grip drops the filled state and carries on from there.
 function syncDhcFill(){
@@ -17695,6 +17696,7 @@ function syncDhcFill(){
   if (!merge && dhBodyEl.parentNode !== dhPlotEl) dhPlotEl.insertBefore(dhBodyEl, $('dh-grip'));
   dhPlotEl.classList.toggle('is-merged', merge);
   dhcPlotEl.classList.toggle('has-dh', merge);
+  dhcPlotEl.classList.toggle('is-filled', dhc.filled);
   // Corner brackets pointing out, or in once filled.
   var d = dhc.filled
     ? ['M4.5 2v2.5H2', 'M7.5 2v2.5H10', 'M10 7.5H7.5V10', 'M2 7.5h2.5V10']
@@ -17706,8 +17708,8 @@ function dhcFill(on){
     var body = dhcPlotEl.closest('.fs-win-body');
     if (!body || dhcPlotEl.hidden) return;
     if (!dhc.filled) dhc.unfilled = { w: dhcPlotEl.style.width, h: dhcPlotEl.style.height, at: { x: dhcWin.at.x, y: dhcWin.at.y } };
-    var b = boxOf(body), left = b.left + 8, right = workRight(body) - 8, top = topRowsBottom(body) + 8, bottom = plotFloor(body) - 8;
-    dhcWin.size(Math.max(200, Math.round(right - left)), Math.max(220, Math.round(bottom - top)));
+    var b = boxOf(body), left = b.left, right = workRight(body), top = topRowsBottom(body), bottom = plotFloor(body);
+    dhcWin.size(Math.max(200, right - left), Math.max(220, bottom - top));
     var r = boxOf(dhcPlotEl);
     dhcWin.place(dhcWin.at.x + left - r.left, dhcWin.at.y + top - r.top);
     dhc.filled = true;
