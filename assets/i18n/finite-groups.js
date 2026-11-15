@@ -307,8 +307,8 @@
    right-click menu of a ∗ b worked in both groups at once, giving LaTeX
    with one-column arrays and LaTeX in amsmath's bmatrix), and
    combineArrows, combineArrowsInstant and combineArrowsSlow (the Arrows
-   heading in the aᵏ button's right-click menu and its two choices: aᵏ's
-   arrows drawn at once, or each new one growing along its path).
+   heading in the aᵏ and a ∗ b buttons' right-click menus and its two
+   choices: the arrows drawn at once, or each growing along its path).
    Every other language shows the English value through NT.i18n's
    fallback meanwhile.
 

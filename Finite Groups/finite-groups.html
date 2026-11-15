@@ -4011,7 +4011,7 @@ var FLAG_SWITCHES = FLAGS.filter(function(name){ return name !== 'bygen' && name
 var COLOR_BY = ['order', 'inverse', 'theme', 'distinct'];
 var SIDES = ['inside', 'outside'];
 var DIRS = ['cw', 'ccw'];
-var state = { plotView: 'mod', realPlot: false, plotDock: false, cayleyDock: false, cayleyMerged: false, cayleyReveal: false, plotHalos: 'path', mode: 'additive', n: 12, signed: false, signedExp: false, ecMult: false, natExpOff: false, ec: false, ecP: 17, ecA: 2, ecB: 2, gen: 5, cord: true, guide: false, colors: true, colorBy: 'order', elSide: 'inside', backward: true, dir: 'cw', akey: true, bygen: false, gname: true, sname: false, gorder: false, sorder: false, cindex: false, top: 'id', autoShift: false, swapColors: false, oneLine: false, oneLinePair: false, oneLineSquare: false, oneLineCube: false, oneLineFourth: false, oneLineFifth: false, oneLineSixth: false, powerSides: {}, powerExps: {}, powerLayers: 0, customColors: false, inColor: null, outColor: null, rot: 0, autoRotate: 'off', autoSpeed: 1, arrangeGen: null, expr: null, genFollow: false, subLeft: null, subRight: null, subSort: null, subSortR: false, subGcd: false, subGcdDividers: true, subGcdFolded: {}, subSimplify: false, subBare: false, subPaths: true, subPowers: true, revealOff: false, revealAs: null, revealSigned: false, revealSignedExp: false, enterInverse: true, fmap: { order: 'gcd-full', index: 'gcd-full' }, fmapR: { order: 'gcd-full', index: 'gcd-full' }, chosenBase: null, chosenBaseR: null, logBaseFollow: false, logBaseLock: false, logBaseLockR: false, fsetOpen: [false, false], solidWins: [], rowsLook: null, cardLooks: {}, fSwap: false, fSwapR: false, skipLog: false, skipLogR: false, subFormulaRowR: 'none', subFormulaRingR: 'none', subPad: true, subAlign: false, subColor: 'full', subFormulaRow: 'none', subFormulaRing: 'none', legendExpr: null, legendBy: 'order', idxGeneral: true, lagrangeOff: false, sizeJargon: true, combineGen: true, picks: { order: {}, inverse: {}, theme: {}, distinct: {} }, noSub: false, genBeads: false, combineMode: 'element', combineK: 2, combineSqm: false, combineSqmWay: 'ltr', combineSlow: false, exprAdv: false, dirPrefAdv: false, lock: 'dir', simplifyOff: false, simplifyHint: false, prefDir: 'cw', ecName: 'sub' };
+var state = { plotView: 'mod', realPlot: false, plotDock: false, cayleyDock: false, cayleyMerged: false, cayleyReveal: false, plotHalos: 'path', mode: 'additive', n: 12, signed: false, signedExp: false, ecMult: false, natExpOff: false, ec: false, ecP: 17, ecA: 2, ecB: 2, gen: 5, cord: true, guide: false, colors: true, colorBy: 'order', elSide: 'inside', backward: true, dir: 'cw', akey: true, bygen: false, gname: true, sname: false, gorder: false, sorder: false, cindex: false, top: 'id', autoShift: false, swapColors: false, oneLine: false, oneLinePair: false, oneLineSquare: false, oneLineCube: false, oneLineFourth: false, oneLineFifth: false, oneLineSixth: false, powerSides: {}, powerExps: {}, powerLayers: 0, customColors: false, inColor: null, outColor: null, rot: 0, autoRotate: 'off', autoSpeed: 1, arrangeGen: null, expr: null, genFollow: false, subLeft: null, subRight: null, subSort: null, subSortR: false, subGcd: false, subGcdDividers: true, subGcdFolded: {}, subSimplify: false, subBare: false, subPaths: true, subPowers: true, revealOff: false, revealAs: null, revealSigned: false, revealSignedExp: false, enterInverse: true, fmap: { order: 'gcd-full', index: 'gcd-full' }, fmapR: { order: 'gcd-full', index: 'gcd-full' }, chosenBase: null, chosenBaseR: null, logBaseFollow: false, logBaseLock: false, logBaseLockR: false, fsetOpen: [false, false], solidWins: [], rowsLook: null, cardLooks: {}, fSwap: false, fSwapR: false, skipLog: false, skipLogR: false, subFormulaRowR: 'none', subFormulaRingR: 'none', subPad: true, subAlign: false, subColor: 'full', subFormulaRow: 'none', subFormulaRing: 'none', legendExpr: null, legendBy: 'order', idxGeneral: true, lagrangeOff: false, sizeJargon: true, combineGen: true, picks: { order: {}, inverse: {}, theme: {}, distinct: {} }, noSub: false, genBeads: false, combineMode: 'element', combineK: 2, combineSqm: false, combineSqmWay: 'ltr', combineSlow: false, combineSlowAb: false, exprAdv: false, dirPrefAdv: false, lock: 'dir', simplifyOff: false, simplifyHint: false, prefDir: 'cw', ecName: 'sub' };
 
 // rot is how many beads the necklace is turned: the bead at the top is the
 // rot-th one of the arrangement.
@@ -5574,6 +5574,8 @@ function drawRawCombine(ring, G, place, m, box, beadR, ex){
   var cell = R0 + (ex.q + 0.5) * ringWheelRing(box.R), turn = cell - ex.font * 0.7;
   var angle = function(x){ return dirSign() * 360 * place[x] / m; };
   var to = angle(ex.c), g = svgEl('g', { 'class': 'combine-raw-g', 'aria-hidden': 'true' });
+  // Slow a ∗ b (abSlowOn): the parts abApply animates.
+  var live = abAnim && abAnim.a === combo.a && abAnim.b === combo.b && abAnim.key === combo.key ? { arrows: [] } : null;
   [['a', combo.a], ['b', combo.b]].forEach(function(r){
     var from = angle(r[1]), d = ((to - from) % 360 + 540) % 360 - 180;
     var samples = Math.max(16, Math.ceil(Math.abs(d) / humpCoarse)), path = '';
@@ -5582,14 +5584,15 @@ function drawRawCombine(ring, G, place, m, box, beadR, ex){
       var q = pt(t / samples);
       path += (t ? ' L ' : 'M ') + num(q[0]) + ' ' + num(q[1]);
     }
-    g.appendChild(svgEl('path', { 'class': 'combine-raw is-' + r[0], d: path }));
+    var line = g.appendChild(svgEl('path', { 'class': 'combine-raw is-' + r[0], d: path }));
     var a = pt(0.49), b = pt(0.51), pm = pt(0.5);
-    g.appendChild(arrowHead('combine-raw-head is-' + r[0], pm[0], pm[1], Math.atan2(b[1] - a[1], b[0] - a[0]), size));
+    var head = g.appendChild(arrowHead('combine-raw-head is-' + r[0], pm[0], pm[1], Math.atan2(b[1] - a[1], b[0] - a[0]), size));
+    if (live) live.arrows.push({ main: line, head: head, headCls: head.getAttribute('class'), pt: pt, size: size });
   });
   // The tip stops at the result's halo.
   var p1 = polar(box.cx, box.cy, turn, to), p2 = polar(box.cx, box.cy, foot + 2 + size, to), tip = polar(box.cx, box.cy, foot + 2, to);
-  if (turn > foot + 2 + size) g.appendChild(svgEl('path', { 'class': 'combine-raw is-c is-reduce', d: 'M ' + num(p1[0]) + ' ' + num(p1[1]) + ' L ' + num(p2[0]) + ' ' + num(p2[1]) }));
-  g.appendChild(arrowHead('combine-raw-head is-c', p2[0], p2[1], Math.atan2(tip[1] - p1[1], tip[0] - p1[0]), size));
+  var reduce = turn > foot + 2 + size ? g.appendChild(svgEl('path', { 'class': 'combine-raw is-c is-reduce', d: 'M ' + num(p1[0]) + ' ' + num(p1[1]) + ' L ' + num(p2[0]) + ' ' + num(p2[1]) })) : null;
+  var headC = g.appendChild(arrowHead('combine-raw-head is-c', p2[0], p2[1], Math.atan2(tip[1] - p1[1], tip[0] - p1[0]), size));
   var mid = to % 360;
   if (mid < 0) mid += 360;
   var rot = mid > 90 && mid < 270 ? mid + 180 : mid, c = polar(box.cx, box.cy, cell, to);
@@ -5597,6 +5600,24 @@ function drawRawCombine(ring, G, place, m, box, beadR, ex){
   label.textContent = String(ex.raw);
   g.appendChild(label);
   ring.appendChild(g);
+  if (live){
+    // The result's head dives from the cell to its halo in step with the
+    // cells lighting under it: stops are the shares of the way at the
+    // centre of each lower cell.
+    var ring1 = ringWheelRing(box.R), end = foot + 2 + size, stops = [];
+    for (var i = ex.q - 1; i >= 0; i--) stops.push(clamp((turn - R0 - (i + 0.5) * ring1) / (turn - end), 0, 1));
+    stops.push(1);
+    live.reduce = reduce;
+    live.headC = headC;
+    live.p1 = p1;
+    live.p2 = p2;
+    live.heading = Math.atan2(tip[1] - p1[1], tip[0] - p1[0]);
+    live.size = size;
+    live.label = label;
+    live.cell = { x: ex.c, j: ex.q, stops: stops };
+    abLive = live;
+    abApply(performance.now() - abAnim.t0);
+  }
 }
 
 // A walk outside the ring, one hump per step. Returns the outermost radius
@@ -18182,6 +18203,7 @@ function combinePick(x){
     combo.b = x;
     combo.k = null;
   }
+  abSlowStart();
   redrawRing();
   tellCombine();
   syncComboUi();
@@ -19419,6 +19441,88 @@ function setCombineSlow(on){
   postIsoShared(false);
   mirrorToUrl(drawn && drawn.G);
 }
+// Slow a ∗ b (state.combineSlowAb, the Arrows choice in the a ∗ b button's
+// right-click menu), drawn while the congruence wheel shows a ∗ b's raw
+// result: a's and b's arrows grow out to its cell together, their heads at
+// the tips; there the cell lights and walks down to the result's bead
+// (walkWheelCell) while the result's head dives down the dashed reduction
+// drawn behind it, and a's and b's heads vanish at the cell and drop onto
+// their lines' middles.
+var abAnim = null, abLive = null;
+function abSlowOn(){ return state.combineSlowAb && state.combineMode === 'element'; }
+function abSlowStart(){
+  var G = drawn && drawn.G;
+  abAnim = abLive = null;
+  if (!G || !abSlowOn() || !ringRawShown(G, 'ab') || combo.a === null || combo.b === null || combo.k !== null || !comboLive(G)) return;
+  var A = abAnim = { a: combo.a, b: combo.b, key: combo.key, t0: performance.now() };
+  requestAnimationFrame(function(){ abTick(A); });
+}
+function abTick(A){
+  if (abAnim !== A) return;
+  var L = abLive;
+  if (!L || !drawn || combo.a !== A.a || combo.b !== A.b || combo.key !== A.key){ abAnim = abLive = null; return; }
+  var now = performance.now(), t = now - A.t0;
+  if (A.walked === undefined && t >= SLOW_GROW){
+    A.walked = now;
+    walkWheelCell(L.cell.x, L.cell.j);
+  }
+  if (A.walked !== undefined && now >= A.walked + wheelWalkMs(L.cell.j) && t >= SLOW_GROW + SLOW_BACK){
+    abAnim = abLive = null;
+    redrawRing();
+    return;
+  }
+  abApply(t);
+  requestAnimationFrame(function(){ abTick(A); });
+}
+function abApply(t){
+  var L = abLive, A = abAnim;
+  if (!L || !A) return;
+  var q = Math.min(1, t / SLOW_GROW);
+  L.arrows.forEach(function(ar){
+    ar.main.setAttribute('d', slowPath(ar.pt, q));
+    var a = ar.pt(Math.max(0, q - 0.01)), b = ar.pt(Math.min(1, q + 0.01)), heading = Math.atan2(b[1] - a[1], b[0] - a[0]);
+    if (t < SLOW_GROW) slowPlaceHead(ar, ar.pt(q), heading, 1);
+    else slowDropHead(ar, ar.pt(1), heading, Math.min(1, (t - SLOW_GROW) / SLOW_BACK));
+  });
+  L.label.style.visibility = t < SLOW_GROW ? 'hidden' : '';
+  var diveAt = A.walked === undefined ? Infinity : A.walked - A.t0;
+  var r = t < diveAt ? 0 : slowDive(L.cell.stops, Math.min(1, (t - diveAt) / wheelWalkMs(L.cell.j)));
+  var tip = slowLerp(L.p1, L.p2, r);
+  if (L.reduce){
+    L.reduce.setAttribute('d', 'M ' + num(L.p1[0]) + ' ' + num(L.p1[1]) + ' L ' + num(tip[0]) + ' ' + num(tip[1]));
+    L.reduce.style.visibility = t < diveAt ? 'hidden' : '';
+  }
+  var headC = arrowHead('combine-raw-head is-c', tip[0], tip[1], L.heading, L.size);
+  headC.style.visibility = t < diveAt ? 'hidden' : '';
+  L.headC.replaceWith(headC);
+  L.headC = headC;
+}
+function setCombineSlowAb(on){
+  if (state.combineSlowAb === on) return;
+  state.combineSlowAb = on;
+  if (!on && abAnim){
+    abAnim = abLive = null;
+    if (drawn) redrawRing();
+  }
+  postIsoShared(false);
+  mirrorToUrl(drawn && drawn.G);
+}
+// Right-clicking the a ∗ b button: its arrows drawn at once, or slowly.
+combineModeBtns.element.addEventListener('contextmenu', function(e){
+  e.preventDefault();
+  if (IS_MOBILE || combineModeEl.classList.contains('is-out')) return;
+  var head = document.createElement('p');
+  head.className = 'fs-menu-head';
+  head.textContent = translate('cyclicGroups.combineArrows');
+  fsetCtxEl.replaceChildren.apply(fsetCtxEl, [head].concat([[false, 'cyclicGroups.combineArrowsInstant'], [true, 'cyclicGroups.combineArrowsSlow']].map(function(w){
+    return menuTick('menuitemradio', translate(w[1]), state.combineSlowAb === w[0], function(){
+      closeFsetCtx();
+      setCombineSlowAb(w[0]);
+    });
+  })));
+  if (fsetCtxEl.hidden) fsetCtxReturn = document.activeElement instanceof HTMLElement && document.activeElement !== document.body ? document.activeElement : null;
+  showCtxAt(fsetCtxEl, ptX(e), ptY(e));
+});
 function comboKOn(){ return !!drawn && comboLive(drawn.G) && combo.k !== null; }
 function stepComboK(by){ setCombineK(state.combineK + by); }
 
@@ -23140,7 +23244,7 @@ function isoSharedPayload(){
   return p;
 }
 function isoSharedAll(){
-  return { ringhost: 'shared', cayleyMerged: cayleyMerged(), linked: isoLinked(), isogen: isoPane ? isoPane.h : null, isosub: !!(isoPane && isoPane.hsub === true), lock: !!(isoPane && isoPane.lockNow), gen: isoPane && isoPane.lockNow ? isoLockGen() : null, expr: isoPane && isoPane.lockNow && Number.isInteger(isoPane.lockExpr) ? isoPane.lockExpr : null, colors: state.colors, colorBy: state.colorBy, picks: state.picks, legend: legendShown, elSide: state.elSide, dir: state.dir, backward: state.backward, swapColors: state.swapColors, oneLine: state.oneLine, oneLinePair: state.oneLinePair, oneLineSquare: state.oneLineSquare, oneLineCube: state.oneLineCube, oneLineFourth: state.oneLineFourth, oneLineFifth: state.oneLineFifth, oneLineSixth: state.oneLineSixth, powerSides: state.powerSides, powerExps: state.powerExps, powerLayers: state.powerLayers, customColors: state.customColors, inColor: state.inColor, outColor: state.outColor, akey: state.akey, rowsLook: state.rowsLook, cardLooks: state.cardLooks, cord: state.cord, guide: state.guide, genexp: genExpShown(), split: splitOn && subgroupsPanelEl.parentNode === ringSplitEl, dock: paneDockRect(), splitShare: splitShare, zoomwheel: zoomWheelOn, formulaRow: state.subFormulaRowR, formulaRing: state.subFormulaRingR, fswap: state.fSwapR, fmap: fmapPair(state.fmapR), chosenBase: state.chosenBaseR, logBaseLock: state.logBaseLockR, simplify: state.subSimplify, bare: state.subBare, idxGeneral: state.idxGeneral, lagrangeOff: state.lagrangeOff, combineMode: state.combineMode, combineK: state.combineK, combineSqm: state.combineSqm, combineSqmWay: state.combineSqmWay, combineSlow: state.combineSlow, zoom: twoRings() && isoTurnsTogether() ? ringZoom : null, foot: paneFoot, sel: isoSelNow(), pref: state.prefDir, swaps: paneSwapList(), others: paneOtherList() };
+  return { ringhost: 'shared', cayleyMerged: cayleyMerged(), linked: isoLinked(), isogen: isoPane ? isoPane.h : null, isosub: !!(isoPane && isoPane.hsub === true), lock: !!(isoPane && isoPane.lockNow), gen: isoPane && isoPane.lockNow ? isoLockGen() : null, expr: isoPane && isoPane.lockNow && Number.isInteger(isoPane.lockExpr) ? isoPane.lockExpr : null, colors: state.colors, colorBy: state.colorBy, picks: state.picks, legend: legendShown, elSide: state.elSide, dir: state.dir, backward: state.backward, swapColors: state.swapColors, oneLine: state.oneLine, oneLinePair: state.oneLinePair, oneLineSquare: state.oneLineSquare, oneLineCube: state.oneLineCube, oneLineFourth: state.oneLineFourth, oneLineFifth: state.oneLineFifth, oneLineSixth: state.oneLineSixth, powerSides: state.powerSides, powerExps: state.powerExps, powerLayers: state.powerLayers, customColors: state.customColors, inColor: state.inColor, outColor: state.outColor, akey: state.akey, rowsLook: state.rowsLook, cardLooks: state.cardLooks, cord: state.cord, guide: state.guide, genexp: genExpShown(), split: splitOn && subgroupsPanelEl.parentNode === ringSplitEl, dock: paneDockRect(), splitShare: splitShare, zoomwheel: zoomWheelOn, formulaRow: state.subFormulaRowR, formulaRing: state.subFormulaRingR, fswap: state.fSwapR, fmap: fmapPair(state.fmapR), chosenBase: state.chosenBaseR, logBaseLock: state.logBaseLockR, simplify: state.subSimplify, bare: state.subBare, idxGeneral: state.idxGeneral, lagrangeOff: state.lagrangeOff, combineMode: state.combineMode, combineK: state.combineK, combineSqm: state.combineSqm, combineSqmWay: state.combineSqmWay, combineSlow: state.combineSlow, combineSlowAb: state.combineSlowAb, zoom: twoRings() && isoTurnsTogether() ? ringZoom : null, foot: paneFoot, sel: isoSelNow(), pref: state.prefDir, swaps: paneSwapList(), others: paneOtherList() };
 }
 // The subgroup chosen, as the select message gives it ({ k, follow, beads }), for
 // a flip to carry over to the pane with it; null while not interlocked.
@@ -23337,6 +23441,7 @@ function applyIsoShared(d){
     if (typeof d.combineSqm === 'boolean') state.combineSqm = d.combineSqm;
     if (d.combineSqmWay === 'ltr' || d.combineSqmWay === 'rtl') state.combineSqmWay = d.combineSqmWay;
     if (typeof d.combineSlow === 'boolean') state.combineSlow = d.combineSlow;
+    if (typeof d.combineSlowAb === 'boolean') state.combineSlowAb = d.combineSlowAb;
   }
   syncCombineMode();
   syncFormulaCtl();
@@ -24970,6 +25075,8 @@ function stateQuery(){
   else q.delete('combinesqmway');
   if (state.combineSlow) q.set('combineslow', '1');
   else q.delete('combineslow');
+  if (state.combineSlowAb) q.set('combineslowab', '1');
+  else q.delete('combineslowab');
   if (!state.combineGen) q.set('combinegen', '0');
   else q.delete('combinegen');
   // The pane beside the ring goes in the page's own address alone (see
@@ -28181,6 +28288,7 @@ function loadState(query, link){
   state.combineSqm = query.get('combinesqm') === '1';
   state.combineSqmWay = query.get('combinesqmway') === 'rtl' ? 'rtl' : 'ltr';
   state.combineSlow = query.get('combineslow') === '1';
+  state.combineSlowAb = query.get('combineslowab') === '1';
   state.combineGen = query.get('combinegen') !== '0';
   // Older links chose the main view's lcm forms with sublcmring (and
   // sublcmringr for the pane's), and the row's with sublcm (sublcmr): where
