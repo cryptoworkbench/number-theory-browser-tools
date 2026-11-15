@@ -11184,8 +11184,8 @@ function wheelMark(){
   return mark;
 }
 // Congruence wheel, above the formula settings: a submenu of the wheel's
-// settings, Show the congruence wheel first and, while it is on, Show raw
-// results before reduction on each path and the rings' cell height. On a
+// settings, Show the congruence wheel first and, while it is on, Keep the
+// numbers readable at every turn, Show raw results before reduction on each path and the rings' cell height. On a
 // curve, where the wheel does not fit the group (see dhcWheelFits), greyed
 // out, its tooltip saying why.
 function syncWheelCtx(on){
@@ -11223,7 +11223,7 @@ function syncWheelCtx(on){
     };
     var rows = [tick('cyclicGroups.ringWheelShow', ringWheelOn, toggleRingWheel)];
     if (ringWheelShown(drawn.G)){
-      rows.push(rule());
+      rows.push(tick('cyclicGroups.ringWheelUpright', ringWheelUpright, toggleRingWheelUpright), rule());
       Object.keys(RING_RAW).forEach(function(path){
         rows.push(tick(RING_RAW[path].label, ringRawOn[path], function(){ toggleRingRaw(path); }));
       });
@@ -12654,6 +12654,23 @@ function toggleRingWheel(){
   try { localStorage.setItem(RING_WHEEL_KEY, ringWheelOn ? '1' : '0'); } catch (e) { /* storage unavailable */ }
   if (drawn){ redrawRing(); mirrorToUrl(drawn.G); }
 }
+// Keep the numbers readable at every turn: on, every turn of the ring draws
+// the wheel afresh, each number turned upright where it now stands; off (the
+// default), the wheel is drawn once and turns with the ring, its numbers
+// left as they were drawn, and a turn reuses it rather than drawing it
+// again (see drawRingWheel). A link's wheelupright=1 or 0 says it for this
+// load, ahead of storage.
+var RING_WHEEL_UPRIGHT_KEY = 'cyclic-groups-ring-wheel-upright';
+var ringWheelUpright = (function(){
+  var w = new URLSearchParams(location.search).get('wheelupright');
+  if (w === '1' || w === '0') return w === '1';
+  try { return localStorage.getItem(RING_WHEEL_UPRIGHT_KEY) === '1'; } catch (e) { return false; }
+})();
+function toggleRingWheelUpright(){
+  ringWheelUpright = !ringWheelUpright;
+  try { localStorage.setItem(RING_WHEEL_UPRIGHT_KEY, ringWheelUpright ? '1' : '0'); } catch (e) { /* storage unavailable */ }
+  if (drawn){ redrawRing(); mirrorToUrl(drawn.G); }
+}
 // Ctrl + W (Cmd + W on a Mac) turns the wheel on and off, once the ring is
 // up and where the browser hands the keys over: in full screen, the page
 // takes the W key for itself only while Ctrl (or Cmd) is held, so Ctrl + W
@@ -12723,8 +12740,10 @@ function ringWheelFill(box, beadR, m){
 // The clip stays put while the ring turns: its rectangle is turned back by
 // the ring's angle (see spinAngle).
 function turnRingWheelClip(ring, angle, box){
+  var wheel = ring.querySelector('.ring-wheel'), turn = (wheel && wheel.turn) || 0;
   ring.querySelectorAll('.ring-wheel-clip > rect, .ring-card-turn').forEach(function(rect){
-    rect.setAttribute('transform', 'rotate(' + num(-angle) + ' ' + box.cx + ' ' + box.cy + ')');
+    var by = rect.classList.contains('ring-card-turn') ? 0 : turn;
+    rect.setAttribute('transform', 'rotate(' + num(-angle - by) + ' ' + box.cx + ' ' + box.cy + ')');
   });
 }
 // The combination's card over the wheel: a rounded plate behind its lines,
@@ -12860,17 +12879,55 @@ ringSvgEl.addEventListener('pointermove', function(e){ syncCombineCardHot({ clie
 ringSvgEl.addEventListener('pointerleave', function(){ syncCombineCardHot(null); });
 // The cells lit by a tap (see walkWheelCell): { x, k, el } each.
 var wheelWalk = 0, wheelLit = [];
+// With Keep the numbers readable at every turn off, the wheel is drawn as
+// it stands with the identity at the top and turned (g.turn degrees) to
+// where the identity is now: its cells, rings and numbers are the same
+// after any turn of the ring, so they are kept (wheelKept) and moved into
+// the next ring's wheel instead of being drawn again.
+var wheelKept = null;
 function drawRingWheel(g, G, place, m, box, beadR){
-  var N = G.n, ring = ringWheelRing(box.R), R0 = box.R + beadR + 4, depth = ringWheelDepth, outer = R0 + depth * ring, wedge = 360 / m, k;
+  var N = G.n, ring = ringWheelRing(box.R), R0 = box.R + beadR + 4, depth = ringWheelDepth, outer = R0 + depth * ring, wedge = 360 / m;
   g.replaceChildren();
   g.removeAttribute('clip-path');
+  g.turn = 0;
+  if (!ringWheelUpright && place[G.identity] !== undefined){
+    var at0 = place[G.identity];
+    g.turn = dirSign() * 360 * at0 / m;
+    var shifted = {};
+    Object.keys(place).forEach(function(x){ shifted[x] = (((place[x] - at0) % m) + m) % m; });
+    place = shifted;
+  }
+  if (g.turn) g.setAttribute('transform', 'rotate(' + num(g.turn) + ' ' + box.cx + ' ' + box.cy + ')');
+  else g.removeAttribute('transform');
   if (ringWheelClip){
     var clip = g.appendChild(svgEl('clipPath', { 'class': 'ring-wheel-clip', id: 'ring-wheel-clip' }));
     clip.appendChild(svgEl('rect', { x: num(ringWheelClip.x), y: num(ringWheelClip.y), width: num(ringWheelClip.w), height: num(ringWheelClip.h) }));
     g.setAttribute('clip-path', 'url(#ring-wheel-clip)');
     var turnedBy = /rotate\((-?[\d.]+)/.exec(g.parentNode.getAttribute('transform') || '');
-    if (turnedBy) turnRingWheelClip(g.parentNode, +turnedBy[1], box);
+    if (turnedBy || g.turn) turnRingWheelClip(g.parentNode, turnedBy ? +turnedBy[1] : 0, box);
   }
+  var keep = ringWheelUpright ? null : [G.key, m, dirSign(), num(box.cx), num(box.cy), num(R0), num(ring), depth, G.els.map(function(x){ return place[x]; }).join(',')].join('|');
+  if (keep && wheelKept && wheelKept.key === keep) wheelKept.nodes.forEach(function(el){ g.appendChild(el); });
+  else drawRingWheelCells(g, G, place, m, box, R0, ring, depth, outer, wedge);
+  wheelKept = keep ? { key: keep, nodes: Array.prototype.slice.call(g.querySelectorAll(':scope > .dhc-wheel-band, :scope > .dhc-wheel-ring, :scope > .dhc-wheel-num')) } : null;
+  // What a tap on a cell needs to find it (see ringWheelCellAt).
+  g.cells = { G: G, place: place, m: m, cx: box.cx, cy: box.cy, R0: R0, ring: ring, depth: depth };
+  // Cells lit by a tap stay lit through the redraw, under the numbers,
+  // without fading in again.
+  wheelLit.forEach(function(c){
+    if (!litWheelCell(g, c.x, c.k, c.el)) return;
+    c.el.classList.add('is-kept');
+    g.insertBefore(c.el, g.querySelector('.dhc-wheel-num'));
+  });
+  var mod = svgEl('text', { 'class': 'dhc-wheel-mod', x: box.cx, y: box.cy, 'font-size': num(box.R * 0.12) });
+  if (g.turn) mod.setAttribute('transform', 'rotate(' + num(-g.turn) + ' ' + box.cx + ' ' + box.cy + ')');
+  mod.textContent = translate('cyclicGroups.ringWheelMod', { n: N });
+  g.appendChild(mod);
+}
+// The wheel's bands, rings, wedge edges and numbers, each number turned
+// upright where it stands in g.
+function drawRingWheelCells(g, G, place, m, box, R0, ring, depth, outer, wedge){
+  var N = G.n, k;
   for (k = 0; k < depth; k += 2) g.appendChild(svgEl('circle', { 'class': 'dhc-wheel-band', cx: box.cx, cy: box.cy, r: num(R0 + (k + 0.5) * ring), 'stroke-width': num(ring) }));
   for (k = 0; k <= depth; k++) g.appendChild(svgEl('circle', { 'class': 'dhc-wheel-ring' + (k === 0 ? ' is-edge' : ''), cx: box.cx, cy: box.cy, r: num(R0 + k * ring) }));
   var size = ringWheelNumSize(G, m, R0, ring, depth);
@@ -12890,18 +12947,6 @@ function drawRingWheel(g, G, place, m, box, beadR){
       g.appendChild(t);
     }
   });
-  // What a tap on a cell needs to find it (see ringWheelCellAt).
-  g.cells = { G: G, place: place, m: m, cx: box.cx, cy: box.cy, R0: R0, ring: ring, depth: depth };
-  // Cells lit by a tap stay lit through the redraw, under the numbers,
-  // without fading in again.
-  wheelLit.forEach(function(c){
-    if (!litWheelCell(g, c.x, c.k, c.el)) return;
-    c.el.classList.add('is-kept');
-    g.insertBefore(c.el, g.querySelector('.dhc-wheel-num'));
-  });
-  var mod = svgEl('text', { 'class': 'dhc-wheel-mod', x: box.cx, y: box.cy, 'font-size': num(box.R * 0.12) });
-  mod.textContent = translate('cyclicGroups.ringWheelMod', { n: N });
-  g.appendChild(mod);
 }
 // The wheel's figures' size: as large as the widest fits its innermost
 // cell, and no more than half a ring at the default cell height, so a
@@ -24956,6 +25001,7 @@ function stateQuery(){
   q.set('wheel', ringWheelOn ? '1' : '0');
   Object.keys(RING_RAW).forEach(function(path){ q.set(RING_RAW[path].param, ringRawOn[path] ? '1' : '0'); });
   if (ringWheelThick !== 1) q.set('wheelthick', String(ringWheelThick)); else q.delete('wheelthick');
+  if (ringWheelUpright) q.set('wheelupright', '1'); else q.delete('wheelupright');
   q.set('prefdir', state.prefDir);
   if (ringZoom !== RING_ZOOM_FIT) q.set('zoom', String(RING_ZOOMS[ringZoom])); else q.delete('zoom');
   if (ringLift) q.set('lift', num(ringLift)); else q.delete('lift');
