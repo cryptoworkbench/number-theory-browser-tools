@@ -5671,7 +5671,20 @@ function drawOuter(ring, walk, cls, scale, sense, place, box, beadR, m, width, r
 // coincide to the drawn precision, so the tolerance is tight and a stretch
 // must run SHARED_MIN px, which leaves out shallow crossings.
 var SHARED_EPS = 0.35, SHARED_MIN = 16, SHARED_CELL = 8;
+// The last result, by the lines it was worked out from: the same lines
+// (the ring redrawn for a new k, say) give the same shared runs again.
+var sharedKept = null;
 function markSharedWalks(walksEl, width){
+  var from = [width];
+  walksEl.querySelectorAll('.walk-el :is(path.chord, path.outer-arc), .walk-inv :is(path.chord, path.outer-arc)').forEach(function(el){
+    from.push((el.closest('.walk-inv') ? 'i' : 'e') + (el.classList.contains('is-reduce') ? 'r' : '') + (el.getAttribute('d') || ''));
+  });
+  from = from.join('|');
+  if (sharedKept && sharedKept.from === from){
+    if (sharedKept.g) walksEl.appendChild(sharedKept.g.cloneNode(true));
+    return;
+  }
+  sharedKept = { from: from, g: null };
   var lines = function(sel){
     var out = [];
     walksEl.querySelectorAll(sel).forEach(function(el){
@@ -5734,7 +5747,9 @@ function markSharedWalks(walksEl, width){
     }
     flush();
   });
-  if (shared.firstChild) walksEl.appendChild(shared);
+  if (!shared.firstChild) return;
+  sharedKept.g = shared.cloneNode(true);
+  walksEl.appendChild(shared);
 }
 
 // The identity's walk never leaves it: one loop from its bead back to it,
@@ -12578,7 +12593,8 @@ function drawNecklace(G, paint){
       fitText(ringDynamicEl.appendChild(drawText('ring-formula is-plain', SIZE / 2, 72 + 26 * i, f.plain)));
     });
   }
-  if (!IS_PREVIEW) drawMath(G, subs);
+  // The head over the ring does not turn: a turn alone keeps it.
+  if (!IS_PREVIEW && !kept) drawMath(G, subs);
   var beads = turned(arrangement(G));
   var box = ringBox();
   // Past MAX_DRAW elements the ring is not drawn: a note stands in its
@@ -12597,8 +12613,8 @@ function drawNecklace(G, paint){
   drawPolyPlot(G);
   drawCayley(G);
   if (!big){
-    if (kept && kept.lines.length) kept.lines.forEach(function(el){ ringDynamicEl.appendChild(el); });
-    else if (!kept){ drawCombineLine(G, SIZE - 16); combineCopies(); }
+    if (kept && kept.lines) kept.lines.forEach(function(el){ ringDynamicEl.appendChild(el); });
+    else { drawCombineLine(G, SIZE - 16); combineCopies(); }
     cardCombineLines(G);
   }
   placeCombineCard(G);
@@ -13848,7 +13864,11 @@ function onBox(a, r){ return !!a && !!r && !!r.width && r.left < a.right && r.ri
 // Its congruence wheel (paneWheel) lies under everything within its frame.
 var paneReach = null, paneText = null, paneReachSent = null, paneWheel = false;
 function syncRingOverlap(){
-  var own = ringReach(), text = combineTextBox(), body = exprSlotEl.parentNode, key = $('combine-key');
+  // The drawing's reach and the lines' box are measured only once a check
+  // needs them: over the congruence wheel most need neither.
+  var ownV, textV, body = exprSlotEl.parentNode, key = $('combine-key');
+  var own = function(){ if (ownV === undefined) ownV = ringReach(); return ownV; };
+  var text = function(){ if (textV === undefined) textV = combineTextBox(); return textV; };
   var pane = null, ptext = null, fr = null;
   if (!IS_ISOPANE && (paneReach || paneText || paneWheel) && isoPaneFrame && !isoPaneEl.hidden){
     fr = boxOf(isoPaneFrame);
@@ -13861,12 +13881,12 @@ function syncRingOverlap(){
     return rt > l && b > t ? { left: l, top: t, right: rt, bottom: b, width: rt - l } : null;
   };
   if (IS_ISOPANE){
-    var hasWheel = ringSvgEl.classList.contains('has-wheel');
-    var sent = (own ? [own.x, own.y, own.r] : []).concat(text ? [text.left, text.top, text.right, text.bottom] : []).map(function(v){ return Math.round(v); }).join(',') + (text ? 't' : '') + (hasWheel ? 'w' : '');
-    if (sent !== paneReachSent){ paneReachSent = sent; tellHost({ isopane: 'reach', reach: own ? { x: own.x, y: own.y, r: own.r } : null, text: text, wheel: hasWheel }); }
+    var hasWheel = ringSvgEl.classList.contains('has-wheel'), o = own(), tx = text();
+    var sent = (o ? [o.x, o.y, o.r] : []).concat(tx ? [tx.left, tx.top, tx.right, tx.bottom] : []).map(function(v){ return Math.round(v); }).join(',') + (tx ? 't' : '') + (hasWheel ? 'w' : '');
+    if (sent !== paneReachSent){ paneReachSent = sent; tellHost({ isopane: 'reach', reach: o ? { x: o.x, y: o.y, r: o.r } : null, text: tx, wheel: hasWheel }); }
   }
   var over = function(r){
-    if (onReach(own, r) || onBox(text, r)) return true;
+    if (onReach(own(), r) || onBox(text(), r)) return true;
     if (!fr) return false;
     var c = inPane(r);
     return (paneWheel && !!c) || (!!pane && onReach(pane, c)) || onBox(ptext, c);
@@ -13874,8 +13894,11 @@ function syncRingOverlap(){
   // The main-view formula card lies over the congruence wheel wherever it is.
   var card = ringHeadEl.querySelector('.ring-hover-formula');
   if (card) card.classList.toggle('is-on-ring', ringSvgEl.classList.contains('has-wheel') || over(boxOf(card)));
+  // The turning ruler, the arrow key and the split chevron are on the ring
+  // wherever they are over the congruence wheel (as set again below).
+  var onWheel = ringSvgEl.classList.contains('has-wheel') ? [spinRulerEl, key, splitBtnEl] : [];
   [spinRulerEl, key, splitBtnEl, legendPanelEl, $('legend-panel-pane'), $('genexp-info'), $('genexp-info-pane')].forEach(function(el){
-    if (el) el.classList.toggle('is-on-ring', !!el.offsetParent && over(boxOf(el)));
+    if (el) el.classList.toggle('is-on-ring', !!el.offsetParent && (onWheel.indexOf(el) !== -1 || over(boxOf(el))));
   });
   // The turning ruler and the arrow key lie over the congruence wheel
   // wherever they are, and the expression slider's cards with them.
@@ -13923,7 +13946,9 @@ document.addEventListener('pointerup', function(){
   winHeld = null;
   requestAnimationFrame(syncRingOverlap);
 });
+var clusterViewBox = null;
 function hugBottomCluster(){
+  clusterViewBox = ringSvgEl.getAttribute('viewBox');
   hugSideSlot();
   hugSubCtls();
   var body = exprSlotEl.parentNode, rs = [], lo = Infinity, hi = -Infinity;
@@ -14333,7 +14358,12 @@ if (window.ResizeObserver){
   [exprSlotEl, splitBtnEl, spinRulerEl, exprSlotEl.parentNode, subgroupsPanelEl, ringSvgEl, ringHeadEl, $('combine-key'), $('genexp-info'), $('genexp-info-pane')].forEach(function(el){ if (el) clusterRo.observe(el); });
 }
 if (window.MutationObserver){
-  var clusterMo = new MutationObserver(hugBottomCluster);
+  // A redraw sets the ring's view box again, to the value it had: nothing
+  // to hug anew then.
+  var clusterMo = new MutationObserver(function(recs){
+    if (recs.every(function(r){ return r.target === ringSvgEl && r.attributeName === 'viewBox'; }) && ringSvgEl.getAttribute('viewBox') === clusterViewBox) return;
+    hugBottomCluster();
+  });
   clusterMo.observe(exprSlotEl, { attributes: true, attributeFilter: ['hidden', 'class'], childList: true, characterData: true, subtree: true });
   [splitBtnEl, spinRulerEl].forEach(function(el){ if (el) clusterMo.observe(el, { attributes: true, attributeFilter: ['hidden'] }); });
   clusterMo.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
@@ -15071,7 +15101,7 @@ var drawn = null;
 // The parts a turn leaves as they were, drawn straight into ringDynamicEl:
 // the title and formulas over the ring, and the lines written under it with
 // their copy buttons (in the window while they are detached there).
-function keptRingParts(){
+function keptRingParts(headsOnly){
   var pick = function(root){
     return Array.prototype.filter.call(root.children, function(el){
       return el.matches('.ring-title, .ring-sub, .ring-formula, .ring-combine-box, text.ring-combine, .ring-combine-copies');
@@ -15079,7 +15109,7 @@ function keptRingParts(){
   };
   var parts = pick(ringDynamicEl).concat(pick(combineWinSvgEl));
   var heads = parts.filter(function(el){ return el.matches('.ring-title, .ring-sub, .ring-formula'); });
-  var lines = parts.filter(function(el){ return heads.indexOf(el) === -1; });
+  var lines = headsOnly ? null : parts.filter(function(el){ return heads.indexOf(el) === -1; });
   return heads.length ? { heads: heads, lines: lines } : null;
 }
 // A redraw for a turn alone (setRotChanged) keeps what a turn leaves as it
@@ -15087,16 +15117,18 @@ function keptRingParts(){
 // (ringKept, moved into the new drawing rather than drawn and measured
 // again), the arrow key, the wheel's fit to the main area and the drawing's
 // reach (see ringReach), as the ring turns about its centre.
-var ringTurnOnly = false, ringKept = null;
+// A slow aᵏ's step to the next k alone (slowShow) keeps the same, but for
+// the lines under the ring and the drawing's reach, which follow k.
+var ringTurnOnly = false, ringStepOnly = false, ringKept = null;
 function redrawRing(){
-  var turnOnly = ringTurnOnly && !IS_PREVIEW && !coset;
-  ringKept = turnOnly ? keptRingParts() : null;
+  var turnOnly = ringTurnOnly && !IS_PREVIEW && !coset, stepOnly = ringStepOnly && !turnOnly && !IS_PREVIEW && !coset;
+  ringKept = turnOnly || stepOnly ? keptRingParts(stepOnly) : null;
   if (turnOnly) keepRingReach(true);
   ringDynamicEl.replaceChildren();
   drawNecklace(drawn.G, drawn.paint);
   ringKept = null;
   if (turnOnly) keepRingReach(false);
-  else renderCombineKey(drawn.G);
+  else if (!stepOnly) renderCombineKey(drawn.G);
   syncIsoCombine();
   syncDirToggle();
   if (spin) spinAngle(spin.now);
@@ -15129,7 +15161,9 @@ function setRotChanged(r){
   state.rot = r;
   ringTurnOnly = true;
   try { redrawRing(); } finally { ringTurnOnly = false; }
-  renderSubgroups(drawn.G);
+  // The rows stay as they were while the ring turns, unless they start at
+  // the top (autoShift) or follow the pane's.
+  if (state.autoShift || (!IS_ISOPANE && subInterlocked())) renderSubgroups(drawn.G);
   mirrorToUrl(drawn.G);
   isoTellTop(false);
   return true;
@@ -17690,8 +17724,13 @@ cayleyScrollEl.addEventListener('keydown', function(e){
   else { i = clamp(i + step[0], 0, n - 1); j = clamp(j + step[1], 0, n - 1); }
   cayleyPick(els[i], els[j]);
 });
+// Set again only when something they show has changed.
+var cayleyBtnsShown = null;
 function syncCayleyBtns(merged){
   var rv = cayleyRevealOn(), rtip = translate(rv ? 'cyclicGroups.cayleyModeHover' : 'cyclicGroups.cayleyModeReveal');
+  var shown = [rv, state.revealOff, merged, IS_ISOPANE || !isoLinked(), state.cayleyDock, getLang()].join('|');
+  if (shown === cayleyBtnsShown) return;
+  cayleyBtnsShown = shown;
   cayleyRevealBtnEl.title = rtip;
   cayleyRevealBtnEl.setAttribute('aria-label', rtip);
   cayleyRevealBtnEl.setAttribute('aria-pressed', rv ? 'true' : 'false');
@@ -19435,7 +19474,8 @@ function slowGrows(k){
 function slowShow(k){
   state.combineK = k;
   syncCombineMode();
-  combineScalar(k);
+  ringStepOnly = true;
+  try { combineScalar(k); } finally { ringStepOnly = false; }
 }
 function slowTo(k){
   var refocus = document.activeElement === combineKEl || !!(slowRun && slowRun.refocus);
@@ -19476,7 +19516,9 @@ function slowTick(gen){
   var walking = cell && (slowAnim.walked === undefined || now < slowAnim.walked + wheelWalkMs(cell.j) + SLOW_BACK);
   if (!walking && t >= (slowAnim.grow ? SLOW_GROW + SLOW_BACK : SLOW_RECOLOR)){
     slowAnim = slowLive = null;
-    redrawRing();
+    // The arrow drawn at rest, unless the next one's step redraws the ring
+    // straight away (slowNext), in the same frame.
+    if (!(comboKOn() && combo.k !== slowRun.to)) redrawRing();
     slowNext();
     return;
   }
