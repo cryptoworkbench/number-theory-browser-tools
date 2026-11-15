@@ -2,7 +2,7 @@
 status: complete
 quick_id: 261115-eew
 date: 2026-11-15
-commits: [cb6cfe0]
+commits: [cb6cfe0, 31475eb]
 ---
 
 # 261115-eew: Finite Groups aᵏ Slow arrows
@@ -12,3 +12,7 @@ commits: [cb6cfe0]
 - Raw (congruence-wheel) hops grow the same way; their reduction line and raw number appear once the spiral has grown.
 - English only (combineArrows, combineArrowsInstant, combineArrowsSlow in en).
 - Verified in Chrome over http://127.0.0.1: grow (head tip on the line's end), recolour (old colour under, new colour travelling, head/number switching), field locked while drawing, Enter-only typing, instant decrease, Instant mode unchanged; no console errors. Automated Chrome throttled rAF to ~6 fps, so smoothness was not judged there.
+
+## Follow-up (31475eb)
+
+- Slow mode: a growing arrow out to a congruence-wheel cell (raw aᵏ results on) lights that cell when its head arrives and walks it down to its bead (walkWheelCell, the double-tap animation); the next arrow waits for the walk. Extra time per such arrow: max(0, (q+1)·min(260, 2600/(q+1)) − 260) ms for a cell q rings out: +260 ms (q=1), +520 ms (q=2), up to +2340 ms (q≥9). Arrows ending on a bead are unchanged.
