@@ -5942,7 +5942,7 @@ function drawRing(parent, G, beads, box, paint){
         aN = aG.appendChild(svgEl('text', { 'class': 'scalar-hop-n', x: num(aP[0]), y: num(aP[1]) }));
         aN.textContent = String(latest(swA));
       }
-      slowRig(aG, aPt, swSize, aN, latest(swA), m0);
+      slowRig(aG, aPt, swSize, aN, latest(swA), m0, swRaw[swA] ? { x: aH.to, j: swRaw[swA].q } : null);
     }
     ring.appendChild(swEl);
   }
@@ -12856,8 +12856,11 @@ function lightWheelCell(x, j){
     }, 700);
   }, 600);
 }
+// How long the walk down from ring j takes, the bead's halo included.
+function wheelWalkMs(j){ return (j + 1) * wheelWalkStep(j); }
+function wheelWalkStep(j){ return Math.min(260, 2600 / (j + 1)); }
 function walkWheelCell(x, j){
-  var walk = ++wheelWalk, step = Math.min(260, 2600 / (j + 1)), lit = [];
+  var walk = ++wheelWalk, step = wheelWalkStep(j), lit = [];
   wheelLit.forEach(function(c){ c.el.remove(); });
   wheelLit = [];
   var done = function(){
@@ -19042,8 +19045,13 @@ function slowNext(){
 function slowTick(gen){
   if (!slowRun || slowRun.gen !== gen || !slowAnim) return;
   if (!comboKOn() || combo.k !== slowAnim.k || combo.a !== slowAnim.a){ slowStop(); return; }
-  var t = performance.now() - slowAnim.t0;
-  if (t >= (slowAnim.grow ? SLOW_GROW + SLOW_BACK : SLOW_RECOLOR)){
+  var now = performance.now(), t = now - slowAnim.t0, cell = slowAnim.cell;
+  if (cell && slowAnim.walked === undefined && t >= SLOW_GROW){
+    slowAnim.walked = now;
+    walkWheelCell(cell.x, cell.j);
+  }
+  var walking = cell && (slowAnim.walked === undefined || now < slowAnim.walked + wheelWalkMs(cell.j));
+  if (!walking && t >= (slowAnim.grow ? SLOW_GROW + SLOW_BACK : SLOW_RECOLOR)){
     slowAnim = slowLive = null;
     redrawRing();
     slowNext();
@@ -19068,9 +19076,14 @@ function slowStop(){
 }
 // Called by drawNecklace with the hop being drawn: its group g (in the new
 // lap's colour), the point a share f along its path, its arrowhead size,
-// its number and the k it shows (m0 hops a lap).
-function slowRig(g, pt, size, label, k, m0){
-  var A = slowAnim, newLap = lapClass(Math.floor((k - 1) / m0));
+// its number and the k it shows (m0 hops a lap); the next arrow waits for
+// the cell's walk (walkWheelCell) as well as for the head's slide back.
+// cell, for a hop out to a cell of the congruence wheel, is that cell:
+// once the head reaches it, it lights up and walks down to its bead.
+function slowRig(g, pt, size, label, k, m0, cell){
+  var A = slowAnim;
+  if (A.grow && A.cell === undefined) A.cell = cell;
+  var newLap = lapClass(Math.floor((k - 1) / m0));
   var main = g.querySelector('path.chord:not(.is-reduce)'), head = g.querySelector('.chord-arrow');
   slowLive = { g: g, pt: pt, size: size, main: main, head: head, headCls: head ? head.getAttribute('class') : '', recol: [], after: [] };
   var later = [g.querySelector('.is-reduce'), g.querySelector('.ring-raw')];
