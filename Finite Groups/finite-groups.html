@@ -19008,11 +19008,11 @@ combineModeBtns.element.addEventListener('click', function(){ setCombineMode('el
 
 // Slow arrows (state.combineSlow, the Arrows choice in the aᵏ button's
 // right-click menu): each new arrow grows along its path, its head riding
-// the tip, then the head slides back to the middle, where an arrow's head
-// sits; past a lap a hop's new colour travels along it from its start
+// the tip, then the head vanishes there and drops onto the middle, where an
+// arrow's head sits; past a lap a hop's new colour travels along it from its start
 // instead. k climbs one step per arrow while the k field is greyed out
 // and locked; going down is instant.
-var SLOW_GROW = 520, SLOW_BACK = 260, SLOW_BACK_CELL = 420, SLOW_RECOLOR = 520;
+var SLOW_GROW = 520, SLOW_BACK = 300, SLOW_RECOLOR = 520;
 var slowRun = null, slowAnim = null, slowLive = null, slowGen = 0;
 function slowOn(){ return state.combineSlow && state.combineMode === 'scalar'; }
 // Whether going to k draws new arrows: further from 0 the same way, or
@@ -19061,8 +19061,8 @@ function slowTick(gen){
     slowAnim.walked = now;
     walkWheelCell(cell.x, cell.j);
   }
-  // After the walk down, the head goes home up the reduction line.
-  var walking = cell && (slowAnim.walked === undefined || now < slowAnim.walked + wheelWalkMs(cell.j) + SLOW_BACK_CELL);
+  // After the walk down, the head drops onto the spiral's middle.
+  var walking = cell && (slowAnim.walked === undefined || now < slowAnim.walked + wheelWalkMs(cell.j) + SLOW_BACK);
   if (!walking && t >= (slowAnim.grow ? SLOW_GROW + SLOW_BACK : SLOW_RECOLOR)){
     slowAnim = slowLive = null;
     redrawRing();
@@ -19090,7 +19090,7 @@ function slowStop(){
 // lap's colour), the point a share f along its path, its arrowhead size,
 // its number and the k it shows (m0 hops a lap); for a hop out to a cell,
 // the head dives down the reduction line with the cell's walk
-// (slowApplyCell), and the next arrow waits for it to come home.
+// (slowApplyCell), and the next arrow waits for it to drop into place.
 // cell, for a hop out to a cell of the congruence wheel, is that cell:
 // once the head reaches it, it lights up and walks down to its bead.
 function slowRig(g, pt, size, label, k, m0, cell){
@@ -19108,14 +19108,6 @@ function slowRig(g, pt, size, label, k, m0, cell){
     slowLive.r2 = [ends[2], ends[3]];
     slowLive.after = [later[1]].filter(Boolean);
     slowLive.label = label;
-    // The spiral's back half, for the head's way home.
-    var len = 0, prev = pt(0.5);
-    for (var i = 1; i <= 24; i++){
-      var nx = pt(0.5 + i / 48);
-      len += Math.hypot(nx[0] - prev[0], nx[1] - prev[1]);
-      prev = nx;
-    }
-    slowLive.halfLen = len;
   } else if (A.grow) slowLive.after = later.concat([label]).filter(Boolean);
   else {
     // Under the new colour's growing line, the old lap's whole line.
@@ -19154,10 +19146,24 @@ function slowPlaceHead(L, p, heading, w){
   L.head.replaceWith(head);
   L.head = head;
 }
+// The arrow arrived, a share b of the way through SLOW_BACK: the head
+// fades out at the tip while a head drops onto the middle of the path,
+// shrinking onto it from larger as it fades in.
+function slowDropHead(L, tip, heading, b){
+  slowPlaceHead(L, tip, heading, 1);
+  L.head.style.opacity = String(Math.max(0, 1 - b / 0.35));
+  var a = L.pt(0.49), c = L.pt(0.51), m = L.pt(0.5), f = Math.max(0, (b - 0.2) / 0.8);
+  var drop = arrowHead(L.headCls, m[0], m[1], Math.atan2(c[1] - a[1], c[0] - a[0]), L.size), z = 1 + 1.6 * (1 - slowEase(f));
+  drop.setAttribute('transform', 'translate(' + num(m[0]) + ' ' + num(m[1]) + ') scale(' + num(z) + ') translate(' + num(-m[0]) + ' ' + num(-m[1]) + ')');
+  drop.style.opacity = String(Math.min(1, f * 1.5));
+  if (L.drop && L.drop.isConnected) L.drop.replaceWith(drop);
+  else L.head.after(drop);
+  L.drop = drop;
+}
 // A hop out to a cell: the spiral grows to it; the cell lights and walks
 // down to the bead (walkWheelCell, started by slowTick) while the head
-// dives down the reduction line drawn behind it; then the head goes home,
-// back up that line and along the spiral to its middle.
+// dives down the reduction line drawn behind it; then, at the bead, the
+// head vanishes and drops onto the spiral's middle.
 function slowApplyCell(L, A, t){
   var q = Math.min(1, t / SLOW_GROW), W = wheelWalkMs(A.cell.j);
   var diveAt = A.walked === undefined ? Infinity : A.walked - A.t0, backAt = diveAt + W;
@@ -19175,29 +19181,22 @@ function slowApplyCell(L, A, t){
     return;
   }
   if (t < backAt){ slowPlaceHead(L, tip, dive, 1); return; }
-  var home = slowEase(Math.min(1, (t - backAt) / SLOW_BACK_CELL)), lr = Math.hypot(L.r2[0] - L.r1[0], L.r2[1] - L.r1[1]);
-  var at = home * (lr + L.halfLen), w = 1 - home;
-  if (at < lr){ slowPlaceHead(L, slowLerp(L.r2, L.r1, at / lr), dive, w); return; }
-  var g = 1 - 0.5 * (at - lr) / L.halfLen, c = L.pt(Math.max(0, g - 0.01)), d = L.pt(Math.min(1, g + 0.01));
-  slowPlaceHead(L, L.pt(g), Math.atan2(d[1] - c[1], d[0] - c[0]), w);
+  slowDropHead(L, tip, dive, Math.min(1, (t - backAt) / SLOW_BACK));
 }
 function slowApply(t){
   var L = slowLive, A = slowAnim;
   if (!L || !A || !L.main) return;
   if (A.grow && L.reduce){ slowApplyCell(L, A, t); return; }
   if (A.grow){
-    var q = Math.min(1, t / SLOW_GROW), back = slowEase(Math.max(0, Math.min(1, (t - SLOW_GROW) / SLOW_BACK)));
+    var q = Math.min(1, t / SLOW_GROW);
     L.main.setAttribute('d', slowPath(L.pt, q));
     L.after.forEach(function(el){ el.style.visibility = t < SLOW_GROW ? 'hidden' : ''; });
     if (!L.head) return;
-    // At the tip the head's point is the line's end; sliding back it
-    // comes to sit where a drawn arrow's head does, centred on the middle.
-    var f = t < SLOW_GROW ? q : 1 - 0.5 * back, w = t < SLOW_GROW ? 1 : 1 - back;
-    var a = L.pt(Math.max(0, f - 0.01)), b = L.pt(Math.min(1, f + 0.01)), p = L.pt(f);
-    var heading = Math.atan2(b[1] - a[1], b[0] - a[0]);
-    var head = arrowHead(L.headCls, p[0] - w * L.size * Math.cos(heading), p[1] - w * L.size * Math.sin(heading), heading, L.size);
-    L.head.replaceWith(head);
-    L.head = head;
+    // At the tip the head's point is the line's end; arrived, it vanishes
+    // there and drops onto the middle, where a drawn arrow's head sits.
+    var a = L.pt(Math.max(0, q - 0.01)), b = L.pt(Math.min(1, q + 0.01)), heading = Math.atan2(b[1] - a[1], b[0] - a[0]);
+    if (t < SLOW_GROW) slowPlaceHead(L, L.pt(q), heading, 1);
+    else slowDropHead(L, L.pt(1), heading, Math.min(1, (t - SLOW_GROW) / SLOW_BACK));
   } else {
     var r = Math.min(1, t / SLOW_RECOLOR);
     L.main.setAttribute('d', slowPath(L.pt, r));
