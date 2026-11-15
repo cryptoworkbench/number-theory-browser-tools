@@ -12625,10 +12625,10 @@ function fitRingHead(){
 function ringDrawn(G){ return !!G && G.order <= MAX_DRAW; }
 function drawNecklace(G, paint){
   ringSvgEl.setAttribute('viewBox', '0 0 ' + SIZE + ' ' + SIZE);
-  // The wheel's layer is drawn again with the ring, unless a slow step
-  // keeps the ring (and so the wheel) as it is; the card's blur always is.
-  frostTurnEl.replaceChildren();
+  // The wheel's layer and the card's blur are drawn again with the ring,
+  // unless a slow step keeps the ring (and so the wheel) as it is.
   if (!(ringKept && ringKept.ring)){
+    frostTurnEl.replaceChildren();
     wheelTurnEl.replaceChildren();
     frostTurnEl.removeAttribute('transform');
     turnWheelLayer(0);
@@ -12966,24 +12966,36 @@ function turnRingWheelClip(ring, angle, box){
 // so they stay put while the ring turns (turnRingWheelClip).
 var COMBINE_CARD_PAD = 10;
 function cardCombineLines(G){
-  if (!ringWheelShown(G)) return;
+  // A slow step keeps the blur drawn last time (its copy of the kept wheel
+  // costs the most to build) and only moves its plate: kept, or dropped here.
+  var keptFrost = ringKept && ringKept.ring ? frostTurnEl.querySelector(':scope > .ring-combine-frost') : null;
+  var dropKept = function(){ if (keptFrost) keptFrost.remove(); };
+  if (!ringWheelShown(G)){ dropKept(); return; }
   var lines = ringDynamicEl.querySelectorAll('.ring-combine-box, text.ring-combine, .ring-combine-copy');
   var ring = ringDynamicEl.querySelector('.ring'), wheel = ring && ringWheelG();
-  if (!lines.length || !wheel) return;
+  if (!lines.length || !wheel || (keptFrost && wheel.parentNode !== wheelTurnEl)){ dropKept(); if (!lines.length || !wheel) return; keptFrost = null; }
   var ext = combineExtent(lines);
-  if (!ext) return;
+  if (!ext){ dropKept(); return; }
   var x0 = ext.x0, y0 = ext.y0, x1 = ext.x1, y1 = ext.y1;
   var card = { x: num(x0 - COMBINE_CARD_PAD), y: num(y0 - COMBINE_CARD_PAD / 2), width: num(x1 - x0 + 2 * COMBINE_CARD_PAD), height: num(y1 - y0 + COMBINE_CARD_PAD), rx: 10 };
   ringDynamicEl.insertBefore(svgEl('rect', Object.assign({ 'class': 'ring-combine-plate' }, card)), lines[0]);
   wheel.id = 'ring-wheel-el';
-  var frost = svgEl('g', { 'class': 'ring-combine-frost', 'clip-path': 'url(#ring-combine-clip)' });
-  var clip = frost.appendChild(svgEl('clipPath', { id: 'ring-combine-clip' }));
-  clip.appendChild(svgEl('rect', Object.assign({ 'class': 'ring-card-turn' }, card)));
-  frost.appendChild(svgEl('rect', Object.assign({ 'class': 'ring-card-turn ring-combine-ground' }, card)));
-  frost.appendChild(svgEl('use', { href: '#ring-wheel-el' }));
-  if (wheel.parentNode === wheelTurnEl) frostTurnEl.appendChild(frost);
-  else wheel.parentNode.insertBefore(frost, wheel.nextSibling);
-  groundCombineCard();
+  if (keptFrost){
+    // Its two rects take the new plate, as new ones would have it.
+    keptFrost.querySelectorAll('.ring-card-turn').forEach(function(rect){
+      rect.removeAttribute('transform');
+      Object.keys(card).forEach(function(k){ rect.setAttribute(k, card[k]); });
+    });
+  } else {
+    var frost = svgEl('g', { 'class': 'ring-combine-frost', 'clip-path': 'url(#ring-combine-clip)' });
+    var clip = frost.appendChild(svgEl('clipPath', { id: 'ring-combine-clip' }));
+    clip.appendChild(svgEl('rect', Object.assign({ 'class': 'ring-card-turn' }, card)));
+    frost.appendChild(svgEl('rect', Object.assign({ 'class': 'ring-card-turn ring-combine-ground' }, card)));
+    frost.appendChild(svgEl('use', { href: '#ring-wheel-el' }));
+    if (wheel.parentNode === wheelTurnEl) frostTurnEl.appendChild(frost);
+    else wheel.parentNode.insertBefore(frost, wheel.nextSibling);
+    groundCombineCard();
+  }
   var turnedBy = /rotate\((-?[\d.]+)/.exec(ring.getAttribute('transform') || '');
   if (turnedBy) turnRingWheelClip(ring, +turnedBy[1], ringBox());
   syncCombineCardHot(combineCardPointer);
