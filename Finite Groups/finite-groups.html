@@ -13,6 +13,14 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,500;8..60,600&family=Source+Sans+3:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
+  /* The ring window's body carries has-zoomed-ring, has-wheel-ring and
+     has-iso-pane while its ring svg is zoomed or shows the congruence wheel
+     and while the isomorphism pane shows (see syncRingBodyHas): the rules
+     keyed on them used to ask :has(> …) of the body, which had the browser
+     look at the whole window's styles again for every element added to or
+     taken from the ring's drawing. Each stands in :is() beside the selector
+     :has() held, which never matches the body itself, so every rule keeps
+     its specificity. */
   /* Element-order colors. Each class sets one local alias, --ord, built
         only from var()/color-mix() of the shared --role-* tokens, so the
         beads, the legend swatches and the day/night themes all stay on the
@@ -584,9 +592,9 @@
   .subgroup-row.is-merged{ display:flex; justify-content:space-between; align-items:baseline; gap:6px 32px; }
   .subgroup-row.is-merged > .sub-row-l{ flex:0 1 auto; min-width:0; text-align:left; }
   .subgroup-row.is-merged > .sub-row-r{ flex:0 1 auto; min-width:0; margin-left:auto; text-align:right; }
-  :root.is-sub-merged .fs-win-body.is-ring:has(> .iso-pane:not([hidden])):has(> .ring-split:not([hidden])){ grid-template-rows:auto auto auto auto auto auto minmax(0, var(--ring-fr, 1fr)) auto minmax(0, var(--split-fr, 1fr)) auto; grid-template-areas:"ctl ctl ctl pane" "arr arr arr pane" "gen gen gen pane" "iso iso iso pane" "pad pad pad pane" "head head head pane" "ring ring ring pane" "expr expr expr pane" "split split split split" "foot foot foot foot" "gx gx gx gxr"; }
-  :root.is-sub-merged.is-iso-one-legend .fs-win-body.is-ring:has(> .iso-pane:not([hidden])):has(> .ring-split:not([hidden])){ grid-template-rows:auto auto auto auto auto auto minmax(0, var(--ring-fr, 1fr)) auto minmax(0, var(--split-fr, 1fr)) auto auto auto; grid-template-areas:"ctl ctl ctl pane" "arr arr arr pane" "gen gen gen pane" "iso iso iso pane" "pad pad pad pane" "head head head pane" "ring ring ring pane" "expr expr expr pane" "split split split split" "foot foot foot foot" "gx gx gx gxr" "lgd lgd lgd lgd"; }
-  :root.is-sub-merged.is-iso-two-legends .fs-win-body.is-ring:has(> .iso-pane:not([hidden])):has(> .ring-split:not([hidden])){ grid-template-rows:auto auto auto auto auto auto minmax(0, var(--ring-fr, 1fr)) auto minmax(0, var(--split-fr, 1fr)) auto auto auto; grid-template-areas:"ctl ctl ctl pane" "arr arr arr pane" "gen gen gen pane" "iso iso iso pane" "pad pad pad pane" "head head head pane" "ring ring ring pane" "expr expr expr pane" "split split split split" "foot foot foot foot" "gx gx gx gxr" "lgdl lgdl lgdl lgdr"; }
+  :root.is-sub-merged .fs-win-body.is-ring:is(.has-iso-pane, .iso-pane:not([hidden])):has(> .ring-split:not([hidden])){ grid-template-rows:auto auto auto auto auto auto minmax(0, var(--ring-fr, 1fr)) auto minmax(0, var(--split-fr, 1fr)) auto; grid-template-areas:"ctl ctl ctl pane" "arr arr arr pane" "gen gen gen pane" "iso iso iso pane" "pad pad pad pane" "head head head pane" "ring ring ring pane" "expr expr expr pane" "split split split split" "foot foot foot foot" "gx gx gx gxr"; }
+  :root.is-sub-merged.is-iso-one-legend .fs-win-body.is-ring:is(.has-iso-pane, .iso-pane:not([hidden])):has(> .ring-split:not([hidden])){ grid-template-rows:auto auto auto auto auto auto minmax(0, var(--ring-fr, 1fr)) auto minmax(0, var(--split-fr, 1fr)) auto auto auto; grid-template-areas:"ctl ctl ctl pane" "arr arr arr pane" "gen gen gen pane" "iso iso iso pane" "pad pad pad pane" "head head head pane" "ring ring ring pane" "expr expr expr pane" "split split split split" "foot foot foot foot" "gx gx gx gxr" "lgd lgd lgd lgd"; }
+  :root.is-sub-merged.is-iso-two-legends .fs-win-body.is-ring:is(.has-iso-pane, .iso-pane:not([hidden])):has(> .ring-split:not([hidden])){ grid-template-rows:auto auto auto auto auto auto minmax(0, var(--ring-fr, 1fr)) auto minmax(0, var(--split-fr, 1fr)) auto auto auto; grid-template-areas:"ctl ctl ctl pane" "arr arr arr pane" "gen gen gen pane" "iso iso iso pane" "pad pad pad pane" "head head head pane" "ring ring ring pane" "expr expr expr pane" "split split split split" "foot foot foot foot" "gx gx gx gxr" "lgdl lgdl lgdl lgdr"; }
   .sub-gcd-btn{ font:inherit; font-family:var(--font-math); font-style:italic; font-size:.88rem; color:var(--text-dim); background:var(--bg-1); border:1px solid var(--panel-border); border-radius:var(--radius-ctl); padding:3px 8px; cursor:pointer; white-space:nowrap; }
   .sub-gcd-btn:hover:not(:disabled){ color:var(--text); }
   .sub-gcd-btn[aria-pressed="true"]{ color:var(--accent); border-color:var(--accent); background:color-mix(in srgb, var(--accent) 12%, var(--bg-1)); }
@@ -1935,7 +1943,7 @@
      14px of padlock and the gap. Beside the pane the left ring's button
      sits 21px left of the line, 14px in from the row's end, 14px more. */
   .fs-win-body.is-ring.ring-body > .fs-win-row-ctl{ padding-right:44px; }
-  .fs-win-body.is-ring.ring-body:has(> .iso-pane:not([hidden])) > .fs-win-row-ctl{ padding-right:58px; }
+  .fs-win-body.is-ring.ring-body:is(.has-iso-pane, .iso-pane:not([hidden])) > .fs-win-row-ctl{ padding-right:58px; }
   .fs-win-body.is-ring > .ring-head{ grid-area:head; }
   /* A formula in pieces, each from an equals sign on, as the copy
      submenu shows it at its top. */
@@ -1966,12 +1974,12 @@
   /* A ring alone has its coset button in the middle of the subgroup row,
      over the ring's centre, the label and dropdown either side; a run's
      controls take a line of their own under it. */
-  :root:not(.is-isopane) .fs-win-body.is-ring:not(:has(> .iso-pane:not([hidden]))) > .fs-win-row-gen{ display:grid; grid-template-columns:minmax(0, 1fr) auto minmax(0, 1fr); align-items:center; }
-  :root:not(.is-isopane) .fs-win-body.is-ring:not(:has(> .iso-pane:not([hidden]))) > .fs-win-row-gen > #gen-field{ grid-area:1 / 1 / 2 / 4; }
+  :root:not(.is-isopane) .fs-win-body.is-ring:not(:is(.has-iso-pane, .iso-pane:not([hidden]))) > .fs-win-row-gen{ display:grid; grid-template-columns:minmax(0, 1fr) auto minmax(0, 1fr); align-items:center; }
+  :root:not(.is-isopane) .fs-win-body.is-ring:not(:is(.has-iso-pane, .iso-pane:not([hidden]))) > .fs-win-row-gen > #gen-field{ grid-area:1 / 1 / 2 / 4; }
   /* No ring has a coset button, alone or in the isomorphism view: a
      right-click menu starts a run, and Exit, in place of Step, ends it. */
   .fs-win-body.is-ring #coset-btn{ display:none !important; }
-  :root:not(.is-isopane) .fs-win-body.is-ring:not(:has(> .iso-pane:not([hidden]))) > .fs-win-row-gen #coset-controls:not([hidden]){ grid-area:2 / 1 / 3 / 4; justify-self:center; }
+  :root:not(.is-isopane) .fs-win-body.is-ring:not(:is(.has-iso-pane, .iso-pane:not([hidden]))) > .fs-win-row-gen #coset-controls:not([hidden]){ grid-area:2 / 1 / 3 / 4; justify-self:center; }
   /* The split view: a button at the right end of the subgroup row opens a
      pane under the ring (a divider between them) that takes in the page's
      live subgroup list; ring and pane share the window's spare height. */
@@ -2059,25 +2067,25 @@
   .dir-pref.is-both > .dir-pref-seg > button svg{ stroke:var(--arrow-both) !important; }
   .dir-toggle .dir-arrow{ stroke-width:1.5; stroke:var(--arrow-in, var(--role-active)); }
   .dir-toggle.is-both > svg:first-child .dir-arrow, .dir-toggle > svg.is-both .dir-arrow{ stroke:var(--arrow-both); }
-  :root:not(.is-isopane) .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > #arrange-field{ position:relative; }
-  :root:not(.is-isopane) .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > #arrange-field :is(#dir-toggle, #dir-pref, #shorten-lock-track){ position:absolute; z-index:3; translate:-50% -50%; }
+  :root:not(.is-isopane) .fs-win-body.is-ring:is(.has-iso-pane, .iso-pane:not([hidden])) > #arrange-field{ position:relative; }
+  :root:not(.is-isopane) .fs-win-body.is-ring:is(.has-iso-pane, .iso-pane:not([hidden])) > #arrange-field :is(#dir-toggle, #dir-pref, #shorten-lock-track){ position:absolute; z-index:3; translate:-50% -50%; }
   /* Moved there, the grid keeps its own width (the slider has its 64px). */
-  :root:not(.is-isopane) .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > #arrange-field #dir-pref{ width:max-content; }
+  :root:not(.is-isopane) .fs-win-body.is-ring:is(.has-iso-pane, .iso-pane:not([hidden])) > #arrange-field #dir-pref{ width:max-content; }
   :root.is-isopane #dir-toggle{ display:none !important; }
   /* Locked, the combination's switch moves onto the line between the rings,
      right under the rows, heading the column over the padlock: its two choices one above the
      other, k under them, its name left to their titles, over the plots. */
-  :root:not(.is-isopane):not(.is-iso-unlinked) .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > #arrange-field #combine-mode{ position:absolute; z-index:4; translate:-50% -50%; flex-direction:column; gap:4px; margin:0; }
-  :root:not(.is-isopane):not(.is-iso-unlinked) .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > #arrange-field .combine-mode-name{ display:none; }
+  :root:not(.is-isopane):not(.is-iso-unlinked) .fs-win-body.is-ring:is(.has-iso-pane, .iso-pane:not([hidden])) > #arrange-field #combine-mode{ position:absolute; z-index:4; translate:-50% -50%; flex-direction:column; gap:4px; margin:0; }
+  :root:not(.is-isopane):not(.is-iso-unlinked) .fs-win-body.is-ring:is(.has-iso-pane, .iso-pane:not([hidden])) > #arrange-field .combine-mode-name{ display:none; }
   /* Locked, a ∗ b worked in both groups at once, under the switch: each
      element a column, this ring's group over the pane's, joined by the
      general ∗ (syncIsoCombine); a card as the flip button (#dir-toggle)
      on that line is, at rest, hovered and over a zoomed ring. */
   .iso-combine{ display:none; }
-  :root:not(.is-isopane):not(.is-iso-unlinked) .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > #arrange-field .iso-combine:not([hidden]){ display:block; position:absolute; z-index:4; translate:-50% -50%; padding:5px 12px; color:var(--text); background:color-mix(in srgb, var(--text) 6%, transparent); border:1px solid var(--panel-border); border-radius:10px; font-size:.85rem; font-weight:600; white-space:nowrap; transition:background .15s, border-color .15s; }
-  :root:not(.is-isopane):not(.is-iso-unlinked) .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > #arrange-field .iso-combine:not([hidden]):hover{ background:color-mix(in srgb, var(--text) 12%, transparent); border-color:color-mix(in srgb, var(--text) 20%, transparent); }
-  :root:not(.is-isopane):not(.is-iso-unlinked) .fs-win-body.is-ring:has(> svg.ring-svg:is(.is-zoomed, .has-wheel)):has(> .iso-pane:not([hidden])) > #arrange-field .iso-combine:not([hidden]){ -webkit-backdrop-filter:blur(0px); backdrop-filter:blur(0px); transition:background .15s, border-color .15s, backdrop-filter .18s; }
-  :root:not(.is-isopane):not(.is-iso-unlinked) .fs-win-body.is-ring:has(> svg.ring-svg:is(.is-zoomed, .has-wheel)):has(> .iso-pane:not([hidden])) > #arrange-field .iso-combine:not([hidden]):hover{ background-color:color-mix(in srgb, var(--panel) 55%, transparent); -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); }
+  :root:not(.is-isopane):not(.is-iso-unlinked) .fs-win-body.is-ring:is(.has-iso-pane, .iso-pane:not([hidden])) > #arrange-field .iso-combine:not([hidden]){ display:block; position:absolute; z-index:4; translate:-50% -50%; padding:5px 12px; color:var(--text); background:color-mix(in srgb, var(--text) 6%, transparent); border:1px solid var(--panel-border); border-radius:10px; font-size:.85rem; font-weight:600; white-space:nowrap; transition:background .15s, border-color .15s; }
+  :root:not(.is-isopane):not(.is-iso-unlinked) .fs-win-body.is-ring:is(.has-iso-pane, .iso-pane:not([hidden])) > #arrange-field .iso-combine:not([hidden]):hover{ background:color-mix(in srgb, var(--text) 12%, transparent); border-color:color-mix(in srgb, var(--text) 20%, transparent); }
+  :root:not(.is-isopane):not(.is-iso-unlinked) .fs-win-body.is-ring:is(.has-zoomed-ring, .has-wheel-ring, svg.ring-svg.is-zoomed):is(.has-iso-pane, .iso-pane:not([hidden])) > #arrange-field .iso-combine:not([hidden]){ -webkit-backdrop-filter:blur(0px); backdrop-filter:blur(0px); transition:background .15s, border-color .15s, backdrop-filter .18s; }
+  :root:not(.is-isopane):not(.is-iso-unlinked) .fs-win-body.is-ring:is(.has-zoomed-ring, .has-wheel-ring, svg.ring-svg.is-zoomed):is(.has-iso-pane, .iso-pane:not([hidden])) > #arrange-field .iso-combine:not([hidden]):hover{ background-color:color-mix(in srgb, var(--panel) 55%, transparent); -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); }
   /* Its right-click menu keeps it frosted, as over a zoomed ring under the
      pointer, or solid, on the window's own opaque ground (state.cardLooks.iso). */
   :root.is-card-iso-frost #arrange-field #iso-combine:not([hidden]){ background:linear-gradient(var(--panel), var(--panel)), color-mix(in srgb, var(--panel) 55%, transparent); -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); }
@@ -2087,59 +2095,59 @@
   .iso-combine .is-c{ color:var(--role-result); }
   /* Right of it a copy button, as the main area's formulas have, shown
      while the pointer is over the box. */
-  :root:not(.is-isopane):not(.is-iso-unlinked) .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > #arrange-field .iso-combine:not([hidden]):has(> .f-copy){ padding-right:24px; }
+  :root:not(.is-isopane):not(.is-iso-unlinked) .fs-win-body.is-ring:is(.has-iso-pane, .iso-pane:not([hidden])) > #arrange-field .iso-combine:not([hidden]):has(> .f-copy){ padding-right:24px; }
   .iso-combine > .f-copy{ position:absolute; top:50%; right:5px; translate:0 -50%; display:grid; place-items:center; width:14px; height:22px; padding:0; color:var(--text-dim); background:none; border:0; border-radius:4px; cursor:pointer; opacity:0; pointer-events:none; transition:opacity .15s; }
   .iso-combine > .f-copy svg{ fill:none; stroke:currentColor; stroke-width:1.3; stroke-linecap:round; stroke-linejoin:round; }
   .iso-combine:hover > .f-copy, .iso-combine > .f-copy:focus-visible, .iso-combine > .f-copy.is-done{ opacity:1; pointer-events:auto; }
   .iso-combine > .f-copy:hover{ color:var(--accent); }
   .iso-combine > .f-copy.is-done{ color:var(--role-result); }
   .iso-combine > .f-copy:focus-visible{ outline:2px solid var(--accent); outline-offset:1px; }
-  :root:not(.is-isopane):not(.is-iso-unlinked) .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > #arrange-field .combine-seg{ flex-direction:column; background:var(--surface); }
-  :root:not(.is-isopane):not(.is-iso-unlinked) .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > #arrange-field .combine-seg > button{ padding:4px 8px; }
-  :root:not(.is-isopane):not(.is-iso-unlinked) .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > #arrange-field .combine-seg > button + button{ border-inline-start:0; border-top:1px solid var(--panel-border); }
-  :root:not(.is-isopane):not(.is-iso-unlinked) .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > #arrange-field :is(.combine-k-spin, .combine-k-mod){ background:var(--surface); border-radius:var(--radius-ctl); }
-  :root:not(.is-isopane):not(.is-iso-unlinked) .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > #arrange-field .combine-k-spin > #combine-k{ width:4.4em; }
+  :root:not(.is-isopane):not(.is-iso-unlinked) .fs-win-body.is-ring:is(.has-iso-pane, .iso-pane:not([hidden])) > #arrange-field .combine-seg{ flex-direction:column; background:var(--surface); }
+  :root:not(.is-isopane):not(.is-iso-unlinked) .fs-win-body.is-ring:is(.has-iso-pane, .iso-pane:not([hidden])) > #arrange-field .combine-seg > button{ padding:4px 8px; }
+  :root:not(.is-isopane):not(.is-iso-unlinked) .fs-win-body.is-ring:is(.has-iso-pane, .iso-pane:not([hidden])) > #arrange-field .combine-seg > button + button{ border-inline-start:0; border-top:1px solid var(--panel-border); }
+  :root:not(.is-isopane):not(.is-iso-unlinked) .fs-win-body.is-ring:is(.has-iso-pane, .iso-pane:not([hidden])) > #arrange-field :is(.combine-k-spin, .combine-k-mod){ background:var(--surface); border-radius:var(--radius-ctl); }
+  :root:not(.is-isopane):not(.is-iso-unlinked) .fs-win-body.is-ring:is(.has-iso-pane, .iso-pane:not([hidden])) > #arrange-field .combine-k-spin > #combine-k{ width:4.4em; }
   /* Stacked, the field shifts no sideways for it, so the reduction keeps
      no room while it waits; the result-on-top switch sits under the field. */
-  :root:not(.is-isopane):not(.is-iso-unlinked) .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > #arrange-field .combine-k-mod.is-idle{ display:none; }
+  :root:not(.is-isopane):not(.is-iso-unlinked) .fs-win-body.is-ring:is(.has-iso-pane, .iso-pane:not([hidden])) > #arrange-field .combine-k-mod.is-idle{ display:none; }
   .fs-win-body.is-ring .split-btn[aria-pressed="true"]{ color:var(--accent-ink); background:var(--accent); border-color:transparent; }
   /* While the two rings' lists are merged into one they share one button:
      the left ring's, on the line between the two rings just under the
      padlock (placed by keepLockClear). Until then each ring has its own,
      under it (placeSplitBtn), and its own panel. */
-  :root.is-sub-merged:not(.is-isopane) .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > .fs-win-row-gen{ position:relative; }
-  :root.is-sub-merged:not(.is-isopane) .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > .fs-win-row-gen > .split-btn{ position:absolute; z-index:3; left:calc(100% + 14px); top:50%; translate:-50% -50%; }
+  :root.is-sub-merged:not(.is-isopane) .fs-win-body.is-ring:is(.has-iso-pane, .iso-pane:not([hidden])) > .fs-win-row-gen{ position:relative; }
+  :root.is-sub-merged:not(.is-isopane) .fs-win-body.is-ring:is(.has-iso-pane, .iso-pane:not([hidden])) > .fs-win-row-gen > .split-btn{ position:absolute; z-index:3; left:calc(100% + 14px); top:50%; translate:-50% -50%; }
   /* So do their subgroup rows, which work in unison: one row across both
      rings, its name at the left, each ring's G on its own side, and the
      left ring's switch right on the line between the two, where the line
      breaks off, between its two Follow buttons; the pane's own go. How far
      they reach past the row (--gen-ctls-reach) is measured (placeCtls). */
-  :root.is-sub-merged:not(.is-isopane) .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > .fs-win-row-gen > #gen-field{ flex-wrap:wrap; }
-  :root.is-gen-wrap.is-sub-merged:not(.is-isopane) .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > .fs-win-row-gen > #gen-field::after, :root.is-gen-wrap.is-isopane.is-pane-merged .fs-win-body.is-ring > .fs-win-row-gen > #gen-field::after{ content:''; flex-basis:100%; height:0; order:1; }
+  :root.is-sub-merged:not(.is-isopane) .fs-win-body.is-ring:is(.has-iso-pane, .iso-pane:not([hidden])) > .fs-win-row-gen > #gen-field{ flex-wrap:wrap; }
+  :root.is-gen-wrap.is-sub-merged:not(.is-isopane) .fs-win-body.is-ring:is(.has-iso-pane, .iso-pane:not([hidden])) > .fs-win-row-gen > #gen-field::after, :root.is-gen-wrap.is-isopane.is-pane-merged .fs-win-body.is-ring > .fs-win-row-gen > #gen-field::after{ content:''; flex-basis:100%; height:0; order:1; }
   :root.is-gen-wrap.is-isopane.is-pane-merged .fs-win-body.is-ring > .fs-win-row-gen > #gen-field > .gen-head{ order:2; }
   :root.is-sub-merged:not(.is-isopane) .fs-win-body.is-ring > .iso-pane:not([hidden]){ border-left-color:transparent; background:linear-gradient(var(--panel-border), var(--panel-border)) 0 0 / 1px var(--gen-cut-t, 100%) no-repeat border-box, linear-gradient(var(--panel-border), var(--panel-border)) 0 var(--gen-cut-b, 100%) / 1px 100% no-repeat border-box; }
-  :root.is-sub-merged:not(.is-isopane) .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > .fs-win-row-gen > #gen-field > .gen-head{ display:contents; }
-  :root.is-sub-merged:not(.is-isopane) .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > .fs-win-row-gen > #gen-field > .gen-head > label{ min-width:min(12em, 16.5cqi); }
-  :root.is-sub-merged:not(.is-isopane) .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > .fs-win-row-gen #gen-beads{ order:-1; }
-  :root.is-sub-merged:not(.is-isopane) .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > .fs-win-row-gen .gen-ctls{ order:2; position:relative; z-index:3; flex-wrap:nowrap; margin-left:auto; margin-right:calc(-1 * var(--gen-ctls-reach, 0px)); }
+  :root.is-sub-merged:not(.is-isopane) .fs-win-body.is-ring:is(.has-iso-pane, .iso-pane:not([hidden])) > .fs-win-row-gen > #gen-field > .gen-head{ display:contents; }
+  :root.is-sub-merged:not(.is-isopane) .fs-win-body.is-ring:is(.has-iso-pane, .iso-pane:not([hidden])) > .fs-win-row-gen > #gen-field > .gen-head > label{ min-width:min(12em, 16.5cqi); }
+  :root.is-sub-merged:not(.is-isopane) .fs-win-body.is-ring:is(.has-iso-pane, .iso-pane:not([hidden])) > .fs-win-row-gen #gen-beads{ order:-1; }
+  :root.is-sub-merged:not(.is-isopane) .fs-win-body.is-ring:is(.has-iso-pane, .iso-pane:not([hidden])) > .fs-win-row-gen .gen-ctls{ order:2; position:relative; z-index:3; flex-wrap:nowrap; margin-left:auto; margin-right:calc(-1 * var(--gen-ctls-reach, 0px)); }
   /* The pane's own switch and buttons go; while the left ring's take a
      line of their own, the pane keeps its unseen on a second line too, so
      its row stays as tall. */
   :root.is-isopane.is-pane-merged .fs-win-body.is-ring > .fs-win-row-gen > #gen-field{ flex-wrap:wrap; }
   :root.is-isopane.is-pane-merged .fs-win-body.is-ring > .fs-win-row-gen > #gen-field > .gen-head{ min-width:0; margin-right:0; }
-  :root.is-isopane.is-pane-merged .fs-win-body.is-ring > .fs-win-row-gen > #gen-field > .gen-super:not(:empty), :root.is-sub-merged:not(.is-isopane) .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > .fs-win-row-gen > #gen-field > .gen-super:not(:empty){ margin-left:calc(-0.4em + var(--g-shift, 0px)); }
+  :root.is-isopane.is-pane-merged .fs-win-body.is-ring > .fs-win-row-gen > #gen-field > .gen-super:not(:empty), :root.is-sub-merged:not(.is-isopane) .fs-win-body.is-ring:is(.has-iso-pane, .iso-pane:not([hidden])) > .fs-win-row-gen > #gen-field > .gen-super:not(:empty){ margin-left:calc(-0.4em + var(--g-shift, 0px)); }
   :root.is-isopane.is-pane-merged .fs-win-body.is-ring > .fs-win-row-gen > #gen-field > .gen-head > label{ display:none; }
   :root.is-isopane.is-pane-merged .fs-win-body.is-ring > .fs-win-row-gen .gen-ctls{ visibility:hidden; flex-wrap:nowrap; }
   :root.is-isopane.is-pane-merged:not(.is-gen-wrap) .fs-win-body.is-ring > .fs-win-row-gen > #gen-field > .gen-head{ display:none; }
   /* Linked as whole groups, the rings explore their cosets together too. */
   /* Its run's controls show once too, in a small card under it on the line:
      the four buttons two by two, the speed under them. */
-  :root.is-iso-whole:not(.is-isopane):not(.is-iso-unlinked) .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > .fs-win-row-gen #coset-controls:not([hidden]){ position:absolute; z-index:3; translate:-50% -50%; width:max-content; flex-direction:column; flex-wrap:nowrap; align-items:stretch; gap:8px; padding:8px; background:var(--bg-1); border:1px solid var(--panel-border); border-radius:var(--radius-ctl); }
-  :root.is-iso-whole:not(.is-isopane):not(.is-iso-unlinked) .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > .fs-win-row-gen #coset-controls .btn-row{ display:grid; grid-template-columns:1fr 1fr; gap:6px; }
-  :root.is-iso-whole:not(.is-isopane):not(.is-iso-unlinked) .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > .fs-win-row-gen #coset-controls .btn-row .action-btn{ padding:5px 10px; font-size:.85rem; }
-  :root.is-iso-whole:not(.is-isopane):not(.is-iso-unlinked) .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > .fs-win-row-gen #coset-controls .speed-wrap{ gap:6px; }
-  :root.is-iso-whole:not(.is-isopane):not(.is-iso-unlinked) .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > .fs-win-row-gen #coset-controls .speed-wrap input[type="range"]{ width:80px; }
-  :root.is-iso-whole:not(.is-isopane):not(.is-iso-unlinked) .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > .fs-win-row-gen #coset-controls .speed-wrap span{ width:auto; min-width:3.5em; }
+  :root.is-iso-whole:not(.is-isopane):not(.is-iso-unlinked) .fs-win-body.is-ring:is(.has-iso-pane, .iso-pane:not([hidden])) > .fs-win-row-gen #coset-controls:not([hidden]){ position:absolute; z-index:3; translate:-50% -50%; width:max-content; flex-direction:column; flex-wrap:nowrap; align-items:stretch; gap:8px; padding:8px; background:var(--bg-1); border:1px solid var(--panel-border); border-radius:var(--radius-ctl); }
+  :root.is-iso-whole:not(.is-isopane):not(.is-iso-unlinked) .fs-win-body.is-ring:is(.has-iso-pane, .iso-pane:not([hidden])) > .fs-win-row-gen #coset-controls .btn-row{ display:grid; grid-template-columns:1fr 1fr; gap:6px; }
+  :root.is-iso-whole:not(.is-isopane):not(.is-iso-unlinked) .fs-win-body.is-ring:is(.has-iso-pane, .iso-pane:not([hidden])) > .fs-win-row-gen #coset-controls .btn-row .action-btn{ padding:5px 10px; font-size:.85rem; }
+  :root.is-iso-whole:not(.is-isopane):not(.is-iso-unlinked) .fs-win-body.is-ring:is(.has-iso-pane, .iso-pane:not([hidden])) > .fs-win-row-gen #coset-controls .speed-wrap{ gap:6px; }
+  :root.is-iso-whole:not(.is-isopane):not(.is-iso-unlinked) .fs-win-body.is-ring:is(.has-iso-pane, .iso-pane:not([hidden])) > .fs-win-row-gen #coset-controls .speed-wrap input[type="range"]{ width:80px; }
+  :root.is-iso-whole:not(.is-isopane):not(.is-iso-unlinked) .fs-win-body.is-ring:is(.has-iso-pane, .iso-pane:not([hidden])) > .fs-win-row-gen #coset-controls .speed-wrap span{ width:auto; min-width:3.5em; }
   :root.is-isopane.is-iso-whole:not(.is-iso-unlinked) #coset-controls{ display:none !important; }
   .fs-win-body.is-ring > .ring-split:not([hidden]){ grid-area:split; align-self:stretch; display:grid; grid-template-columns:auto auto minmax(0, 1fr) auto auto; grid-template-rows:auto minmax(0, 1fr); min-height:0; overflow:hidden; }
   /* The panel runs out over the window's side padding to its very edges,
@@ -2259,12 +2267,12 @@
      up, without spin buttons, to fit. */
   .fs-win-body.is-ring > .fs-win-row-ctl > .group-controls > .ec-row{ order:1; flex:none; }
   .fs-win-body.is-ring > .fs-win-row-ctl > .group-controls > .ec-pick-row{ flex:1 1 0; min-width:4.5em; padding-left:12px; }
-  :is(.fs-win-body.is-ring:has(> .iso-pane:not([hidden])), :root.is-isopane .fs-win-body.is-ring) > .fs-win-row-ctl > .facts.group-controls > .ec-row{ gap:2px 8px; }
-  :is(.fs-win-body.is-ring:has(> .iso-pane:not([hidden])), :root.is-isopane .fs-win-body.is-ring) > .fs-win-row-ctl > .facts.group-controls > .ec-pick-row{ min-width:2.75em; padding-left:0; }
-  :root.is-ec :is(.fs-win-body.is-ring:has(> .iso-pane:not([hidden])), :root.is-isopane .fs-win-body.is-ring) > .fs-win-row-ctl > .facts.group-controls{ column-gap:16px; }
-  :is(.fs-win-body.is-ring:has(> .iso-pane:not([hidden])), :root.is-isopane .fs-win-body.is-ring) > .fs-win-row-ctl > .facts.group-controls .ec-field{ gap:4px; }
-  :is(.fs-win-body.is-ring:has(> .iso-pane:not([hidden])), :root.is-isopane .fs-win-body.is-ring) > .fs-win-row-ctl > .facts.group-controls .ec-field input{ width:calc(var(--digits, 2) * 1ch + 14px); padding-inline:6px; }
-  :is(.fs-win-body.is-ring:has(> .iso-pane:not([hidden])), :root.is-isopane .fs-win-body.is-ring) > .fs-win-row-ctl > .facts.group-controls .ec-field .n-spin-btns{ display:none; }
+  :is(.fs-win-body.is-ring:is(.has-iso-pane, .iso-pane:not([hidden])), :root.is-isopane .fs-win-body.is-ring) > .fs-win-row-ctl > .facts.group-controls > .ec-row{ gap:2px 8px; }
+  :is(.fs-win-body.is-ring:is(.has-iso-pane, .iso-pane:not([hidden])), :root.is-isopane .fs-win-body.is-ring) > .fs-win-row-ctl > .facts.group-controls > .ec-pick-row{ min-width:2.75em; padding-left:0; }
+  :root.is-ec :is(.fs-win-body.is-ring:is(.has-iso-pane, .iso-pane:not([hidden])), :root.is-isopane .fs-win-body.is-ring) > .fs-win-row-ctl > .facts.group-controls{ column-gap:16px; }
+  :is(.fs-win-body.is-ring:is(.has-iso-pane, .iso-pane:not([hidden])), :root.is-isopane .fs-win-body.is-ring) > .fs-win-row-ctl > .facts.group-controls .ec-field{ gap:4px; }
+  :is(.fs-win-body.is-ring:is(.has-iso-pane, .iso-pane:not([hidden])), :root.is-isopane .fs-win-body.is-ring) > .fs-win-row-ctl > .facts.group-controls .ec-field input{ width:calc(var(--digits, 2) * 1ch + 14px); padding-inline:6px; }
+  :is(.fs-win-body.is-ring:is(.has-iso-pane, .iso-pane:not([hidden])), :root.is-isopane .fs-win-body.is-ring) > .fs-win-row-ctl > .facts.group-controls .ec-field .n-spin-btns{ display:none; }
   .fs-win-body.is-ring > #arrange-field > .arrange-controls{ justify-content:flex-end; }
   /* The arrangement row is named for the group in the Ring window. */
   .arrange-fs-name, .fs-win-body.is-ring .arrange-panel-name, .gen-fs-name, .fs-win-body.is-ring .gen-panel-name{ display:none; }
@@ -2330,7 +2338,7 @@
   /* In the row two locked rings share, where each ring's G stands over its
      ring and the shared switch reaches across the line between them, each
      ring's three take a line of their own under its side of the row. */
-  :root.is-sub-merged:not(.is-isopane) .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > .fs-win-row-gen > #gen-field > .rel-ctls, :root.is-isopane.is-pane-merged .fs-win-body.is-ring > .fs-win-row-gen > #gen-field > .rel-ctls{ order:3; flex-basis:100%; }
+  :root.is-sub-merged:not(.is-isopane) .fs-win-body.is-ring:is(.has-iso-pane, .iso-pane:not([hidden])) > .fs-win-row-gen > #gen-field > .rel-ctls, :root.is-isopane.is-pane-merged .fs-win-body.is-ring > .fs-win-row-gen > #gen-field > .rel-ctls{ order:3; flex-basis:100%; }
   .rel-btn{ display:inline-flex; align-items:center; gap:6px; }
   .rel-btn[hidden]{ display:none; }
   .rel-btn[aria-expanded="true"]{ color:var(--text); background:color-mix(in srgb, var(--accent) 24%, transparent); }
@@ -2530,8 +2538,8 @@
   .fs-win-body.is-ring .legend-btn:not([hidden]){ display:inline-block; width:auto; padding:5px 12px; font-size:.85rem; }
   .fs-win-body.is-ring .legend-btn[aria-pressed="true"]{ color:var(--accent-ink); background:var(--accent); border-color:transparent; }
   .fs-win-body.is-ring > #legend-panel{ grid-column:1 / -1; grid-row:-1 / span 1; justify-self:stretch; align-self:start; position:relative; z-index:1; display:flex; flex-wrap:wrap; align-items:baseline; justify-content:center; gap:6px 18px; max-width:none; padding:10px 0 0; }
-  .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > #legend-panel{ grid-column:1 / 4; }
-  .is-iso-unlinked .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > #legend-panel{ grid-area:lgd; }
+  .fs-win-body.is-ring:is(.has-iso-pane, .iso-pane:not([hidden])) > #legend-panel{ grid-column:1 / 4; }
+  .is-iso-unlinked .fs-win-body.is-ring:is(.has-iso-pane, .iso-pane:not([hidden])) > #legend-panel{ grid-area:lgd; }
   .fs-win-body.is-ring > #legend-panel > .legend-reset{ align-self:baseline; margin:0; }
   /* The reset link, when a colour is picked, joins the heading's line
      beside it, where there is room, not a line of its own under the
@@ -2568,9 +2576,9 @@
      the pane padding its own right side that much more to match. */
   .fs-win-body.is-ring.ring-body > .iso-pane > iframe{ width:calc(100% + 20px); margin-right:-20px; }
   .fs-win-body.is-ring > .iso-pane > iframe.is-lifted{ position:relative; z-index:2; }
-  .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > :is(#rotate-ctl, #spin-ruler, #combine-key, .genexp-info, #legend-panel-pane, .ring-split, .split-btn){ position:relative; z-index:1; }
+  .fs-win-body.is-ring:is(.has-iso-pane, .iso-pane:not([hidden])) > :is(#rotate-ctl, #spin-ruler, #combine-key, .genexp-info, #legend-panel-pane, .ring-split, .split-btn){ position:relative; z-index:1; }
   /* Raised so, the key leaves its stand-alone offsets (right, bottom) behind. */
-  .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > #combine-key{ inset:auto; }
+  .fs-win-body.is-ring:is(.has-iso-pane, .iso-pane:not([hidden])) > #combine-key{ inset:auto; }
   /* The + at a one-ring Ring window's right edge, level with the ring
      (its grid area holds it, whatever opens below), and the picker it opens. */
   .iso-add{ display:none; }
@@ -2578,7 +2586,7 @@
   .fs-win-body.is-ring > .iso-add.is-shown, .fs-win-body.is-ring > .iso-add:focus-visible{ opacity:1; pointer-events:auto; }
   .fs-win-body.is-ring > .iso-add:hover{ background:color-mix(in srgb, var(--accent) 12%, var(--bg-1)); }
   .fs-win-body.is-ring > .iso-add:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
-  .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > .iso-add{ display:none; }
+  .fs-win-body.is-ring:is(.has-iso-pane, .iso-pane:not([hidden])) > .iso-add{ display:none; }
   :root.is-isopane .iso-add{ display:none !important; }
   /* Its twin at the left edge opens a new ring on the left: this ring moves
      into the pane on the right and a picker covers the left side. */
@@ -2635,7 +2643,7 @@
      closing the last ring leaves full screen and goes back to the intro. */
   .ring-exit{ display:none; }
   .fs-win-body.is-ring.ring-body > .ring-exit{ display:grid; position:absolute; z-index:6; top:4px; right:20px; }
-  .fs-win-body.is-ring.ring-body:has(> .iso-pane:not([hidden])) > .ring-exit{ display:none; }
+  .fs-win-body.is-ring.ring-body:is(.has-iso-pane, .iso-pane:not([hidden])) > .ring-exit{ display:none; }
   /* With two rings open, the left one has its own close button too, at the
      top-right corner of its side, the line between them: as far from the
      line and the top as the right ring's is from the window's edge and top
@@ -2644,83 +2652,83 @@
   .iso-ring-close{ display:none; }
   .fs-win-body.is-ring > .iso-pane > .iso-ring-close{ display:grid; position:absolute; z-index:6; top:4px; left:-21px; translate:-100% 0; }
   .fs-win-body.is-ring > .iso-pane .iso-pane-name{ display:none; }
-  .fs-win-body.is-ring:has(> .iso-pane:not([hidden])){ grid-template-columns:auto minmax(0, 1fr) auto calc(50% - 7px); grid-template-areas:"ctl ctl ctl pane" "arr arr arr pane" "gen gen gen pane" "iso iso iso pane" "pad pad pad pane" "head head head pane" "ring ring ring pane" "sbtn sbtn sbtn pane" "expr expr expr pane" "foot foot foot foot" "gx gx gx gxr"; }
-  .fs-win-body.is-ring:has(> .iso-pane:not([hidden])):has(> .ring-split:not([hidden])){ grid-template-rows:auto auto auto auto auto auto minmax(0, var(--ring-fr, 1fr)) auto minmax(0, var(--split-fr, 1fr)) auto auto auto; grid-template-areas:"ctl ctl ctl pane" "arr arr arr pane" "gen gen gen pane" "iso iso iso pane" "pad pad pad pane" "head head head pane" "ring ring ring pane" "expr expr expr pane" "split split split pane" "foot foot foot foot" "gx gx gx gxr"; }
+  .fs-win-body.is-ring:is(.has-iso-pane, .iso-pane:not([hidden])){ grid-template-columns:auto minmax(0, 1fr) auto calc(50% - 7px); grid-template-areas:"ctl ctl ctl pane" "arr arr arr pane" "gen gen gen pane" "iso iso iso pane" "pad pad pad pane" "head head head pane" "ring ring ring pane" "sbtn sbtn sbtn pane" "expr expr expr pane" "foot foot foot foot" "gx gx gx gxr"; }
+  .fs-win-body.is-ring:is(.has-iso-pane, .iso-pane:not([hidden])):has(> .ring-split:not([hidden])){ grid-template-rows:auto auto auto auto auto auto minmax(0, var(--ring-fr, 1fr)) auto minmax(0, var(--split-fr, 1fr)) auto auto auto; grid-template-areas:"ctl ctl ctl pane" "arr arr arr pane" "gen gen gen pane" "iso iso iso pane" "pad pad pad pane" "head head head pane" "ring ring ring pane" "expr expr expr pane" "split split split pane" "foot foot foot foot" "gx gx gx gxr"; }
   /* The rotation controls turn both rings and the path colour key reads
      for both, so with the pane open they sit under both, in a footer as
      wide as the window: the buttons at its start, the speed ruler centred
      on the line between the rings (the pane's column, and so the line,
      starting half a column gap right of the middle), the key at its end. */
-  .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > #rotate-ctl{ grid-area:foot; justify-self:start; align-self:center; }
-  .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > #spin-ruler{ grid-area:foot; justify-self:center; align-self:center; width:min(420px, calc(100% - 35rem)); margin:0 0 0 14px; }
+  .fs-win-body.is-ring:is(.has-iso-pane, .iso-pane:not([hidden])) > #rotate-ctl{ grid-area:foot; justify-self:start; align-self:center; }
+  .fs-win-body.is-ring:is(.has-iso-pane, .iso-pane:not([hidden])) > #spin-ruler{ grid-area:foot; justify-self:center; align-self:center; width:min(420px, calc(100% - 35rem)); margin:0 0 0 14px; }
   /* As a card of its own on the middle line it keeps clear of the two
      sliders' cards above it, which reach 4px under their sliders, and of
      the banner under it, so no two edges meet. */
-  .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > #spin-ruler.is-own-card{ margin-block:10px 6px; }
+  .fs-win-body.is-ring:is(.has-iso-pane, .iso-pane:not([hidden])) > #spin-ruler.is-own-card{ margin-block:10px 6px; }
   /* Its contents keep clear of the card's edge, as the arrow key's rows do. */
   .fs-win-body.is-ring > #spin-ruler.is-own-card{ padding:7px 10px; }
-  .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > #combine-key{ grid-area:foot; justify-self:end; align-self:end; padding-top:8px; }
+  .fs-win-body.is-ring:is(.has-iso-pane, .iso-pane:not([hidden])) > #combine-key{ grid-area:foot; justify-self:end; align-self:end; padding-top:8px; }
   /* Linked, its two entries sit side by side rather than stacked, in the
      room right of the speed ruler's labels. */
-  :root:not(.is-iso-unlinked) .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > #combine-key{ flex-direction:row; gap:6px 24px; max-width:calc(50% - 250px); margin-top:10px; }
+  :root:not(.is-iso-unlinked) .fs-win-body.is-ring:is(.has-iso-pane, .iso-pane:not([hidden])) > #combine-key{ flex-direction:row; gap:6px 24px; max-width:calc(50% - 250px); margin-top:10px; }
   /* Along the bottom, as the panel above them, the turning field and the
      key run out over the window's side padding to 2px from its edges. */
-  :root:not(.is-iso-unlinked) .fs-win-body.is-ring.ring-body:has(> .iso-pane:not([hidden])) > #rotate-ctl{ margin-left:-18px; }
-  :root:not(.is-iso-unlinked) .fs-win-body.is-ring.ring-body:has(> .iso-pane:not([hidden])) > #combine-key{ margin-right:-18px; max-width:calc(50% - 232px); }
+  :root:not(.is-iso-unlinked) .fs-win-body.is-ring.ring-body:is(.has-iso-pane, .iso-pane:not([hidden])) > #rotate-ctl{ margin-left:-18px; }
+  :root:not(.is-iso-unlinked) .fs-win-body.is-ring.ring-body:is(.has-iso-pane, .iso-pane:not([hidden])) > #combine-key{ margin-right:-18px; max-width:calc(50% - 232px); }
   /* (The 10px keep the key's card clear of the expression sliders' cards
      above it, which reach 4px under their sliders.) */
-  :root:not(.is-iso-unlinked) .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > #combine-key > .combine-key-item{ flex:1 1 0; min-width:0; }
+  :root:not(.is-iso-unlinked) .fs-win-body.is-ring:is(.has-iso-pane, .iso-pane:not([hidden])) > #combine-key > .combine-key-item{ flex:1 1 0; min-width:0; }
   /* Once the two groups are not isomorphic each ring turns on its own: the
      pane shows its own rotation controls, and this ring's sit under it
      alone, in its half, level with the pane's. Unlocked, each ring draws
      and keys its own paths: this ring's key takes a row of its own under
      its half, the pane's one under the pane's. */
-  .is-iso-unlinked .fs-win-body.is-ring:has(> .iso-pane:not([hidden])){ grid-template-columns:minmax(3.6rem, 1fr) minmax(0, 420px) minmax(3.6rem, 1fr) calc(50% - 7px); grid-template-areas:"ctl ctl ctl pane" "arr arr arr pane" "gen gen gen pane" "iso iso iso pane" "pad pad pad pane" "head head head pane" "ring ring ring pane" "sbtn sbtn sbtn pane" "expr expr expr pane" "rot spin . pane" "gx gx gx pane" "lgd lgd lgd pane" "foot foot foot pane"; }
-  .is-iso-unlinked .fs-win-body.is-ring:has(> .iso-pane:not([hidden])):has(> .ring-split:not([hidden])){ grid-template-rows:auto auto auto auto auto auto minmax(0, var(--ring-fr, 1fr)) auto auto minmax(0, var(--split-fr, 1fr)) auto auto auto; grid-template-areas:"ctl ctl ctl pane" "arr arr arr pane" "gen gen gen pane" "iso iso iso pane" "pad pad pad pane" "head head head pane" "ring ring ring pane" "expr expr expr pane" "rot spin . pane" "split split split pane" "gx gx gx pane" "lgd lgd lgd pane" "foot foot foot pane"; }
+  .is-iso-unlinked .fs-win-body.is-ring:is(.has-iso-pane, .iso-pane:not([hidden])){ grid-template-columns:minmax(3.6rem, 1fr) minmax(0, 420px) minmax(3.6rem, 1fr) calc(50% - 7px); grid-template-areas:"ctl ctl ctl pane" "arr arr arr pane" "gen gen gen pane" "iso iso iso pane" "pad pad pad pane" "head head head pane" "ring ring ring pane" "sbtn sbtn sbtn pane" "expr expr expr pane" "rot spin . pane" "gx gx gx pane" "lgd lgd lgd pane" "foot foot foot pane"; }
+  .is-iso-unlinked .fs-win-body.is-ring:is(.has-iso-pane, .iso-pane:not([hidden])):has(> .ring-split:not([hidden])){ grid-template-rows:auto auto auto auto auto auto minmax(0, var(--ring-fr, 1fr)) auto auto minmax(0, var(--split-fr, 1fr)) auto auto auto; grid-template-areas:"ctl ctl ctl pane" "arr arr arr pane" "gen gen gen pane" "iso iso iso pane" "pad pad pad pane" "head head head pane" "ring ring ring pane" "expr expr expr pane" "rot spin . pane" "split split split pane" "gx gx gx pane" "lgd lgd lgd pane" "foot foot foot pane"; }
   /* Their bottom margin matches the pane page's own padding under its row. */
-  .is-iso-unlinked .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > #rotate-ctl{ grid-area:rot; align-self:center; margin-bottom:10px; }
-  .is-iso-unlinked .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > #spin-ruler{ grid-area:spin; justify-self:center; align-self:center; width:100%; max-width:420px; margin:0 auto 10px; }
+  .is-iso-unlinked .fs-win-body.is-ring:is(.has-iso-pane, .iso-pane:not([hidden])) > #rotate-ctl{ grid-area:rot; align-self:center; margin-bottom:10px; }
+  .is-iso-unlinked .fs-win-body.is-ring:is(.has-iso-pane, .iso-pane:not([hidden])) > #spin-ruler{ grid-area:spin; justify-self:center; align-self:center; width:100%; max-width:420px; margin:0 auto 10px; }
   /* Unlocked, the key fills its ring's half, centred, its entries one under
      another (side by side they squeeze to a word a line). */
-  .is-iso-unlinked .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > #combine-key{ grid-area:foot; justify-self:center; align-self:start; flex-direction:column; width:min(560px, 100%); max-width:none; margin:0; padding-top:10px; }
-  .is-iso-unlinked .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > #combine-key > .combine-key-item{ flex:none; }
+  .is-iso-unlinked .fs-win-body.is-ring:is(.has-iso-pane, .iso-pane:not([hidden])) > #combine-key{ grid-area:foot; justify-self:center; align-self:start; flex-direction:column; width:min(560px, 100%); max-width:none; margin:0; padding-top:10px; }
+  .is-iso-unlinked .fs-win-body.is-ring:is(.has-iso-pane, .iso-pane:not([hidden])) > #combine-key > .combine-key-item{ flex:none; }
   /* The pane's own, unlocked: a row of its own under everything else. */
   :root.is-isopane.is-iso-unlinked .fs-win-body.is-ring > #combine-key{ grid-column:1 / -1; grid-row:-1 / span 1; justify-self:center; flex-direction:column; width:min(560px, calc(100% - 20px)); max-width:none; margin:10px 0 0; }
   :root.is-isopane.is-iso-unlinked .fs-win-body.is-ring > #combine-key > .combine-key-item{ flex:none; }
   /* In one colour, with lines added for powers, the key keeps its lines one
      under another beside a pane too, scrolling with its more-rows pills. */
-  :root .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > #combine-key.is-pair-mode{ flex-direction:column; }
-  :root .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > #combine-key.is-pair-mode > .combine-key-item{ flex:none; }
+  :root .fs-win-body.is-ring:is(.has-iso-pane, .iso-pane:not([hidden])) > #combine-key.is-pair-mode{ flex-direction:column; }
+  :root .fs-win-body.is-ring:is(.has-iso-pane, .iso-pane:not([hidden])) > #combine-key.is-pair-mode > .combine-key-item{ flex:none; }
   /* Linked, the two rings colour their beads by subgroup cardinality, or
      in the website theme's colours, alike, so their colour keys are one: the pane shows none, and this ring's sits
      once under both, its entries in a row, as the arrow key does. */
-  .is-iso-one-legend .fs-win-body.is-ring:has(> .iso-pane:not([hidden])){ grid-template-areas:"ctl ctl ctl pane" "arr arr arr pane" "gen gen gen pane" "iso iso iso pane" "pad pad pad pane" "head head head pane" "ring ring ring pane" "sbtn sbtn sbtn pane" "expr expr expr pane" "foot foot foot foot" "gx gx gx gxr" "lgd lgd lgd lgd"; }
-  .is-iso-one-legend .fs-win-body.is-ring:has(> .iso-pane:not([hidden])):has(> .ring-split:not([hidden])){ grid-template-rows:auto auto auto auto auto auto minmax(0, var(--ring-fr, 1fr)) auto minmax(0, var(--split-fr, 1fr)) auto auto auto; grid-template-areas:"ctl ctl ctl pane" "arr arr arr pane" "gen gen gen pane" "iso iso iso pane" "pad pad pad pane" "head head head pane" "ring ring ring pane" "expr expr expr pane" "split split split pane" "foot foot foot foot" "gx gx gx gxr" "lgd lgd lgd lgd"; }
-  .is-iso-one-legend .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > #legend-panel.is-shown{ grid-area:lgd; justify-self:stretch; align-self:start; display:flex; flex-wrap:wrap; align-items:baseline; justify-content:center; gap:6px 18px; max-width:none; padding:10px 0 0; }
-  .is-iso-one-legend .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > #legend-panel > h2{ margin:0; }
+  .is-iso-one-legend .fs-win-body.is-ring:is(.has-iso-pane, .iso-pane:not([hidden])){ grid-template-areas:"ctl ctl ctl pane" "arr arr arr pane" "gen gen gen pane" "iso iso iso pane" "pad pad pad pane" "head head head pane" "ring ring ring pane" "sbtn sbtn sbtn pane" "expr expr expr pane" "foot foot foot foot" "gx gx gx gxr" "lgd lgd lgd lgd"; }
+  .is-iso-one-legend .fs-win-body.is-ring:is(.has-iso-pane, .iso-pane:not([hidden])):has(> .ring-split:not([hidden])){ grid-template-rows:auto auto auto auto auto auto minmax(0, var(--ring-fr, 1fr)) auto minmax(0, var(--split-fr, 1fr)) auto auto auto; grid-template-areas:"ctl ctl ctl pane" "arr arr arr pane" "gen gen gen pane" "iso iso iso pane" "pad pad pad pane" "head head head pane" "ring ring ring pane" "expr expr expr pane" "split split split pane" "foot foot foot foot" "gx gx gx gxr" "lgd lgd lgd lgd"; }
+  .is-iso-one-legend .fs-win-body.is-ring:is(.has-iso-pane, .iso-pane:not([hidden])) > #legend-panel.is-shown{ grid-area:lgd; justify-self:stretch; align-self:start; display:flex; flex-wrap:wrap; align-items:baseline; justify-content:center; gap:6px 18px; max-width:none; padding:10px 0 0; }
+  .is-iso-one-legend .fs-win-body.is-ring:is(.has-iso-pane, .iso-pane:not([hidden])) > #legend-panel > h2{ margin:0; }
   /* Beside a pane the corner's switches are in the bottom bar, so the key
      along the bottom keeps no room under it. */
-  :root:not(.is-isopane) .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > #combine-key{ margin-bottom:0; padding-bottom:0; }
+  :root:not(.is-isopane) .fs-win-body.is-ring:is(.has-iso-pane, .iso-pane:not([hidden])) > #combine-key{ margin-bottom:0; padding-bottom:0; }
   /* There the key lies over the pane's bottom corner, where the pane's own
      curve plot button sits: a press on the key's empty room reaches it. */
-  :root:not(.is-isopane) .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > #combine-key,
-  :root:not(.is-isopane) .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > #combine-key .combine-key-item{ pointer-events:none; }
-  :root:not(.is-isopane) .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > #combine-key > :not(.combine-key-item),
-  :root:not(.is-isopane) .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > #combine-key .combine-key-item > *{ pointer-events:auto; }
-  :is(.is-iso-one-legend, .is-iso-two-legends) .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > #legend-panel > .legend-reset{ align-self:baseline; margin:0; }
-  .is-iso-one-legend .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > #legend-panel .legend{ flex-direction:row; flex-wrap:wrap; justify-content:center; gap:4px 18px; }
+  :root:not(.is-isopane) .fs-win-body.is-ring:is(.has-iso-pane, .iso-pane:not([hidden])) > #combine-key,
+  :root:not(.is-isopane) .fs-win-body.is-ring:is(.has-iso-pane, .iso-pane:not([hidden])) > #combine-key .combine-key-item{ pointer-events:none; }
+  :root:not(.is-isopane) .fs-win-body.is-ring:is(.has-iso-pane, .iso-pane:not([hidden])) > #combine-key > :not(.combine-key-item),
+  :root:not(.is-isopane) .fs-win-body.is-ring:is(.has-iso-pane, .iso-pane:not([hidden])) > #combine-key .combine-key-item > *{ pointer-events:auto; }
+  :is(.is-iso-one-legend, .is-iso-two-legends) .fs-win-body.is-ring:is(.has-iso-pane, .iso-pane:not([hidden])) > #legend-panel > .legend-reset{ align-self:baseline; margin:0; }
+  .is-iso-one-legend .fs-win-body.is-ring:is(.has-iso-pane, .iso-pane:not([hidden])) > #legend-panel .legend{ flex-direction:row; flex-wrap:wrap; justify-content:center; gap:4px 18px; }
   /* Linked but coloured by inverse pairs, a colour names a different pair
      in each group, so the keys stay two: each under its own ring's half,
      in a row under both, the pane's drawn here from its group (the pane
      shows none of its own). */
   #legend-panel-pane{ display:none; }
-  .is-iso-two-legends .fs-win-body.is-ring:has(> .iso-pane:not([hidden])){ grid-template-areas:"ctl ctl ctl pane" "arr arr arr pane" "gen gen gen pane" "iso iso iso pane" "pad pad pad pane" "head head head pane" "ring ring ring pane" "sbtn sbtn sbtn pane" "expr expr expr pane" "foot foot foot foot" "gx gx gx gxr" "lgdl lgdl lgdl lgdr"; }
-  .is-iso-two-legends .fs-win-body.is-ring:has(> .iso-pane:not([hidden])):has(> .ring-split:not([hidden])){ grid-template-rows:auto auto auto auto auto auto minmax(0, var(--ring-fr, 1fr)) auto minmax(0, var(--split-fr, 1fr)) auto auto auto; grid-template-areas:"ctl ctl ctl pane" "arr arr arr pane" "gen gen gen pane" "iso iso iso pane" "pad pad pad pane" "head head head pane" "ring ring ring pane" "expr expr expr pane" "split split split pane" "foot foot foot foot" "gx gx gx gxr" "lgdl lgdl lgdl lgdr"; }
-  .is-iso-two-legends .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > :is(#legend-panel.is-shown, #legend-panel-pane:not([hidden])){ justify-self:stretch; align-self:start; display:flex; flex-wrap:wrap; align-items:baseline; justify-content:center; gap:6px 18px; max-width:none; padding:10px 0 0; }
-  .is-iso-two-legends .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > #legend-panel{ grid-area:lgdl; }
-  .is-iso-two-legends .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > #legend-panel-pane{ grid-area:lgdr; }
-  .is-iso-two-legends .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > :is(#legend-panel, #legend-panel-pane) > h2{ margin:0; }
-  .is-iso-two-legends .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > :is(#legend-panel, #legend-panel-pane) .legend{ flex-direction:row; flex-wrap:wrap; justify-content:center; gap:4px 18px; }
+  .is-iso-two-legends .fs-win-body.is-ring:is(.has-iso-pane, .iso-pane:not([hidden])){ grid-template-areas:"ctl ctl ctl pane" "arr arr arr pane" "gen gen gen pane" "iso iso iso pane" "pad pad pad pane" "head head head pane" "ring ring ring pane" "sbtn sbtn sbtn pane" "expr expr expr pane" "foot foot foot foot" "gx gx gx gxr" "lgdl lgdl lgdl lgdr"; }
+  .is-iso-two-legends .fs-win-body.is-ring:is(.has-iso-pane, .iso-pane:not([hidden])):has(> .ring-split:not([hidden])){ grid-template-rows:auto auto auto auto auto auto minmax(0, var(--ring-fr, 1fr)) auto minmax(0, var(--split-fr, 1fr)) auto auto auto; grid-template-areas:"ctl ctl ctl pane" "arr arr arr pane" "gen gen gen pane" "iso iso iso pane" "pad pad pad pane" "head head head pane" "ring ring ring pane" "expr expr expr pane" "split split split pane" "foot foot foot foot" "gx gx gx gxr" "lgdl lgdl lgdl lgdr"; }
+  .is-iso-two-legends .fs-win-body.is-ring:is(.has-iso-pane, .iso-pane:not([hidden])) > :is(#legend-panel.is-shown, #legend-panel-pane:not([hidden])){ justify-self:stretch; align-self:start; display:flex; flex-wrap:wrap; align-items:baseline; justify-content:center; gap:6px 18px; max-width:none; padding:10px 0 0; }
+  .is-iso-two-legends .fs-win-body.is-ring:is(.has-iso-pane, .iso-pane:not([hidden])) > #legend-panel{ grid-area:lgdl; }
+  .is-iso-two-legends .fs-win-body.is-ring:is(.has-iso-pane, .iso-pane:not([hidden])) > #legend-panel-pane{ grid-area:lgdr; }
+  .is-iso-two-legends .fs-win-body.is-ring:is(.has-iso-pane, .iso-pane:not([hidden])) > :is(#legend-panel, #legend-panel-pane) > h2{ margin:0; }
+  .is-iso-two-legends .fs-win-body.is-ring:is(.has-iso-pane, .iso-pane:not([hidden])) > :is(#legend-panel, #legend-panel-pane) .legend{ flex-direction:row; flex-wrap:wrap; justify-content:center; gap:4px 18px; }
   /* The pane keeps to its group's own controls: the shared ones (colours,
      paths, the layers) are the left ring's, its menu having no Colours,
      and while the two rings are linked its Numerical button is the left
@@ -2817,7 +2825,7 @@
   .fs-win-body.is-ring{ isolation:isolate; }
   .fs-win-body.is-ring > svg.ring-svg.is-zoomed{ overflow:visible; clip-path:inset(-100vh -100vw); position:relative; z-index:-2; }
   /* Beside a pane the two rings meet at the middle line. */
-  .fs-win-body.is-ring:has(> .iso-pane:not([hidden])) > svg.ring-svg.is-zoomed{ clip-path:inset(-100vh -7px -100vh -100vw); }
+  .fs-win-body.is-ring:is(.has-iso-pane, .iso-pane:not([hidden])) > svg.ring-svg.is-zoomed{ clip-path:inset(-100vh -7px -100vh -100vw); }
   :root.is-isopane .fs-win-body.is-ring.ringwin-body > svg.ring-svg.is-zoomed{ clip-path:inset(-100vh -100vw -100vh -6px); }
   /* A menu open in the pane lifts its frame over the subgroups panel: the
      ring's drawing stops at the panel's top meanwhile (--menu-cut, from
@@ -2834,10 +2842,10 @@
      (is-hot, from the pointer's place, as the card lets the pointer
      through), its edge always drawn. Plain lines in the head, as while the cosets
      play, keep the band behind them. */
-  .fs-win-body.is-ring:has(> svg.ring-svg:is(.is-zoomed, .has-wheel)) > .ring-head > .ring-hover-formula{ -webkit-backdrop-filter:blur(0px); backdrop-filter:blur(0px); transition:background-color .18s, backdrop-filter .18s; }
-  .fs-win-body.is-ring:has(> svg.ring-svg:is(.is-zoomed, .has-wheel)) > .ring-head > .ring-hover-formula.is-on-ring{ background:color-mix(in srgb, var(--text) 6%, transparent); }
-  .fs-win-body.is-ring:has(> svg.ring-svg:is(.is-zoomed, .has-wheel)) > .ring-head > .ring-hover-formula.is-on-ring.is-hot{ background:linear-gradient(var(--panel), var(--panel)), color-mix(in srgb, var(--panel) 55%, transparent); -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); }
-  .fs-win-body.is-ring:has(> svg.ring-svg:is(.is-zoomed, .has-wheel))::after{ content:''; grid-row:1 / head-start; grid-column:ring-start / ring-end; align-self:stretch; justify-self:stretch; position:relative; z-index:-1; margin:-20px -14px 0; pointer-events:none; background:color-mix(in srgb, var(--panel) 55%, transparent); -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); opacity:0; clip-path:inset(var(--band-t, 0px) -100vw var(--band-b, 0px)); transition:opacity .18s, clip-path .18s; }
+  .fs-win-body.is-ring:is(.has-zoomed-ring, .has-wheel-ring, svg.ring-svg.is-zoomed) > .ring-head > .ring-hover-formula{ -webkit-backdrop-filter:blur(0px); backdrop-filter:blur(0px); transition:background-color .18s, backdrop-filter .18s; }
+  .fs-win-body.is-ring:is(.has-zoomed-ring, .has-wheel-ring, svg.ring-svg.is-zoomed) > .ring-head > .ring-hover-formula.is-on-ring{ background:color-mix(in srgb, var(--text) 6%, transparent); }
+  .fs-win-body.is-ring:is(.has-zoomed-ring, .has-wheel-ring, svg.ring-svg.is-zoomed) > .ring-head > .ring-hover-formula.is-on-ring.is-hot{ background:linear-gradient(var(--panel), var(--panel)), color-mix(in srgb, var(--panel) 55%, transparent); -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); }
+  .fs-win-body.is-ring:is(.has-zoomed-ring, .has-wheel-ring, svg.ring-svg.is-zoomed)::after{ content:''; grid-row:1 / head-start; grid-column:ring-start / ring-end; align-self:stretch; justify-self:stretch; position:relative; z-index:-1; margin:-20px -14px 0; pointer-events:none; background:color-mix(in srgb, var(--panel) 55%, transparent); -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); opacity:0; clip-path:inset(var(--band-t, 0px) -100vw var(--band-b, 0px)); transition:opacity .18s, clip-path .18s; }
   /* The rows' band frosts only while the pointer is over it (is-top-hot,
      from the pointer's place) or a control in it has the keyboard focus,
      and then only behind that one row: --band-t and --band-b clip it to
@@ -2848,66 +2856,66 @@
      as the bottom panel's dropdowns do, so they read clearly over the ring
      either way; a locked group's modulus keeps its full strength there,
      its number included, the lock badge marking it. */
-  .fs-win-body.is-ring:has(> svg.ring-svg:is(.is-zoomed, .has-wheel)).is-top-hot:not(:has(:is(#coset-btn, #dir-toggle):is(:hover, :focus-visible)))::after{ opacity:1; }
-  .fs-win-body.is-ring:has(> svg.ring-svg:is(.is-zoomed, .has-wheel))::after{ -webkit-mask:var(--band-mask, none) 0 0 / 100% 100% no-repeat; mask:var(--band-mask, none) 0 0 / 100% 100% no-repeat; }
+  .fs-win-body.is-ring:is(.has-zoomed-ring, .has-wheel-ring, svg.ring-svg.is-zoomed).is-top-hot:not(:has(:is(#coset-btn, #dir-toggle):is(:hover, :focus-visible)))::after{ opacity:1; }
+  .fs-win-body.is-ring:is(.has-zoomed-ring, .has-wheel-ring, svg.ring-svg.is-zoomed)::after{ -webkit-mask:var(--band-mask, none) 0 0 / 100% 100% no-repeat; mask:var(--band-mask, none) 0 0 / 100% 100% no-repeat; }
   /* Kept frosted or kept solid (the rows' right-click menu, is-rows-frost
      and is-rows-solid), the band lies behind all the rows at once, pointer
      or not, the cosets and turning direction buttons included: frosted, or
      on the window's own opaque ground, as a window kept solid is. */
-  :root:is(.is-rows-frost, .is-rows-solid) .fs-win-body.is-ring:has(> svg.ring-svg:is(.is-zoomed, .has-wheel))::after{ opacity:1; clip-path:inset(0px -100vw 0px); -webkit-mask:none; mask:none; }
-  :root.is-rows-solid .fs-win-body.is-ring:has(> svg.ring-svg:is(.is-zoomed, .has-wheel))::after{ background:var(--surface); -webkit-backdrop-filter:none; backdrop-filter:none; }
+  :root:is(.is-rows-frost, .is-rows-solid) .fs-win-body.is-ring:is(.has-zoomed-ring, .has-wheel-ring, svg.ring-svg.is-zoomed)::after{ opacity:1; clip-path:inset(0px -100vw 0px); -webkit-mask:none; mask:none; }
+  :root.is-rows-solid .fs-win-body.is-ring:is(.has-zoomed-ring, .has-wheel-ring, svg.ring-svg.is-zoomed)::after{ background:var(--surface); -webkit-backdrop-filter:none; backdrop-filter:none; }
   /* The frosted row's controls draw what they keep gray in the text's full
      colour (is-top-row-hot, the row under the pointer); the identity
      keeps its grey. */
-  .fs-win-body.is-ring:has(> svg.ring-svg:is(.is-zoomed, .has-wheel)){ --text-dim-rest:var(--text-dim); }
-  .fs-win-body.is-ring:has(> svg.ring-svg:is(.is-zoomed, .has-wheel)).is-top-hot > .is-top-row-hot{ --text-dim:var(--text); }
-  .fs-win-body.is-ring:has(> svg.ring-svg:is(.is-zoomed, .has-wheel)).is-top-hot > .is-top-row-hot .ord-id{ --ord: var(--pick-id, var(--text-dim-rest)); }
+  .fs-win-body.is-ring:is(.has-zoomed-ring, .has-wheel-ring, svg.ring-svg.is-zoomed){ --text-dim-rest:var(--text-dim); }
+  .fs-win-body.is-ring:is(.has-zoomed-ring, .has-wheel-ring, svg.ring-svg.is-zoomed).is-top-hot > .is-top-row-hot{ --text-dim:var(--text); }
+  .fs-win-body.is-ring:is(.has-zoomed-ring, .has-wheel-ring, svg.ring-svg.is-zoomed).is-top-hot > .is-top-row-hot .ord-id{ --ord: var(--pick-id, var(--text-dim-rest)); }
   /* The ring's close button in the group row's corner lights its cross with
      the row; the pane's, the holding ring's, while the pane tells it its row
      is lit (tellCtlHot). */
-  .fs-win-body.is-ring:has(> svg.ring-svg:is(.is-zoomed, .has-wheel)).is-top-hot:has(> .fs-win-row-ctl.is-top-row-hot) > .ring-exit, .fs-win-body.is-ring:has(> svg.ring-svg:is(.is-zoomed, .has-wheel)).is-top-hot:has(> .fs-win-row-ctl.is-top-row-hot) > .iso-pane > .iso-ring-close, .fs-win-body.is-ring > .iso-pane.is-ctl-hot > .iso-pane-head .fs-win-btn{ color:var(--text); }
+  .fs-win-body.is-ring:is(.has-zoomed-ring, .has-wheel-ring, svg.ring-svg.is-zoomed).is-top-hot:has(> .fs-win-row-ctl.is-top-row-hot) > .ring-exit, .fs-win-body.is-ring:is(.has-zoomed-ring, .has-wheel-ring, svg.ring-svg.is-zoomed).is-top-hot:has(> .fs-win-row-ctl.is-top-row-hot) > .iso-pane > .iso-ring-close, .fs-win-body.is-ring > .iso-pane.is-ctl-hot > .iso-pane-head .fs-win-btn{ color:var(--text); }
   /* A locked group's pyramid lights its names with the rest of the row:
      the lock's fade lifts from them while the row frosts. */
-  .fs-win-body.is-ring:has(> svg.ring-svg:is(.is-zoomed, .has-wheel)).is-top-hot > .is-top-row-hot .group-controls.is-locked .op-tri > .op-tri-name{ opacity:1; }
+  .fs-win-body.is-ring:is(.has-zoomed-ring, .has-wheel-ring, svg.ring-svg.is-zoomed).is-top-hot > .is-top-row-hot .group-controls.is-locked .op-tri > .op-tri-name{ opacity:1; }
   /* So does the padlocked forward/backward direction switch: its
      clockwise and counterclockwise arrows take their full colours while
      their row frosts, still padlocked. */
-  .fs-win-body.is-ring:has(> svg.ring-svg:is(.is-zoomed, .has-wheel)).is-top-hot > .is-top-row-hot .dir-pref.is-locked > .dir-pref-seg > button{ opacity:1; }
-  .fs-win-body.is-ring:has(> svg.ring-svg:is(.is-zoomed, .has-wheel)) > :is(.fs-win-row-ctl, #arrange-field, .fs-win-row-gen) select{ background-color:var(--bg-1); }
+  .fs-win-body.is-ring:is(.has-zoomed-ring, .has-wheel-ring, svg.ring-svg.is-zoomed).is-top-hot > .is-top-row-hot .dir-pref.is-locked > .dir-pref-seg > button{ opacity:1; }
+  .fs-win-body.is-ring:is(.has-zoomed-ring, .has-wheel-ring, svg.ring-svg.is-zoomed) > :is(.fs-win-row-ctl, #arrange-field, .fs-win-row-gen) select{ background-color:var(--bg-1); }
   /* The group row's number boxes (the modulus, a curve's fields) blur
      whatever lies under them, always, not only while their row frosts. */
-  .fs-win-body.is-ring:has(> svg.ring-svg:is(.is-zoomed, .has-wheel)) .group-controls .n-spin > input{ -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); }
+  .fs-win-body.is-ring:is(.has-zoomed-ring, .has-wheel-ring, svg.ring-svg.is-zoomed) .group-controls .n-spin > input{ -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); }
   /* So does the arrangement row's Generator dropdown: its face is a button
      over the hidden select, faded while padlocked, so the blur lies on a
      layer of its own behind the button, the button's shape. */
-  .fs-win-body.is-ring:has(> svg.ring-svg:is(.is-zoomed, .has-wheel)) #arrange-gen-wrap > .ec-pick::before{ content:''; position:absolute; inset:0; z-index:-1; border-radius:var(--radius-ctl); pointer-events:none; -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); }
+  .fs-win-body.is-ring:is(.has-zoomed-ring, .has-wheel-ring, svg.ring-svg.is-zoomed) #arrange-gen-wrap > .ec-pick::before{ content:''; position:absolute; inset:0; z-index:-1; border-radius:var(--radius-ctl); pointer-events:none; -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); }
   /* So do the subgroup row's Follow bead clicks and Follow expression
      slider buttons, and the arrangement row's Sequential and the Generator
      dropdown's scroll button. */
-  .fs-win-body.is-ring:has(> svg.ring-svg:is(.is-zoomed, .has-wheel)) :is(#gen-field .gen-beads, #arrange-seq, #arrange-gen-scroll){ -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); }
+  .fs-win-body.is-ring:is(.has-zoomed-ring, .has-wheel-ring, svg.ring-svg.is-zoomed) :is(#gen-field .gen-beads, #arrange-seq, #arrange-gen-scroll){ -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); }
   /* So does the a ∗ b / aᵏ switch: on its frame, which never fades (greyed
      out, only its buttons do), so the blur holds in every state. */
-  .fs-win-body.is-ring:has(> svg.ring-svg:is(.is-zoomed, .has-wheel)) #combine-mode .combine-seg{ -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); }
+  .fs-win-body.is-ring:is(.has-zoomed-ring, .has-wheel-ring, svg.ring-svg.is-zoomed) #combine-mode .combine-seg{ -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); }
   /* So do the Forward and Backward clockwise/counterclockwise switches, on
      their frames too: padlocked, only their buttons fade. */
-  .fs-win-body.is-ring:has(> svg.ring-svg:is(.is-zoomed, .has-wheel)) #dir-pref > .dir-pref-seg{ -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); }
+  .fs-win-body.is-ring:is(.has-zoomed-ring, .has-wheel-ring, svg.ring-svg.is-zoomed) #dir-pref > .dir-pref-seg{ -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); }
   /* Disabled, Sequential and the scroll button fade their text and edge
      rather than themselves, which would fade the blur with them. */
-  .fs-win-body.is-ring:has(> svg.ring-svg:is(.is-zoomed, .has-wheel)) :is(#arrange-seq, #arrange-gen-scroll):disabled{ opacity:1; color:color-mix(in srgb, var(--text-dim) 60%, transparent); border-color:color-mix(in srgb, var(--panel-border) 60%, transparent); }
+  .fs-win-body.is-ring:is(.has-zoomed-ring, .has-wheel-ring, svg.ring-svg.is-zoomed) :is(#arrange-seq, #arrange-gen-scroll):disabled{ opacity:1; color:color-mix(in srgb, var(--text-dim) 60%, transparent); border-color:color-mix(in srgb, var(--panel-border) 60%, transparent); }
   /* So does the subgroup row's G ∈ group = ⟨g⟩, on a rounded frosted card. */
-  .fs-win-body.is-ring:has(> svg.ring-svg:is(.is-zoomed, .has-wheel)) #gen-field > .gen-super:not(:empty){ display:inline-block; padding:2px 8px; border-radius:var(--radius-ctl); background:color-mix(in srgb, var(--text) 6%, transparent); -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); }
+  .fs-win-body.is-ring:is(.has-zoomed-ring, .has-wheel-ring, svg.ring-svg.is-zoomed) #gen-field > .gen-super:not(:empty){ display:inline-block; padding:2px 8px; border-radius:var(--radius-ctl); background:color-mix(in srgb, var(--text) 6%, transparent); -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); }
   /* Whenever the band lies behind its row, the row's own ground is the
      card's: kept frosted or kept solid, or frosted under the pointer, the
      card takes no ground or blur of its own over it, so it melts into the
      row. */
-  :root:is(.is-rows-frost, .is-rows-solid) .fs-win-body.is-ring:has(> svg.ring-svg:is(.is-zoomed, .has-wheel)) #gen-field > .gen-super:not(:empty), .fs-win-body.is-ring:has(> svg.ring-svg:is(.is-zoomed, .has-wheel)).is-top-hot:not(:has(:is(#coset-btn, #dir-toggle):is(:hover, :focus-visible))) > .is-top-row-hot #gen-field > .gen-super:not(:empty){ background:none; -webkit-backdrop-filter:none; backdrop-filter:none; }
-  .fs-win-body.is-ring:has(> svg.ring-svg:is(.is-zoomed, .has-wheel)) .group-controls.is-locked > li > :is(#n-label, .n-spin){ opacity:1; }
-  .fs-win-body.is-ring:has(> svg.ring-svg:is(.is-zoomed, .has-wheel)):has(> .ring-head > :not(.ring-hover-formula))::after{ grid-row:1 / ring-start; }
+  :root:is(.is-rows-frost, .is-rows-solid) .fs-win-body.is-ring:is(.has-zoomed-ring, .has-wheel-ring, svg.ring-svg.is-zoomed) #gen-field > .gen-super:not(:empty), .fs-win-body.is-ring:is(.has-zoomed-ring, .has-wheel-ring, svg.ring-svg.is-zoomed).is-top-hot:not(:has(:is(#coset-btn, #dir-toggle):is(:hover, :focus-visible))) > .is-top-row-hot #gen-field > .gen-super:not(:empty){ background:none; -webkit-backdrop-filter:none; backdrop-filter:none; }
+  .fs-win-body.is-ring:is(.has-zoomed-ring, .has-wheel-ring, svg.ring-svg.is-zoomed) .group-controls.is-locked > li > :is(#n-label, .n-spin){ opacity:1; }
+  .fs-win-body.is-ring:is(.has-zoomed-ring, .has-wheel-ring, svg.ring-svg.is-zoomed):has(> .ring-head > :not(.ring-hover-formula))::after{ grid-row:1 / ring-start; }
     /* The main Ring window's frosted bands reach its sides, over its 20px
      padding. */
-  .fs-win-body.is-ring.ring-body:has(> svg.ring-svg:is(.is-zoomed, .has-wheel))::after{ margin-left:-20px; margin-right:-20px; }
-  .fs-win-body.is-ring:has(> .iso-pane:not([hidden])):has(> svg.ring-svg:is(.is-zoomed, .has-wheel))::after{ margin-right:-7px; }
-  :root.is-isopane .fs-win-body.is-ring.ringwin-body:has(> svg.ring-svg:is(.is-zoomed, .has-wheel))::after{ margin-left:-31px; margin-right:-32px; }
+  .fs-win-body.is-ring.ring-body:is(.has-zoomed-ring, .has-wheel-ring, svg.ring-svg.is-zoomed)::after{ margin-left:-20px; margin-right:-20px; }
+  .fs-win-body.is-ring:is(.has-iso-pane, .iso-pane:not([hidden])):is(.has-zoomed-ring, .has-wheel-ring, svg.ring-svg.is-zoomed)::after{ margin-right:-7px; }
+  :root.is-isopane .fs-win-body.is-ring.ringwin-body:is(.has-zoomed-ring, .has-wheel-ring, svg.ring-svg.is-zoomed)::after{ margin-left:-31px; margin-right:-32px; }
   /* Below the ring no band: one rounded frosted card hugs the controls
      in the middle (the split button, the expression slider's ± and g±
      switches, labels and track, and the turning ruler under them), placed
@@ -2926,27 +2934,27 @@
      card shows its ground and frost at all only while it lies over the
      ring's drawing, its beads or arrows (is-clu-on-ring, is-side-on-ring,
      is-on-ring). The bottom bar turns frosted glass of its own. */
-  .fs-win-body.is-ring:has(> svg.ring-svg:is(.is-zoomed, .has-wheel))::before{ content:''; position:absolute; z-index:-1; left:var(--clu-x, 0px); top:var(--clu-y, 0px); width:var(--clu-w, 0px); height:var(--clu-h, 0px); pointer-events:none; box-sizing:border-box; background:color-mix(in srgb, var(--panel) 0%, transparent); border:1px solid transparent; -webkit-backdrop-filter:blur(0px); backdrop-filter:blur(0px); transition:background-color .18s, backdrop-filter .18s; border-radius:var(--radius-card); }
-  .fs-win-body.is-ring:has(> svg.ring-svg:is(.is-zoomed, .has-wheel)).is-clu-on-ring::before{ background:color-mix(in srgb, var(--text) 6%, transparent); border-color:var(--panel-border); }
+  .fs-win-body.is-ring:is(.has-zoomed-ring, .has-wheel-ring, svg.ring-svg.is-zoomed)::before{ content:''; position:absolute; z-index:-1; left:var(--clu-x, 0px); top:var(--clu-y, 0px); width:var(--clu-w, 0px); height:var(--clu-h, 0px); pointer-events:none; box-sizing:border-box; background:color-mix(in srgb, var(--panel) 0%, transparent); border:1px solid transparent; -webkit-backdrop-filter:blur(0px); backdrop-filter:blur(0px); transition:background-color .18s, backdrop-filter .18s; border-radius:var(--radius-card); }
+  .fs-win-body.is-ring:is(.has-zoomed-ring, .has-wheel-ring, svg.ring-svg.is-zoomed).is-clu-on-ring::before{ background:color-mix(in srgb, var(--text) 6%, transparent); border-color:var(--panel-border); }
   /* The card reaches 4px under the turning ruler, so with a banner under
      it (the colour key's or the table's) the ruler keeps room to clear it. */
-  .fs-win-body.is-ring:has(> svg.ring-svg:is(.is-zoomed, .has-wheel)):has(> :is(#legend-panel.is-shown, #legend-panel-pane:not([hidden]), .genexp-info:not([hidden]))) > #spin-ruler:not(.is-own-card){ margin-bottom:10px; }
-  .fs-win-body.is-ring:has(> svg.ring-svg:is(.is-zoomed, .has-wheel)).is-clu-on-ring:is(.is-clu-hot, :has(> .expr-slot:not(.is-side) :focus-visible, > .split-btn:focus-visible, > #spin-ruler:not(.is-own-card) :focus-visible))::before{ background:linear-gradient(var(--panel), var(--panel)), color-mix(in srgb, var(--panel) 55%, transparent); -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); }
+  .fs-win-body.is-ring:is(.has-zoomed-ring, .has-wheel-ring, svg.ring-svg.is-zoomed):has(> :is(#legend-panel.is-shown, #legend-panel-pane:not([hidden]), .genexp-info:not([hidden]))) > #spin-ruler:not(.is-own-card){ margin-bottom:10px; }
+  .fs-win-body.is-ring:is(.has-zoomed-ring, .has-wheel-ring, svg.ring-svg.is-zoomed).is-clu-on-ring:is(.is-clu-hot, :has(> .expr-slot:not(.is-side) :focus-visible, > .split-btn:focus-visible, > #spin-ruler:not(.is-own-card) :focus-visible))::before{ background:linear-gradient(var(--panel), var(--panel)), color-mix(in srgb, var(--panel) 55%, transparent); -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); }
   /* The upright expression slider beside the ring gets the same card,
      hugging its labels, track and lock (--side-x, --side-y, --side-w,
      --side-h, from hugSideSlot), frosted while the pointer is inside it
      (is-side-hot) or a control in it has the keyboard focus. */
-  .fs-win-body.is-ring:has(> svg.ring-svg:is(.is-zoomed, .has-wheel)) > .expr-slot.is-side:not([hidden]){ position:relative; }
-  .fs-win-body.is-ring:has(> svg.ring-svg:is(.is-zoomed, .has-wheel)) > .expr-slot.is-side:not([hidden])::before{ content:''; position:absolute; z-index:-1; left:var(--side-x, 0px); top:var(--side-y, 0px); width:var(--side-w, 0px); height:var(--side-h, 0px); pointer-events:none; box-sizing:border-box; background:color-mix(in srgb, var(--panel) 0%, transparent); border:1px solid transparent; -webkit-backdrop-filter:blur(0px); backdrop-filter:blur(0px); transition:background-color .18s, backdrop-filter .18s; border-radius:var(--radius-card); }
-  .fs-win-body.is-ring:has(> svg.ring-svg:is(.is-zoomed, .has-wheel)) > .expr-slot.is-side.is-side-on-ring:not([hidden])::before{ background:color-mix(in srgb, var(--text) 6%, transparent); border-color:var(--panel-border); }
-  .fs-win-body.is-ring:has(> svg.ring-svg:is(.is-zoomed, .has-wheel)) > .expr-slot.is-side.is-side-on-ring:not([hidden]):is(.is-side-hot, :has(:focus-visible))::before{ background:linear-gradient(var(--panel), var(--panel)), color-mix(in srgb, var(--panel) 55%, transparent); -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); }
+  .fs-win-body.is-ring:is(.has-zoomed-ring, .has-wheel-ring, svg.ring-svg.is-zoomed) > .expr-slot.is-side:not([hidden]){ position:relative; }
+  .fs-win-body.is-ring:is(.has-zoomed-ring, .has-wheel-ring, svg.ring-svg.is-zoomed) > .expr-slot.is-side:not([hidden])::before{ content:''; position:absolute; z-index:-1; left:var(--side-x, 0px); top:var(--side-y, 0px); width:var(--side-w, 0px); height:var(--side-h, 0px); pointer-events:none; box-sizing:border-box; background:color-mix(in srgb, var(--panel) 0%, transparent); border:1px solid transparent; -webkit-backdrop-filter:blur(0px); backdrop-filter:blur(0px); transition:background-color .18s, backdrop-filter .18s; border-radius:var(--radius-card); }
+  .fs-win-body.is-ring:is(.has-zoomed-ring, .has-wheel-ring, svg.ring-svg.is-zoomed) > .expr-slot.is-side.is-side-on-ring:not([hidden])::before{ background:color-mix(in srgb, var(--text) 6%, transparent); border-color:var(--panel-border); }
+  .fs-win-body.is-ring:is(.has-zoomed-ring, .has-wheel-ring, svg.ring-svg.is-zoomed) > .expr-slot.is-side.is-side-on-ring:not([hidden]):is(.is-side-hot, :has(:focus-visible))::before{ background:linear-gradient(var(--panel), var(--panel)), color-mix(in srgb, var(--panel) 55%, transparent); -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); }
   /* Frosted under the pointer, the expression sliders and the turning
      ruler draw everything they keep gray in the text's full colour: their
      words, numbers, ticks, tracks and the ruler's round arrows. */
-  :is(.fs-win-body.is-ring:has(> svg.ring-svg:is(.is-zoomed, .has-wheel)).is-clu-on-ring:is(.is-clu-hot, :has(> .expr-slot:not(.is-side) :focus-visible, > .split-btn:focus-visible, > #spin-ruler:not(.is-own-card) :focus-visible)) > :is(.expr-slot:not(.is-side), #spin-ruler:not(.is-own-card)), .fs-win-body.is-ring:has(> svg.ring-svg:is(.is-zoomed, .has-wheel)) > .expr-slot.is-side.is-side-on-ring:not([hidden]):is(.is-side-hot, :has(:focus-visible)), .fs-win-body.is-ring:has(> svg.ring-svg:is(.is-zoomed, .has-wheel)) > #spin-ruler.is-own-card.is-on-ring:is(:hover, :focus-within)){ --text-dim:var(--text); color:var(--text); }
-  :is(.fs-win-body.is-ring:has(> svg.ring-svg:is(.is-zoomed, .has-wheel)).is-clu-on-ring:is(.is-clu-hot, :has(> .expr-slot:not(.is-side) :focus-visible, > .split-btn:focus-visible, > #spin-ruler:not(.is-own-card) :focus-visible)) > :is(.expr-slot:not(.is-side), #spin-ruler:not(.is-own-card)), .fs-win-body.is-ring:has(> svg.ring-svg:is(.is-zoomed, .has-wheel)) > .expr-slot.is-side.is-side-on-ring:not([hidden]):is(.is-side-hot, :has(:focus-visible)), .fs-win-body.is-ring:has(> svg.ring-svg:is(.is-zoomed, .has-wheel)) > #spin-ruler.is-own-card.is-on-ring:is(:hover, :focus-within)) .expr-stop::before, :is(.fs-win-body.is-ring:has(> svg.ring-svg:is(.is-zoomed, .has-wheel)).is-clu-on-ring:is(.is-clu-hot, :has(> .expr-slot:not(.is-side) :focus-visible, > .split-btn:focus-visible, > #spin-ruler:not(.is-own-card) :focus-visible)) > :is(.expr-slot:not(.is-side), #spin-ruler:not(.is-own-card)), .fs-win-body.is-ring:has(> svg.ring-svg:is(.is-zoomed, .has-wheel)) > .expr-slot.is-side.is-side-on-ring:not([hidden]):is(.is-side-hot, :has(:focus-visible)), .fs-win-body.is-ring:has(> svg.ring-svg:is(.is-zoomed, .has-wheel)) > #spin-ruler.is-own-card.is-on-ring:is(:hover, :focus-within)) .spin-ticks::before, :is(.fs-win-body.is-ring:has(> svg.ring-svg:is(.is-zoomed, .has-wheel)).is-clu-on-ring:is(.is-clu-hot, :has(> .expr-slot:not(.is-side) :focus-visible, > .split-btn:focus-visible, > #spin-ruler:not(.is-own-card) :focus-visible)) > :is(.expr-slot:not(.is-side), #spin-ruler:not(.is-own-card)), .fs-win-body.is-ring:has(> svg.ring-svg:is(.is-zoomed, .has-wheel)) > .expr-slot.is-side.is-side-on-ring:not([hidden]):is(.is-side-hot, :has(:focus-visible)), .fs-win-body.is-ring:has(> svg.ring-svg:is(.is-zoomed, .has-wheel)) > #spin-ruler.is-own-card.is-on-ring:is(:hover, :focus-within)) .spin-ticks span, :is(.fs-win-body.is-ring:has(> svg.ring-svg:is(.is-zoomed, .has-wheel)).is-clu-on-ring:is(.is-clu-hot, :has(> .expr-slot:not(.is-side) :focus-visible, > .split-btn:focus-visible, > #spin-ruler:not(.is-own-card) :focus-visible)) > :is(.expr-slot:not(.is-side), #spin-ruler:not(.is-own-card)), .fs-win-body.is-ring:has(> svg.ring-svg:is(.is-zoomed, .has-wheel)) > .expr-slot.is-side.is-side-on-ring:not([hidden]):is(.is-side-hot, :has(:focus-visible)), .fs-win-body.is-ring:has(> svg.ring-svg:is(.is-zoomed, .has-wheel)) > #spin-ruler.is-own-card.is-on-ring:is(:hover, :focus-within)) .gear-slot{ background:var(--text); }
-  :is(.fs-win-body.is-ring:has(> svg.ring-svg:is(.is-zoomed, .has-wheel)).is-clu-on-ring:is(.is-clu-hot, :has(> .expr-slot:not(.is-side) :focus-visible, > .split-btn:focus-visible, > #spin-ruler:not(.is-own-card) :focus-visible)) > :is(.expr-slot:not(.is-side), #spin-ruler:not(.is-own-card)), .fs-win-body.is-ring:has(> svg.ring-svg:is(.is-zoomed, .has-wheel)) > .expr-slot.is-side.is-side-on-ring:not([hidden]):is(.is-side-hot, :has(:focus-visible)), .fs-win-body.is-ring:has(> svg.ring-svg:is(.is-zoomed, .has-wheel)) > #spin-ruler.is-own-card.is-on-ring:is(:hover, :focus-within)) .expr-range::-webkit-slider-runnable-track{ background:var(--text); }
-  :is(.fs-win-body.is-ring:has(> svg.ring-svg:is(.is-zoomed, .has-wheel)).is-clu-on-ring:is(.is-clu-hot, :has(> .expr-slot:not(.is-side) :focus-visible, > .split-btn:focus-visible, > #spin-ruler:not(.is-own-card) :focus-visible)) > :is(.expr-slot:not(.is-side), #spin-ruler:not(.is-own-card)), .fs-win-body.is-ring:has(> svg.ring-svg:is(.is-zoomed, .has-wheel)) > .expr-slot.is-side.is-side-on-ring:not([hidden]):is(.is-side-hot, :has(:focus-visible)), .fs-win-body.is-ring:has(> svg.ring-svg:is(.is-zoomed, .has-wheel)) > #spin-ruler.is-own-card.is-on-ring:is(:hover, :focus-within)) .expr-range::-moz-range-track{ background:var(--text); }
+  :is(.fs-win-body.is-ring:is(.has-zoomed-ring, .has-wheel-ring, svg.ring-svg.is-zoomed).is-clu-on-ring:is(.is-clu-hot, :has(> .expr-slot:not(.is-side) :focus-visible, > .split-btn:focus-visible, > #spin-ruler:not(.is-own-card) :focus-visible)) > :is(.expr-slot:not(.is-side), #spin-ruler:not(.is-own-card)), .fs-win-body.is-ring:is(.has-zoomed-ring, .has-wheel-ring, svg.ring-svg.is-zoomed) > .expr-slot.is-side.is-side-on-ring:not([hidden]):is(.is-side-hot, :has(:focus-visible)), .fs-win-body.is-ring:is(.has-zoomed-ring, .has-wheel-ring, svg.ring-svg.is-zoomed) > #spin-ruler.is-own-card.is-on-ring:is(:hover, :focus-within)){ --text-dim:var(--text); color:var(--text); }
+  :is(.fs-win-body.is-ring:is(.has-zoomed-ring, .has-wheel-ring, svg.ring-svg.is-zoomed).is-clu-on-ring:is(.is-clu-hot, :has(> .expr-slot:not(.is-side) :focus-visible, > .split-btn:focus-visible, > #spin-ruler:not(.is-own-card) :focus-visible)) > :is(.expr-slot:not(.is-side), #spin-ruler:not(.is-own-card)), .fs-win-body.is-ring:is(.has-zoomed-ring, .has-wheel-ring, svg.ring-svg.is-zoomed) > .expr-slot.is-side.is-side-on-ring:not([hidden]):is(.is-side-hot, :has(:focus-visible)), .fs-win-body.is-ring:is(.has-zoomed-ring, .has-wheel-ring, svg.ring-svg.is-zoomed) > #spin-ruler.is-own-card.is-on-ring:is(:hover, :focus-within)) .expr-stop::before, :is(.fs-win-body.is-ring:is(.has-zoomed-ring, .has-wheel-ring, svg.ring-svg.is-zoomed).is-clu-on-ring:is(.is-clu-hot, :has(> .expr-slot:not(.is-side) :focus-visible, > .split-btn:focus-visible, > #spin-ruler:not(.is-own-card) :focus-visible)) > :is(.expr-slot:not(.is-side), #spin-ruler:not(.is-own-card)), .fs-win-body.is-ring:is(.has-zoomed-ring, .has-wheel-ring, svg.ring-svg.is-zoomed) > .expr-slot.is-side.is-side-on-ring:not([hidden]):is(.is-side-hot, :has(:focus-visible)), .fs-win-body.is-ring:is(.has-zoomed-ring, .has-wheel-ring, svg.ring-svg.is-zoomed) > #spin-ruler.is-own-card.is-on-ring:is(:hover, :focus-within)) .spin-ticks::before, :is(.fs-win-body.is-ring:is(.has-zoomed-ring, .has-wheel-ring, svg.ring-svg.is-zoomed).is-clu-on-ring:is(.is-clu-hot, :has(> .expr-slot:not(.is-side) :focus-visible, > .split-btn:focus-visible, > #spin-ruler:not(.is-own-card) :focus-visible)) > :is(.expr-slot:not(.is-side), #spin-ruler:not(.is-own-card)), .fs-win-body.is-ring:is(.has-zoomed-ring, .has-wheel-ring, svg.ring-svg.is-zoomed) > .expr-slot.is-side.is-side-on-ring:not([hidden]):is(.is-side-hot, :has(:focus-visible)), .fs-win-body.is-ring:is(.has-zoomed-ring, .has-wheel-ring, svg.ring-svg.is-zoomed) > #spin-ruler.is-own-card.is-on-ring:is(:hover, :focus-within)) .spin-ticks span, :is(.fs-win-body.is-ring:is(.has-zoomed-ring, .has-wheel-ring, svg.ring-svg.is-zoomed).is-clu-on-ring:is(.is-clu-hot, :has(> .expr-slot:not(.is-side) :focus-visible, > .split-btn:focus-visible, > #spin-ruler:not(.is-own-card) :focus-visible)) > :is(.expr-slot:not(.is-side), #spin-ruler:not(.is-own-card)), .fs-win-body.is-ring:is(.has-zoomed-ring, .has-wheel-ring, svg.ring-svg.is-zoomed) > .expr-slot.is-side.is-side-on-ring:not([hidden]):is(.is-side-hot, :has(:focus-visible)), .fs-win-body.is-ring:is(.has-zoomed-ring, .has-wheel-ring, svg.ring-svg.is-zoomed) > #spin-ruler.is-own-card.is-on-ring:is(:hover, :focus-within)) .gear-slot{ background:var(--text); }
+  :is(.fs-win-body.is-ring:is(.has-zoomed-ring, .has-wheel-ring, svg.ring-svg.is-zoomed).is-clu-on-ring:is(.is-clu-hot, :has(> .expr-slot:not(.is-side) :focus-visible, > .split-btn:focus-visible, > #spin-ruler:not(.is-own-card) :focus-visible)) > :is(.expr-slot:not(.is-side), #spin-ruler:not(.is-own-card)), .fs-win-body.is-ring:is(.has-zoomed-ring, .has-wheel-ring, svg.ring-svg.is-zoomed) > .expr-slot.is-side.is-side-on-ring:not([hidden]):is(.is-side-hot, :has(:focus-visible)), .fs-win-body.is-ring:is(.has-zoomed-ring, .has-wheel-ring, svg.ring-svg.is-zoomed) > #spin-ruler.is-own-card.is-on-ring:is(:hover, :focus-within)) .expr-range::-webkit-slider-runnable-track{ background:var(--text); }
+  :is(.fs-win-body.is-ring:is(.has-zoomed-ring, .has-wheel-ring, svg.ring-svg.is-zoomed).is-clu-on-ring:is(.is-clu-hot, :has(> .expr-slot:not(.is-side) :focus-visible, > .split-btn:focus-visible, > #spin-ruler:not(.is-own-card) :focus-visible)) > :is(.expr-slot:not(.is-side), #spin-ruler:not(.is-own-card)), .fs-win-body.is-ring:is(.has-zoomed-ring, .has-wheel-ring, svg.ring-svg.is-zoomed) > .expr-slot.is-side.is-side-on-ring:not([hidden]):is(.is-side-hot, :has(:focus-visible)), .fs-win-body.is-ring:is(.has-zoomed-ring, .has-wheel-ring, svg.ring-svg.is-zoomed) > #spin-ruler.is-own-card.is-on-ring:is(:hover, :focus-within)) .expr-range::-moz-range-track{ background:var(--text); }
   /* The subgroup panel gets the same card, from its control row down over
      its rows, while that lies over a ring's drawing or combination
      (is-sub-on-ring): the cosets button's faint ground and edge at rest,
@@ -2954,66 +2962,66 @@
      in its control row has the keyboard focus; its top and height (--sub-t,
      --sub-h) from hugSubCtls, as merged beside a pane the row is three
      pieces of the panel's grid. */
-  .fs-win-body.is-ring:has(> svg.ring-svg:is(.is-zoomed, .has-wheel)) > .ring-split #subgroups-list-panel{ position:relative; }
-  .fs-win-body.is-ring:has(> svg.ring-svg:is(.is-zoomed, .has-wheel)) > .ring-split #subgroups-list-panel::before{ content:''; position:absolute; z-index:-1; left:-8px; right:-8px; top:var(--sub-t, 0px); height:var(--sub-h, 0px); pointer-events:none; box-sizing:border-box; background:color-mix(in srgb, var(--text) 0%, transparent); border:1px solid transparent; -webkit-backdrop-filter:blur(0px); backdrop-filter:blur(0px); transition:background-color .18s, backdrop-filter .18s; border-radius:var(--radius-card); }
-  .fs-win-body.is-ring:has(> svg.ring-svg:is(.is-zoomed, .has-wheel)) > .ring-split #subgroups-list-panel.is-sub-on-ring::before{ background:color-mix(in srgb, var(--text) 6%, transparent); border-color:var(--panel-border); }
-  .fs-win-body.is-ring:has(> svg.ring-svg:is(.is-zoomed, .has-wheel)) > .ring-split #subgroups-list-panel.is-sub-on-ring:is(.is-sub-hot, :has(.sub-ctls :focus-visible))::before{ background-color:color-mix(in srgb, var(--panel) 55%, transparent); -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); }
+  .fs-win-body.is-ring:is(.has-zoomed-ring, .has-wheel-ring, svg.ring-svg.is-zoomed) > .ring-split #subgroups-list-panel{ position:relative; }
+  .fs-win-body.is-ring:is(.has-zoomed-ring, .has-wheel-ring, svg.ring-svg.is-zoomed) > .ring-split #subgroups-list-panel::before{ content:''; position:absolute; z-index:-1; left:-8px; right:-8px; top:var(--sub-t, 0px); height:var(--sub-h, 0px); pointer-events:none; box-sizing:border-box; background:color-mix(in srgb, var(--text) 0%, transparent); border:1px solid transparent; -webkit-backdrop-filter:blur(0px); backdrop-filter:blur(0px); transition:background-color .18s, backdrop-filter .18s; border-radius:var(--radius-card); }
+  .fs-win-body.is-ring:is(.has-zoomed-ring, .has-wheel-ring, svg.ring-svg.is-zoomed) > .ring-split #subgroups-list-panel.is-sub-on-ring::before{ background:color-mix(in srgb, var(--text) 6%, transparent); border-color:var(--panel-border); }
+  .fs-win-body.is-ring:is(.has-zoomed-ring, .has-wheel-ring, svg.ring-svg.is-zoomed) > .ring-split #subgroups-list-panel.is-sub-on-ring:is(.is-sub-hot, :has(.sub-ctls :focus-visible))::before{ background-color:color-mix(in srgb, var(--panel) 55%, transparent); -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); }
   /* Over the congruence wheel it always lies over something: frosted at
      rest too, its control row in the text's full colour. */
-  .fs-win-body.is-ring:has(> svg.ring-svg.has-wheel) > .ring-split #subgroups-list-panel.is-sub-on-ring::before{ background-color:color-mix(in srgb, var(--panel) 55%, transparent); -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); }
-  .fs-win-body.is-ring:has(> svg.ring-svg.has-wheel) > .ring-split #subgroups-list-panel.is-sub-on-ring .sub-ctls{ --text-dim:var(--text); }
+  .fs-win-body.is-ring:is(.has-wheel-ring, svg.ring-svg.has-wheel) > .ring-split #subgroups-list-panel.is-sub-on-ring::before{ background-color:color-mix(in srgb, var(--panel) 55%, transparent); -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); }
+  .fs-win-body.is-ring:is(.has-wheel-ring, svg.ring-svg.has-wheel) > .ring-split #subgroups-list-panel.is-sub-on-ring .sub-ctls{ --text-dim:var(--text); }
   /* Kept solid (its menu's Keep solid, as a window's): opaque over the ring too. */
-  .fs-win-body.is-ring:has(> svg.ring-svg:is(.is-zoomed, .has-wheel)) > .ring-split #subgroups-list-panel.is-sub-on-ring.is-solid::before, .fs-win-body.is-ring:has(> svg.ring-svg:is(.is-zoomed, .has-wheel)) > .ring-split #subgroups-list-panel.is-sub-on-ring.is-solid:is(.is-sub-hot, :has(.sub-ctls :focus-visible))::before{ background:var(--surface); -webkit-backdrop-filter:none; backdrop-filter:none; }
+  .fs-win-body.is-ring:is(.has-zoomed-ring, .has-wheel-ring, svg.ring-svg.is-zoomed) > .ring-split #subgroups-list-panel.is-sub-on-ring.is-solid::before, .fs-win-body.is-ring:is(.has-zoomed-ring, .has-wheel-ring, svg.ring-svg.is-zoomed) > .ring-split #subgroups-list-panel.is-sub-on-ring.is-solid:is(.is-sub-hot, :has(.sub-ctls :focus-visible))::before{ background:var(--surface); -webkit-backdrop-filter:none; backdrop-filter:none; }
   /* That card is a banner from the window's one edge to the other, as the
      colour key's is: square, with only its top and bottom edges, the
      window clipping it at its sides. */
-  .fs-win-body.is-ring:has(> svg.ring-svg:is(.is-zoomed, .has-wheel)) > .ring-split #subgroups-list-panel::before{ left:-100vw; right:-100vw; border-radius:0; border-inline-width:0; }
+  .fs-win-body.is-ring:is(.has-zoomed-ring, .has-wheel-ring, svg.ring-svg.is-zoomed) > .ring-split #subgroups-list-panel::before{ left:-100vw; right:-100vw; border-radius:0; border-inline-width:0; }
   /* Below the panel, down to the window's bottom bar, the band wearing its
      card (placeSubFoot), only while the card shows: at rest faint, frosted
      over the wheel or while the panel is hot, opaque while kept solid. */
   .sub-foot-band{ display:none; }
-  .fs-win-body.is-ring:has(> svg.ring-svg:is(.is-zoomed, .has-wheel)):has(> .ring-split:not([hidden]) #subgroups-list-panel.is-sub-on-ring) > .sub-foot-band:not([hidden]){ display:block; position:absolute; left:0; right:0; top:var(--foot-t, 0px); height:var(--foot-h, 0px); pointer-events:none; background:color-mix(in srgb, var(--text) 6%, transparent); transition:background-color .18s, backdrop-filter .18s; }
-  .fs-win-body.is-ring:has(> svg.ring-svg.has-wheel):has(> .ring-split:not([hidden]) #subgroups-list-panel.is-sub-on-ring) > .sub-foot-band:not([hidden]), .fs-win-body.is-ring:has(> svg.ring-svg:is(.is-zoomed, .has-wheel)):has(> .ring-split:not([hidden]) #subgroups-list-panel.is-sub-on-ring:is(.is-sub-hot, :has(.sub-ctls :focus-visible))) > .sub-foot-band:not([hidden]){ background-color:color-mix(in srgb, var(--panel) 55%, transparent); -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); }
-  .fs-win-body.is-ring:has(> svg.ring-svg:is(.is-zoomed, .has-wheel)):has(> .ring-split:not([hidden]) #subgroups-list-panel.is-sub-on-ring.is-solid) > .sub-foot-band.sub-foot-band:not([hidden]){ background:var(--surface); -webkit-backdrop-filter:none; backdrop-filter:none; }
+  .fs-win-body.is-ring:is(.has-zoomed-ring, .has-wheel-ring, svg.ring-svg.is-zoomed):has(> .ring-split:not([hidden]) #subgroups-list-panel.is-sub-on-ring) > .sub-foot-band:not([hidden]){ display:block; position:absolute; left:0; right:0; top:var(--foot-t, 0px); height:var(--foot-h, 0px); pointer-events:none; background:color-mix(in srgb, var(--text) 6%, transparent); transition:background-color .18s, backdrop-filter .18s; }
+  .fs-win-body.is-ring:is(.has-wheel-ring, svg.ring-svg.has-wheel):has(> .ring-split:not([hidden]) #subgroups-list-panel.is-sub-on-ring) > .sub-foot-band:not([hidden]), .fs-win-body.is-ring:is(.has-zoomed-ring, .has-wheel-ring, svg.ring-svg.is-zoomed):has(> .ring-split:not([hidden]) #subgroups-list-panel.is-sub-on-ring:is(.is-sub-hot, :has(.sub-ctls :focus-visible))) > .sub-foot-band:not([hidden]){ background-color:color-mix(in srgb, var(--panel) 55%, transparent); -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); }
+  .fs-win-body.is-ring:is(.has-zoomed-ring, .has-wheel-ring, svg.ring-svg.is-zoomed):has(> .ring-split:not([hidden]) #subgroups-list-panel.is-sub-on-ring.is-solid) > .sub-foot-band.sub-foot-band:not([hidden]){ background:var(--surface); -webkit-backdrop-filter:none; backdrop-filter:none; }
   /* Frosted so, its control row names its controls in the text's full colour. */
-  .fs-win-body.is-ring:has(> svg.ring-svg:is(.is-zoomed, .has-wheel)) > .ring-split #subgroups-list-panel.is-sub-on-ring:is(.is-sub-hot, :has(.sub-ctls :focus-visible)) .sub-ctls{ --text-dim:var(--text); }
+  .fs-win-body.is-ring:is(.has-zoomed-ring, .has-wheel-ring, svg.ring-svg.is-zoomed) > .ring-split #subgroups-list-panel.is-sub-on-ring:is(.is-sub-hot, :has(.sub-ctls :focus-visible)) .sub-ctls{ --text-dim:var(--text); }
   /* The forward-direction switch frosts while hovered or focused too,
      as it sits over the ring on the middle line beside a locked pane. */
-  .fs-win-body.is-ring:has(> svg.ring-svg:is(.is-zoomed, .has-wheel)) #dir-toggle{ -webkit-backdrop-filter:blur(0px); backdrop-filter:blur(0px); transition:background .15s, border-color .15s, backdrop-filter .18s; }
-  .fs-win-body.is-ring:has(> svg.ring-svg:is(.is-zoomed, .has-wheel)) #dir-toggle:is(:hover, :focus-visible){ background-color:color-mix(in srgb, var(--panel) 55%, transparent); -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); }
+  .fs-win-body.is-ring:is(.has-zoomed-ring, .has-wheel-ring, svg.ring-svg.is-zoomed) #dir-toggle{ -webkit-backdrop-filter:blur(0px); backdrop-filter:blur(0px); transition:background .15s, border-color .15s, backdrop-filter .18s; }
+  .fs-win-body.is-ring:is(.has-zoomed-ring, .has-wheel-ring, svg.ring-svg.is-zoomed) #dir-toggle:is(:hover, :focus-visible){ background-color:color-mix(in srgb, var(--panel) 55%, transparent); -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); }
   /* Over the congruence wheel, which always lies under it, it blurs at rest too. */
-  .fs-win-body.is-ring:has(> svg.ring-svg.has-wheel) #dir-toggle{ -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); }
+  .fs-win-body.is-ring:is(.has-wheel-ring, svg.ring-svg.has-wheel) #dir-toggle{ -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); }
   /* So does the cosets button, in its row or where it sits on the middle
      line, with the formula card's very ground, blur and edge; when it has
      no cosets to offer it dims its text rather than its whole self, so its
      frost stays whole. */
-  :root.is-iso-whole:not(.is-isopane):not(.is-iso-unlinked) .fs-win-body.is-ring:has(> svg.ring-svg:is(.is-zoomed, .has-wheel)):has(> .iso-pane:not([hidden])) > .fs-win-row-gen #coset-btn, .fs-win-body.is-ring:has(> svg.ring-svg:is(.is-zoomed, .has-wheel)) > .fs-win-row-gen #coset-btn{ -webkit-backdrop-filter:blur(0px); backdrop-filter:blur(0px); transition:background .15s, border-color .15s, backdrop-filter .18s; }
-  :root.is-iso-whole:not(.is-isopane):not(.is-iso-unlinked) .fs-win-body.is-ring:has(> svg.ring-svg:is(.is-zoomed, .has-wheel)):has(> .iso-pane:not([hidden])) > .fs-win-row-gen #coset-btn:is(:hover, :focus-visible), .fs-win-body.is-ring:has(> svg.ring-svg:is(.is-zoomed, .has-wheel)) > .fs-win-row-gen #coset-btn:is(:hover, :focus-visible){ border-color:var(--panel-border); background:linear-gradient(var(--panel), var(--panel)), color-mix(in srgb, var(--panel) 55%, transparent); -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); }
-  :root.is-iso-whole:not(.is-isopane):not(.is-iso-unlinked) .fs-win-body.is-ring:has(> svg.ring-svg:is(.is-zoomed, .has-wheel)):has(> .iso-pane:not([hidden])) > .fs-win-row-gen #coset-btn:disabled, .fs-win-body.is-ring:has(> svg.ring-svg:is(.is-zoomed, .has-wheel)) > .fs-win-row-gen #coset-btn:disabled{ opacity:1; color:color-mix(in srgb, var(--text) 45%, transparent); }
+  :root.is-iso-whole:not(.is-isopane):not(.is-iso-unlinked) .fs-win-body.is-ring:is(.has-zoomed-ring, .has-wheel-ring, svg.ring-svg.is-zoomed):is(.has-iso-pane, .iso-pane:not([hidden])) > .fs-win-row-gen #coset-btn, .fs-win-body.is-ring:is(.has-zoomed-ring, .has-wheel-ring, svg.ring-svg.is-zoomed) > .fs-win-row-gen #coset-btn{ -webkit-backdrop-filter:blur(0px); backdrop-filter:blur(0px); transition:background .15s, border-color .15s, backdrop-filter .18s; }
+  :root.is-iso-whole:not(.is-isopane):not(.is-iso-unlinked) .fs-win-body.is-ring:is(.has-zoomed-ring, .has-wheel-ring, svg.ring-svg.is-zoomed):is(.has-iso-pane, .iso-pane:not([hidden])) > .fs-win-row-gen #coset-btn:is(:hover, :focus-visible), .fs-win-body.is-ring:is(.has-zoomed-ring, .has-wheel-ring, svg.ring-svg.is-zoomed) > .fs-win-row-gen #coset-btn:is(:hover, :focus-visible){ border-color:var(--panel-border); background:linear-gradient(var(--panel), var(--panel)), color-mix(in srgb, var(--panel) 55%, transparent); -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); }
+  :root.is-iso-whole:not(.is-isopane):not(.is-iso-unlinked) .fs-win-body.is-ring:is(.has-zoomed-ring, .has-wheel-ring, svg.ring-svg.is-zoomed):is(.has-iso-pane, .iso-pane:not([hidden])) > .fs-win-row-gen #coset-btn:disabled, .fs-win-body.is-ring:is(.has-zoomed-ring, .has-wheel-ring, svg.ring-svg.is-zoomed) > .fs-win-row-gen #coset-btn:disabled{ opacity:1; color:color-mix(in srgb, var(--text) 45%, transparent); }
   /* The chevron that opens the bottom panel behaves as the cards do: the
      cosets button's faint ground at rest, the formula card's frost on
      hover, its edge only while it lies over the beads; over the
      congruence wheel, which always lies under it, frosted at rest too. */
-  .fs-win-body.is-ring:has(> svg.ring-svg:is(.is-zoomed, .has-wheel)) > .split-btn:not([aria-pressed="true"]).is-on-ring, .fs-win-body.is-ring:has(> svg.ring-svg:is(.is-zoomed, .has-wheel)) > .fs-win-row-gen > .split-btn:not([aria-pressed="true"]).is-on-ring{ background:color-mix(in srgb, var(--text) 6%, transparent); border-color:var(--panel-border); -webkit-backdrop-filter:blur(0px); backdrop-filter:blur(0px); transition:background .15s, border-color .15s, backdrop-filter .18s; }
-  .fs-win-body.is-ring:has(> svg.ring-svg:is(.is-zoomed, .has-wheel)) > .split-btn:not([aria-pressed="true"]).is-on-ring:is(:hover, :focus-visible), .fs-win-body.is-ring:has(> svg.ring-svg:is(.is-zoomed, .has-wheel)) > .fs-win-row-gen > .split-btn:not([aria-pressed="true"]).is-on-ring:is(:hover, :focus-visible),
-  .fs-win-body.is-ring:has(> svg.ring-svg.has-wheel) > .split-btn:not([aria-pressed="true"]).is-on-ring, .fs-win-body.is-ring:has(> svg.ring-svg.has-wheel) > .fs-win-row-gen > .split-btn:not([aria-pressed="true"]).is-on-ring{ background:linear-gradient(var(--panel), var(--panel)), color-mix(in srgb, var(--panel) 55%, transparent); -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); }
+  .fs-win-body.is-ring:is(.has-zoomed-ring, .has-wheel-ring, svg.ring-svg.is-zoomed) > .split-btn:not([aria-pressed="true"]).is-on-ring, .fs-win-body.is-ring:is(.has-zoomed-ring, .has-wheel-ring, svg.ring-svg.is-zoomed) > .fs-win-row-gen > .split-btn:not([aria-pressed="true"]).is-on-ring{ background:color-mix(in srgb, var(--text) 6%, transparent); border-color:var(--panel-border); -webkit-backdrop-filter:blur(0px); backdrop-filter:blur(0px); transition:background .15s, border-color .15s, backdrop-filter .18s; }
+  .fs-win-body.is-ring:is(.has-zoomed-ring, .has-wheel-ring, svg.ring-svg.is-zoomed) > .split-btn:not([aria-pressed="true"]).is-on-ring:is(:hover, :focus-visible), .fs-win-body.is-ring:is(.has-zoomed-ring, .has-wheel-ring, svg.ring-svg.is-zoomed) > .fs-win-row-gen > .split-btn:not([aria-pressed="true"]).is-on-ring:is(:hover, :focus-visible),
+  .fs-win-body.is-ring:is(.has-wheel-ring, svg.ring-svg.has-wheel) > .split-btn:not([aria-pressed="true"]).is-on-ring, .fs-win-body.is-ring:is(.has-wheel-ring, svg.ring-svg.has-wheel) > .fs-win-row-gen > .split-btn:not([aria-pressed="true"]).is-on-ring{ background:linear-gradient(var(--panel), var(--panel)), color-mix(in srgb, var(--panel) 55%, transparent); -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); }
   /* Inside the middle card, while the card shows, the chevron has no
      ground, edge or frost of its own: the card's are its (is-in-card,
      from hugBottomCluster). */
-  .fs-win-body.is-ring:has(> svg.ring-svg:is(.is-zoomed, .has-wheel)).is-clu-on-ring > #split-btn.is-in-card:not([aria-pressed="true"]){ background:none; border-color:transparent; -webkit-backdrop-filter:none; backdrop-filter:none; }
-  .fs-win-body.is-ring:has(> svg.ring-svg.is-zoomed) > :is(#rotate-ctl, #spin-ruler.is-own-card, #combine-key, .genexp-info, #legend-panel, #legend-panel-pane){ background:color-mix(in srgb, var(--panel) 0%, transparent); -webkit-backdrop-filter:blur(0px); backdrop-filter:blur(0px); border-radius:var(--radius-card); transition:background-color .18s, backdrop-filter .18s; }
+  .fs-win-body.is-ring:is(.has-zoomed-ring, .has-wheel-ring, svg.ring-svg.is-zoomed).is-clu-on-ring > #split-btn.is-in-card:not([aria-pressed="true"]){ background:none; border-color:transparent; -webkit-backdrop-filter:none; backdrop-filter:none; }
+  .fs-win-body.is-ring:is(.has-zoomed-ring, svg.ring-svg.is-zoomed) > :is(#rotate-ctl, #spin-ruler.is-own-card, #combine-key, .genexp-info, #legend-panel, #legend-panel-pane){ background:color-mix(in srgb, var(--panel) 0%, transparent); -webkit-backdrop-filter:blur(0px); backdrop-filter:blur(0px); border-radius:var(--radius-card); transition:background-color .18s, backdrop-filter .18s; }
   /* The bead colour key, while it lies over a ring's drawing, stands on a
      card, as the arrow key does: the panel's ground (zoomed, the faint
      ground) and edges at rest, the formula card's frost only under the
      pointer. */
   /* A backdrop filter of its own, even blur(0px), would hide the ring from
      that frost, so the key itself has none meanwhile. */
-  .fs-win-body.is-ring > :is(#legend-panel, #legend-panel-pane).is-on-ring, .fs-win-body.is-ring:has(> svg.ring-svg.is-zoomed) > :is(#legend-panel, #legend-panel-pane).is-on-ring, .fs-win-body.is-ring:has(> svg.ring-svg.is-zoomed) > :is(#legend-panel, #legend-panel-pane).is-on-ring:is(:hover, :focus-within){ background:none; -webkit-backdrop-filter:none; backdrop-filter:none; }
+  .fs-win-body.is-ring > :is(#legend-panel, #legend-panel-pane).is-on-ring, .fs-win-body.is-ring:is(.has-zoomed-ring, svg.ring-svg.is-zoomed) > :is(#legend-panel, #legend-panel-pane).is-on-ring, .fs-win-body.is-ring:is(.has-zoomed-ring, svg.ring-svg.is-zoomed) > :is(#legend-panel, #legend-panel-pane).is-on-ring:is(:hover, :focus-within){ background:none; -webkit-backdrop-filter:none; backdrop-filter:none; }
   /* Under the pointer its grays take the text's full colour. */
   .fs-win-body.is-ring > :is(#legend-panel, #legend-panel-pane).is-on-ring:is(:hover, :focus-within){ --text-dim:var(--text); }
   .fs-win-body.is-ring > :is(#legend-panel, #legend-panel-pane).is-on-ring:is(:hover, :focus-within) .legend-count{ opacity:1; }
   .fs-win-body.is-ring > :is(#legend-panel, #legend-panel-pane).is-on-ring::before{ content:''; position:absolute; inset:0 0 -6px; z-index:-1; pointer-events:none; background:var(--panel); box-shadow:inset 0 1px 0 var(--panel-border), inset 0 -1px 0 var(--panel-border); -webkit-backdrop-filter:blur(0px); backdrop-filter:blur(0px); transition:background .15s, backdrop-filter .18s; }
-  .fs-win-body.is-ring:has(> svg.ring-svg.is-zoomed) > :is(#legend-panel, #legend-panel-pane).is-on-ring::before{ background:color-mix(in srgb, var(--text) 6%, transparent); }
+  .fs-win-body.is-ring:is(.has-zoomed-ring, svg.ring-svg.is-zoomed) > :is(#legend-panel, #legend-panel-pane).is-on-ring::before{ background:color-mix(in srgb, var(--text) 6%, transparent); }
   /* That card is a banner from the window's one edge to the other: the
      key spans its row and runs out over the window's side padding. Two
      keys side by side each take their half, their banners meeting in the
@@ -3023,7 +3031,7 @@
   .is-iso-two-legends .fs-win-body.is-ring.ring-body > #legend-panel-pane{ margin-inline-start:0; }
   .is-iso-two-legends .fs-win-body.is-ring > #legend-panel.is-on-ring::before{ inset-inline-end:-7px; }
   .is-iso-two-legends .fs-win-body.is-ring > #legend-panel-pane.is-on-ring::before{ inset-inline-start:-7px; }
-  .fs-win-body.is-ring > :is(#legend-panel, #legend-panel-pane).is-on-ring:is(:hover, :focus-within)::before, .fs-win-body.is-ring:has(> svg.ring-svg.is-zoomed) > :is(#legend-panel, #legend-panel-pane).is-on-ring:is(:hover, :focus-within)::before{ background:linear-gradient(var(--panel), var(--panel)), color-mix(in srgb, var(--panel) 55%, transparent); -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); }
+  .fs-win-body.is-ring > :is(#legend-panel, #legend-panel-pane).is-on-ring:is(:hover, :focus-within)::before, .fs-win-body.is-ring:is(.has-zoomed-ring, svg.ring-svg.is-zoomed) > :is(#legend-panel, #legend-panel-pane).is-on-ring:is(:hover, :focus-within)::before{ background:linear-gradient(var(--panel), var(--panel)), color-mix(in srgb, var(--panel) 55%, transparent); -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); }
   /* At any zoom the arrow key, like the main view's formula card, takes
      the panel's ground and edge while it lies over the ring's drawing, and
      there frosts under the pointer, its grays in the text's full colour. */
@@ -3033,49 +3041,49 @@
   .fs-win-body.is-ring > #combine-key.combine-key{ box-sizing:content-box; padding:7px 10px; }
   .fs-win-body.is-ring > #combine-key.combine-key.is-on-ring{ background:var(--panel); box-shadow:inset 0 0 0 1px var(--panel-border); border-radius:var(--radius-card); -webkit-backdrop-filter:blur(0px); backdrop-filter:blur(0px); }
   .fs-win-body.is-ring > #combine-key.combine-key.is-on-ring:is(:hover, :focus-within){ --text-dim:var(--text); background:linear-gradient(var(--panel), var(--panel)), color-mix(in srgb, var(--panel) 55%, transparent); -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); }
-  .fs-win-body.is-ring:has(> svg.ring-svg.is-zoomed) > :is(#spin-ruler.is-own-card, #combine-key.combine-key, .genexp-info).is-on-ring{ background:color-mix(in srgb, var(--text) 6%, transparent); }
-  .fs-win-body.is-ring:has(> svg.ring-svg.is-zoomed) > :is(#spin-ruler.is-own-card, #combine-key, .genexp-info).is-on-ring{ box-shadow:inset 0 0 0 1px var(--panel-border); }
-  .fs-win-body.is-ring:has(> svg.ring-svg.is-zoomed) > #rotate-ctl:is(:hover, :focus-within){ background:color-mix(in srgb, var(--panel) 55%, transparent); -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); }
-  .fs-win-body.is-ring:has(> svg.ring-svg.is-zoomed) > :is(#combine-key.combine-key, #spin-ruler.is-own-card, .genexp-info).is-on-ring:is(:hover, :focus-within){ background:linear-gradient(var(--panel), var(--panel)), color-mix(in srgb, var(--panel) 55%, transparent); -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); }
+  .fs-win-body.is-ring:is(.has-zoomed-ring, svg.ring-svg.is-zoomed) > :is(#spin-ruler.is-own-card, #combine-key.combine-key, .genexp-info).is-on-ring{ background:color-mix(in srgb, var(--text) 6%, transparent); }
+  .fs-win-body.is-ring:is(.has-zoomed-ring, svg.ring-svg.is-zoomed) > :is(#spin-ruler.is-own-card, #combine-key, .genexp-info).is-on-ring{ box-shadow:inset 0 0 0 1px var(--panel-border); }
+  .fs-win-body.is-ring:is(.has-zoomed-ring, svg.ring-svg.is-zoomed) > #rotate-ctl:is(:hover, :focus-within){ background:color-mix(in srgb, var(--panel) 55%, transparent); -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); }
+  .fs-win-body.is-ring:is(.has-zoomed-ring, svg.ring-svg.is-zoomed) > :is(#combine-key.combine-key, #spin-ruler.is-own-card, .genexp-info).is-on-ring:is(:hover, :focus-within){ background:linear-gradient(var(--panel), var(--panel)), color-mix(in srgb, var(--panel) 55%, transparent); -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); }
   /* Over the congruence wheel, which always lies under them, the turning
      ruler's own card and the arrow key's card behave as they do zoomed:
      the faint ground and edge at rest, the frost under the pointer. So do
      they over the pane's wheel, where they reach into its frame
      (is-pane-wheel, from the pane's reach). */
-  .fs-win-body.is-ring:is(:has(> svg.ring-svg.has-wheel), .is-pane-wheel) > :is(#spin-ruler.is-own-card, #combine-key.combine-key).is-on-ring{ background:color-mix(in srgb, var(--text) 6%, transparent); box-shadow:inset 0 0 0 1px var(--panel-border); border-radius:var(--radius-card); -webkit-backdrop-filter:blur(0px); backdrop-filter:blur(0px); transition:background-color .18s, backdrop-filter .18s; }
-  .fs-win-body.is-ring:is(:has(> svg.ring-svg.has-wheel), .is-pane-wheel) > :is(#spin-ruler.is-own-card, #combine-key.combine-key).is-on-ring:is(:hover, :focus-within){ background:linear-gradient(var(--panel), var(--panel)), color-mix(in srgb, var(--panel) 55%, transparent); -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); }
+  .fs-win-body.is-ring:is(:is(.has-wheel-ring, svg.ring-svg.has-wheel), .is-pane-wheel) > :is(#spin-ruler.is-own-card, #combine-key.combine-key).is-on-ring{ background:color-mix(in srgb, var(--text) 6%, transparent); box-shadow:inset 0 0 0 1px var(--panel-border); border-radius:var(--radius-card); -webkit-backdrop-filter:blur(0px); backdrop-filter:blur(0px); transition:background-color .18s, backdrop-filter .18s; }
+  .fs-win-body.is-ring:is(:is(.has-wheel-ring, svg.ring-svg.has-wheel), .is-pane-wheel) > :is(#spin-ruler.is-own-card, #combine-key.combine-key).is-on-ring:is(:hover, :focus-within){ background:linear-gradient(var(--panel), var(--panel)), color-mix(in srgb, var(--panel) 55%, transparent); -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); }
   /* Each of these cards' right-click menus keeps it frosted or keeps it
      solid (state.cardLooks, is-card-<card>-frost and -solid): frosted as
      under the pointer, or on the window's own opaque ground, whether the
      pointer is over it or not. */
-  :root:root.is-card-clu-frost .fs-win-body.is-ring:has(> svg.ring-svg:is(.is-zoomed, .has-wheel)):has(> #expr-slot).is-clu-on-ring::before{ background:linear-gradient(var(--panel), var(--panel)), color-mix(in srgb, var(--panel) 55%, transparent); -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); }
-  :root:root.is-card-clu-solid .fs-win-body.is-ring:has(> svg.ring-svg:is(.is-zoomed, .has-wheel)):has(> #expr-slot).is-clu-on-ring::before{ background:var(--surface); -webkit-backdrop-filter:none; backdrop-filter:none; }
-  :root:root.is-card-side-frost .fs-win-body.is-ring:has(> svg.ring-svg:is(.is-zoomed, .has-wheel)) > #expr-slot.expr-slot.is-side.is-side-on-ring:not([hidden])::before{ background:linear-gradient(var(--panel), var(--panel)), color-mix(in srgb, var(--panel) 55%, transparent); -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); }
-  :root:root.is-card-side-solid .fs-win-body.is-ring:has(> svg.ring-svg:is(.is-zoomed, .has-wheel)) > #expr-slot.expr-slot.is-side.is-side-on-ring:not([hidden])::before{ background:var(--surface); -webkit-backdrop-filter:none; backdrop-filter:none; }
-  :root:root.is-card-spin-frost .fs-win-body.is-ring:is(:has(> svg.ring-svg:is(.is-zoomed, .has-wheel)), .is-pane-wheel):has(> #spin-ruler) > #spin-ruler.is-own-card.is-on-ring{ background:linear-gradient(var(--panel), var(--panel)), color-mix(in srgb, var(--panel) 55%, transparent); -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); }
-  :root:root.is-card-spin-solid .fs-win-body.is-ring:is(:has(> svg.ring-svg:is(.is-zoomed, .has-wheel)), .is-pane-wheel):has(> #spin-ruler) > #spin-ruler.is-own-card.is-on-ring{ background:var(--surface); -webkit-backdrop-filter:none; backdrop-filter:none; }
+  :root:root.is-card-clu-frost .fs-win-body.is-ring:is(.has-zoomed-ring, .has-wheel-ring, svg.ring-svg.is-zoomed):has(> #expr-slot).is-clu-on-ring::before{ background:linear-gradient(var(--panel), var(--panel)), color-mix(in srgb, var(--panel) 55%, transparent); -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); }
+  :root:root.is-card-clu-solid .fs-win-body.is-ring:is(.has-zoomed-ring, .has-wheel-ring, svg.ring-svg.is-zoomed):has(> #expr-slot).is-clu-on-ring::before{ background:var(--surface); -webkit-backdrop-filter:none; backdrop-filter:none; }
+  :root:root.is-card-side-frost .fs-win-body.is-ring:is(.has-zoomed-ring, .has-wheel-ring, svg.ring-svg.is-zoomed) > #expr-slot.expr-slot.is-side.is-side-on-ring:not([hidden])::before{ background:linear-gradient(var(--panel), var(--panel)), color-mix(in srgb, var(--panel) 55%, transparent); -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); }
+  :root:root.is-card-side-solid .fs-win-body.is-ring:is(.has-zoomed-ring, .has-wheel-ring, svg.ring-svg.is-zoomed) > #expr-slot.expr-slot.is-side.is-side-on-ring:not([hidden])::before{ background:var(--surface); -webkit-backdrop-filter:none; backdrop-filter:none; }
+  :root:root.is-card-spin-frost .fs-win-body.is-ring:is(:is(.has-zoomed-ring, .has-wheel-ring, svg.ring-svg.is-zoomed), .is-pane-wheel):has(> #spin-ruler) > #spin-ruler.is-own-card.is-on-ring{ background:linear-gradient(var(--panel), var(--panel)), color-mix(in srgb, var(--panel) 55%, transparent); -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); }
+  :root:root.is-card-spin-solid .fs-win-body.is-ring:is(:is(.has-zoomed-ring, .has-wheel-ring, svg.ring-svg.is-zoomed), .is-pane-wheel):has(> #spin-ruler) > #spin-ruler.is-own-card.is-on-ring{ background:var(--surface); -webkit-backdrop-filter:none; backdrop-filter:none; }
   :root:root.is-card-key-frost .fs-win-body.is-ring:has(> #combine-key) > #combine-key.combine-key.is-on-ring{ background:linear-gradient(var(--panel), var(--panel)), color-mix(in srgb, var(--panel) 55%, transparent); -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); }
   :root:root.is-card-key-solid .fs-win-body.is-ring:has(> #combine-key) > #combine-key.combine-key.is-on-ring{ background:var(--surface); -webkit-backdrop-filter:none; backdrop-filter:none; }
   /* With the bottom panel up, its band down to the bottom bar takes the
      turning ruler's card and the arrow key's card into itself: no ground,
      edge or frost of their own, at rest, hovered or kept, the band's look
      (the panel's, frosted, solid or faint) theirs. */
-  .fs-win-body.is-ring:has(> svg.ring-svg:is(.is-zoomed, .has-wheel)):has(> .ring-split:not([hidden]) #subgroups-list-panel.is-sub-on-ring):has(> .sub-foot-band:not([hidden])) > :is(#spin-ruler.is-own-card, #combine-key.combine-key){ background:none; box-shadow:none; border-color:transparent; -webkit-backdrop-filter:none; backdrop-filter:none; }
+  .fs-win-body.is-ring:is(.has-zoomed-ring, .has-wheel-ring, svg.ring-svg.is-zoomed):has(> .ring-split:not([hidden]) #subgroups-list-panel.is-sub-on-ring):has(> .sub-foot-band:not([hidden])) > :is(#spin-ruler.is-own-card, #combine-key.combine-key){ background:none; box-shadow:none; border-color:transparent; -webkit-backdrop-filter:none; backdrop-filter:none; }
   /* The element expression table's card is a banner too, as the colour
      key's is: from the window's one edge to the other, its ground and its
      top and bottom edges on a layer of its own, the frost under the
      pointer; two tables side by side meet in the middle of the gap. */
-  .fs-win-body.is-ring:has(> svg.ring-svg.is-zoomed) > :is(#genexp-info, #genexp-info-pane).genexp-info.is-on-ring, .fs-win-body.is-ring:has(> svg.ring-svg.is-zoomed) > :is(#genexp-info, #genexp-info-pane).genexp-info.is-on-ring:is(:hover, :focus-within){ background:none; box-shadow:none; border-radius:0; -webkit-backdrop-filter:none; backdrop-filter:none; }
+  .fs-win-body.is-ring:is(.has-zoomed-ring, svg.ring-svg.is-zoomed) > :is(#genexp-info, #genexp-info-pane).genexp-info.is-on-ring, .fs-win-body.is-ring:is(.has-zoomed-ring, svg.ring-svg.is-zoomed) > :is(#genexp-info, #genexp-info-pane).genexp-info.is-on-ring:is(:hover, :focus-within){ background:none; box-shadow:none; border-radius:0; -webkit-backdrop-filter:none; backdrop-filter:none; }
   .fs-win-body.is-ring.ring-body > .genexp-info:not([hidden]){ max-width:none; margin-inline:-20px; padding-inline:12px; }
   .fs-win-body.is-ring.ring-body:has(> #genexp-info-pane:not([hidden])) > #genexp-info:not([hidden]){ margin-inline-end:0; }
   .fs-win-body.is-ring.ring-body:has(> #genexp-info:not([hidden])) > #genexp-info-pane:not([hidden]){ margin-inline-start:0; }
   .fs-win-body.is-ring > .genexp-info.is-on-ring{ z-index:1; }
   .fs-win-body.is-ring > .genexp-info.is-on-ring::before{ content:''; position:absolute; inset:0; z-index:-1; pointer-events:none; background:var(--panel); box-shadow:inset 0 1px 0 var(--panel-border), inset 0 -1px 0 var(--panel-border); -webkit-backdrop-filter:blur(0px); backdrop-filter:blur(0px); transition:background .15s, backdrop-filter .18s; }
-  .fs-win-body.is-ring:has(> svg.ring-svg.is-zoomed) > .genexp-info.is-on-ring::before{ background:color-mix(in srgb, var(--text) 6%, transparent); }
+  .fs-win-body.is-ring:is(.has-zoomed-ring, svg.ring-svg.is-zoomed) > .genexp-info.is-on-ring::before{ background:color-mix(in srgb, var(--text) 6%, transparent); }
   .fs-win-body.is-ring.ring-body:has(> #genexp-info-pane:not([hidden])) > #genexp-info.is-on-ring::before{ inset-inline-end:-7px; }
   .fs-win-body.is-ring.ring-body:has(> #genexp-info:not([hidden])) > #genexp-info-pane.is-on-ring::before{ inset-inline-start:-7px; }
-  .fs-win-body.is-ring > .genexp-info.is-on-ring:is(:hover, :focus-within)::before, .fs-win-body.is-ring:has(> svg.ring-svg.is-zoomed) > .genexp-info.is-on-ring:is(:hover, :focus-within)::before{ background:linear-gradient(var(--panel), var(--panel)), color-mix(in srgb, var(--panel) 55%, transparent); -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); }
-  :root:not(.is-isopane) .fs-win-body.is-ring:has(> svg.ring-svg.is-zoomed) > .ring-bar{ background:color-mix(in srgb, var(--bg-1) 70%, transparent); -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); }
+  .fs-win-body.is-ring > .genexp-info.is-on-ring:is(:hover, :focus-within)::before, .fs-win-body.is-ring:is(.has-zoomed-ring, svg.ring-svg.is-zoomed) > .genexp-info.is-on-ring:is(:hover, :focus-within)::before{ background:linear-gradient(var(--panel), var(--panel)), color-mix(in srgb, var(--panel) 55%, transparent); -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); }
+  :root:not(.is-isopane) .fs-win-body.is-ring:is(.has-zoomed-ring, svg.ring-svg.is-zoomed) > .ring-bar{ background:color-mix(in srgb, var(--bg-1) 70%, transparent); -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); }
   .ring-ctx-more{ margin-inline-start:auto; padding-inline-start:16px; font-size:1.1rem; line-height:1; color:var(--text-dim); }
   .ring-ctx .fs-menu-item[aria-expanded="true"]{ background:color-mix(in srgb, var(--accent) 14%, transparent); }
   /* The copy submenu shows its formula above the copy options, broken at
@@ -7698,6 +7706,26 @@ ringExitEl.addEventListener('click', exitDesktop);
 
 /* ---------- the ring's parts ---------- */
 
+// The ring body's classes standing in for :has() in the style rules (see
+// the note at the top of the style block): set straight after the ring svg's
+// zoom or wheel or the pane's showing changes, and by the observer for any
+// change made elsewhere.
+var bodyHasMo = window.MutationObserver ? new MutationObserver(syncRingBodyHas) : null, bodyHasSeen = [];
+function syncRingBodyHas(){
+  document.querySelectorAll('.fs-win-body.is-ring').forEach(function(b){
+    b.classList.toggle('has-zoomed-ring', !!b.querySelector(':scope > svg.ring-svg.is-zoomed'));
+    b.classList.toggle('has-wheel-ring', !!b.querySelector(':scope > svg.ring-svg.has-wheel'));
+    b.classList.toggle('has-iso-pane', !!b.querySelector(':scope > .iso-pane:not([hidden])'));
+    if (bodyHasMo && bodyHasSeen.indexOf(b) === -1){
+      bodyHasSeen.push(b);
+      bodyHasMo.observe(b, { childList: true });
+    }
+  });
+}
+if (bodyHasMo){
+  bodyHasMo.observe(ringSvgEl, { attributes: true, attributeFilter: ['class'] });
+  bodyHasMo.observe(isoPaneEl, { attributes: true, attributeFilter: ['hidden'] });
+}
 // The parts of the page the ring's body takes in, in order, on this page
 // and in an isomorphism pane's ring (ringwin=1), and the rows some of them
 // share.
@@ -11917,6 +11945,7 @@ function syncPanes(){
       return { el: el, home: home };
     });
     diagramFrameEl.appendChild(ringBody);
+    syncRingBodyHas();
   } else if (!full && ringBody){
     ringHomes.forEach(function(h){ h.home.replaceWith(h.el); });
     ringBody.remove();
@@ -12324,6 +12353,7 @@ function enterRingWin(){
   var into = partHolder(FS_PANELS[0], body);
   FS_PANELS[0].ids.forEach(function(id){ into(id).appendChild($(id)); });
   diagramFrameEl.appendChild(body);
+  syncRingBodyHas();
   placeSplitBtn();
 }
 if (IS_RINGWIN){
@@ -12531,8 +12561,9 @@ function fitRingHead(){
 function ringDrawn(G){ return !!G && G.order <= MAX_DRAW; }
 function drawNecklace(G, paint){
   ringSvgEl.setAttribute('viewBox', '0 0 ' + SIZE + ' ' + SIZE);
-  var subs = [];
-  ringDynamicEl.appendChild(drawText('ring-title is-plain', SIZE / 2, 44, coset
+  var subs = [], kept = ringKept;
+  if (kept) kept.heads.forEach(function(el){ ringDynamicEl.appendChild(el); });
+  else ringDynamicEl.appendChild(drawText('ring-title is-plain', SIZE / 2, 44, coset
     ? translate(G.mode === 'additive' ? 'cyclicGroups.cosetTitleAdd' : 'cyclicGroups.cosetTitleMul',
         { a: elText(G, coset.start), h: elText(G, shownGen(G)), set: '{' + lap(G, shownGen(G), G.orders[shownGen(G)], coset.start).map(function(x){ return elText(G, x); }).join(', ') + '}' })
     : noSub() ? G.label
@@ -12542,7 +12573,7 @@ function drawNecklace(G, paint){
     var progress = translate('cyclicGroups.cosetProgress', { i: coset.past.length + 1, count: cosetRun.starts.length });
     subs.push({ key: 'cyclicGroups.cosetProgress', params: { i: mNum(coset.past.length + 1), count: mNum(cosetRun.starts.length) }, plain: progress });
     ringDynamicEl.appendChild(drawText('ring-sub is-plain', SIZE / 2, 72, progress));
-  } else {
+  } else if (!kept){
     orderFormulas(G).forEach(function(f, i){
       fitText(ringDynamicEl.appendChild(drawText('ring-formula is-plain', SIZE / 2, 72 + 26 * i, f.plain)));
     });
@@ -12559,12 +12590,17 @@ function drawNecklace(G, paint){
     fitText(bigNote);
   } else drawRing(ringDynamicEl, G, beads, box, paint);
   ringSvgEl.classList.toggle('has-wheel', !big && ringWheelShown(G));
+  syncRingBodyHas();
   syncLapKey(G);
   syncFlogWin(G);
   drawCurvePlot(G);
   drawPolyPlot(G);
   drawCayley(G);
-  if (!big){ drawCombineLine(G, SIZE - 16); combineCopies(); cardCombineLines(G); }
+  if (!big){
+    if (kept && kept.lines.length) kept.lines.forEach(function(el){ ringDynamicEl.appendChild(el); });
+    else if (!kept){ drawCombineLine(G, SIZE - 16); combineCopies(); }
+    cardCombineLines(G);
+  }
   placeCombineCard(G);
   syncCombineKMod(G);
   if (IS_PREVIEW) cropToRing();
@@ -12576,6 +12612,7 @@ function drawNecklace(G, paint){
     var low = SIZE + combineViewLines(G) * COMBINE_LINE;
     ringSvgEl.setAttribute('viewBox', [box.cx - box.cx / z, box.cy - (box.cy - top) / z + ringLift, SIZE / z, (low - top) / z].map(num).join(' '));
     ringSvgEl.classList.toggle('is-zoomed', z > 1);
+    syncRingBodyHas();
     refitRingWheel(box, beads.length);
     syncLiftUi();
   }
@@ -12587,7 +12624,7 @@ function refitRingWheel(box, m){
   var wheelRing = ringDynamicEl.querySelector('.ring');
   if (!wheelRing || !wheelRing.redrawWheel) return;
   var depth = ringWheelDepth;
-  ringWheelFill(box, beadRadius(m, box.R), m);
+  if (!ringKept) ringWheelFill(box, beadRadius(m, box.R), m);
   wheelRing.redrawWheel();
   // Raw results reach only as far out as the rings drawn.
   if (wheelRing.redrawWalks && ringRawShown(drawn.G) && ringWheelDepth !== depth) wheelRing.redrawWalks(wheelRing.walkPlaces);
@@ -12895,9 +12932,16 @@ function combineCopies(){
 }
 // The blur's ground is whatever the ring is drawn on, read again whenever
 // the theme changes.
+// The ground is read once for each look of the page: the theme and the
+// classes and inline styles of the svg's ancestors, whose rules give it.
+var groundCache = null;
 function groundCombineCard(){
   var ground = ringDynamicEl.querySelector('.ring-combine-ground');
-  if (ground) ground.style.fill = groundBehind(ringSvgEl);
+  if (!ground) return;
+  var key = document.documentElement.getAttribute('data-theme') || '';
+  for (var el = ringSvgEl; el && el.nodeType === 1; el = el.parentNode) key += '|' + el.getAttribute('class') + '/' + (el.getAttribute('style') || '');
+  if (!groundCache || groundCache.key !== key) groundCache = { key: key, fill: groundBehind(ringSvgEl) };
+  ground.style.fill = groundCache.fill;
 }
 new MutationObserver(groundCombineCard).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
 // Its tint firms up while the pointer is over the plate.
@@ -12905,8 +12949,9 @@ var combineCardPointer = null;
 function syncCombineCardHot(e){
   combineCardPointer = e;
   var over = function(el){
+    if (!e) return false;
     var r = el.getBoundingClientRect();
-    return !!e && e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom;
+    return e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom;
   };
   var copies = ringDynamicEl.querySelector('.ring-combine-copies'), area = copies && copies.querySelector('.ring-combine-area');
   if (area) copies.classList.toggle('is-hot', over(area));
@@ -13728,17 +13773,37 @@ function placeSubFoot(){
 // How far the ring's drawing (its beads and its arrows) reaches from the
 // ring's centre, in the drawing's own units: sampled along every path once
 // per build, as turning about the centre leaves it unchanged.
-var ringReachUnits = null;
+var ringReachUnits = null, ringReachMo = null;
+// Around a redraw for a turn alone: changes to the drawing waiting from
+// before it still drop the reach; the redraw's own leave it, and the
+// overlap is checked once it is done.
+function keepRingReach(start){
+  if (!ringReachMo) return;
+  if (ringReachMo.takeRecords().length && start) ringReachUnits = null;
+  if (!start) syncRingOverlapSoon();
+}
+// Once a frame at most, before it is drawn.
+var ringOverlapFrame = 0;
+function syncRingOverlapSoon(){
+  if (ringOverlapFrame) return;
+  ringOverlapFrame = requestAnimationFrame(function(){ ringOverlapFrame = 0; syncRingOverlap(); });
+}
 function measureRingReach(){
   var ring = ringDynamicEl.querySelector('.ring'), bead = ring && ring.querySelector('.bead');
   if (!bead || !ringDynamicEl.getCTM()){ ringReachUnits = null; return; }
   var box = ringBox(), far = box.R + parseFloat(bead.getAttribute('r'));
   var into = ringDynamicEl.getCTM().inverse();
   ringDynamicEl.querySelectorAll('path').forEach(function(p){
-    var m = p.getCTM(), len;
+    var m = p.getCTM(), len, bb;
     if (!m) return;
-    try { len = p.getTotalLength(); } catch (err) { return; }
     m = into.multiply(m);
+    // A path whose box lies within the reach found so far adds nothing:
+    // every point sampled on it lies in its box.
+    try { bb = p.getBBox(); } catch (err) { bb = null; }
+    if (bb && Math.max.apply(null, [[bb.x, bb.y], [bb.x + bb.width, bb.y], [bb.x, bb.y + bb.height], [bb.x + bb.width, bb.y + bb.height]].map(function(c){
+      return Math.hypot(m.a * c[0] + m.c * c[1] + m.e - box.cx, m.b * c[0] + m.d * c[1] + m.f - box.cy);
+    })) <= far) return;
+    try { len = p.getTotalLength(); } catch (err) { return; }
     for (var k = 0; k <= 24; k++){
       var q = p.getPointAtLength(len * k / 24);
       far = Math.max(far, Math.hypot(m.a * q.x + m.c * q.y + m.e - box.cx, m.b * q.x + m.d * q.y + m.f - box.cy));
@@ -14275,7 +14340,8 @@ if (window.MutationObserver){
   clusterMo.observe(ringSvgEl, { attributes: true, attributeFilter: ['class', 'viewBox'] });
   var overlapMo = new MutationObserver(syncRingOverlap);
   overlapMo.observe(ringHeadEl, { childList: true });
-  new MutationObserver(function(){ ringReachUnits = null; syncRingOverlap(); }).observe(ringDynamicEl, { childList: true });
+  ringReachMo = new MutationObserver(function(){ ringReachUnits = null; syncRingOverlapSoon(); });
+  ringReachMo.observe(ringDynamicEl, { childList: true });
 }
 zoomSliderEl.addEventListener('input', function(){ setRingZoom(parseInt(zoomSliderEl.value, 10) || 0); });
 zoomSliderEl.addEventListener('dblclick', function(){ setRingZoom(RING_ZOOM_FIT); });
@@ -15002,10 +15068,35 @@ function noSub(){
   return state.noSub && preview === null;
 }
 var drawn = null;
+// The parts a turn leaves as they were, drawn straight into ringDynamicEl:
+// the title and formulas over the ring, and the lines written under it with
+// their copy buttons (in the window while they are detached there).
+function keptRingParts(){
+  var pick = function(root){
+    return Array.prototype.filter.call(root.children, function(el){
+      return el.matches('.ring-title, .ring-sub, .ring-formula, .ring-combine-box, text.ring-combine, .ring-combine-copies');
+    });
+  };
+  var parts = pick(ringDynamicEl).concat(pick(combineWinSvgEl));
+  var heads = parts.filter(function(el){ return el.matches('.ring-title, .ring-sub, .ring-formula'); });
+  var lines = parts.filter(function(el){ return heads.indexOf(el) === -1; });
+  return heads.length ? { heads: heads, lines: lines } : null;
+}
+// A redraw for a turn alone (setRotChanged) keeps what a turn leaves as it
+// was: the lines written under the ring and the title and formulas over it
+// (ringKept, moved into the new drawing rather than drawn and measured
+// again), the arrow key, the wheel's fit to the main area and the drawing's
+// reach (see ringReach), as the ring turns about its centre.
+var ringTurnOnly = false, ringKept = null;
 function redrawRing(){
+  var turnOnly = ringTurnOnly && !IS_PREVIEW && !coset;
+  ringKept = turnOnly ? keptRingParts() : null;
+  if (turnOnly) keepRingReach(true);
   ringDynamicEl.replaceChildren();
   drawNecklace(drawn.G, drawn.paint);
-  renderCombineKey(drawn.G);
+  ringKept = null;
+  if (turnOnly) keepRingReach(false);
+  else renderCombineKey(drawn.G);
   syncIsoCombine();
   syncDirToggle();
   if (spin) spinAngle(spin.now);
@@ -15036,7 +15127,8 @@ function setRotChanged(r){
   r = ((r % m) + m) % m;
   if (r === state.rot) return false;
   state.rot = r;
-  redrawRing();
+  ringTurnOnly = true;
+  try { redrawRing(); } finally { ringTurnOnly = false; }
   renderSubgroups(drawn.G);
   mirrorToUrl(drawn.G);
   isoTellTop(false);
@@ -19461,8 +19553,20 @@ function slowDive(stops, u){
   return from + (stops[i] - from) * (x - i);
 }
 function slowLerp(a, b, f){ return [a[0] + (b[0] - a[0]) * f, a[1] + (b[1] - a[1]) * f]; }
+// Shapes el as like, attribute for attribute, keeping it in its place:
+// no element entering or leaving the ring's drawing, frame after frame,
+// the page's styles need no fresh look (the window's :has() rules make
+// every element added or taken away under it cost that). False where el
+// is not of like's kind.
+function morphEl(el, like){
+  if (!el || el.tagName !== like.tagName) return false;
+  Array.prototype.slice.call(el.attributes).forEach(function(a){ if (!like.hasAttribute(a.name)) el.removeAttribute(a.name); });
+  Array.prototype.forEach.call(like.attributes, function(a){ if (el.getAttribute(a.name) !== a.value) el.setAttribute(a.name, a.value); });
+  return true;
+}
 function slowPlaceHead(L, p, heading, w){
   var head = arrowHead(L.headCls, p[0] - w * L.size * Math.cos(heading), p[1] - w * L.size * Math.sin(heading), heading, L.size);
+  if (morphEl(L.head, head)) return;
   L.head.replaceWith(head);
   L.head = head;
 }
@@ -19476,8 +19580,10 @@ function slowDropHead(L, tip, heading, b){
   var drop = arrowHead(L.headCls, m[0], m[1], Math.atan2(c[1] - a[1], c[0] - a[0]), L.size), z = 1 + 1.6 * (1 - slowEase(f));
   drop.setAttribute('transform', 'translate(' + num(m[0]) + ' ' + num(m[1]) + ') scale(' + num(z) + ') translate(' + num(-m[0]) + ' ' + num(-m[1]) + ')');
   drop.style.opacity = String(Math.min(1, f * 1.5));
-  if (L.drop && L.drop.isConnected) L.drop.replaceWith(drop);
-  else L.head.after(drop);
+  if (L.drop && L.drop.isConnected){
+    if (morphEl(L.drop, drop)) return;
+    L.drop.replaceWith(drop);
+  } else L.head.after(drop);
   L.drop = drop;
 }
 // A hop out to a cell: the spiral grows to it; the cell lights and walks
@@ -20128,8 +20234,19 @@ function endFlip(){
 function identityAxis(ring, box){
   var id = drawn && ring.querySelector('.bead[data-el="' + drawn.G.identity + '"]');
   if (!id) return -90;
-  var m = ringDynamicEl.getCTM().inverse().multiply(id.getCTM());
   var x = +id.getAttribute('cx'), y = +id.getAttribute('cy');
+  // Worked out from the bead's place and the ring's turn about its centre
+  // where that is all there is between them, without asking the layout.
+  if (id.parentNode === ring && ring.parentNode === ringDynamicEl && !id.getAttribute('transform') && !id.style.transform && !ring.style.transform && !ringDynamicEl.getAttribute('transform')){
+    var tf = ring.getAttribute('transform'), turn = 0;
+    var rt = tf && /^rotate\((-?[\d.]+(?:e-?\d+)?) (-?[\d.]+) (-?[\d.]+)\)$/.exec(tf);
+    if (rt && +rt[2] === box.cx && +rt[3] === box.cy) turn = +rt[1];
+    if (!tf || rt && +rt[2] === box.cx && +rt[3] === box.cy){
+      var a = Math.atan2(y - box.cy, x - box.cx) * 180 / Math.PI + turn;
+      return ((a + 180) % 360 + 360) % 360 - 180;
+    }
+  }
+  var m = ringDynamicEl.getCTM().inverse().multiply(id.getCTM());
   return Math.atan2(m.b * x + m.d * y + m.f - box.cy, m.a * x + m.c * y + m.e - box.cx) * 180 / Math.PI;
 }
 // before, when given, is the ring as shown before the redraw that set the
@@ -22609,7 +22726,7 @@ function openIsoPane(a, g, sub){
     p.set('arrangegen', SUB_FOLLOW);
     isoPane.q = p.toString();
   }
-  isoPaneEl.hidden = false;
+  isoPaneEl.hidden = false; syncRingBodyHas();
   var picked = !!isoPickEl;
   if (picked) isoPickEl.classList.add('is-chosen');
   loadIsoFrame();
@@ -22626,7 +22743,7 @@ function openOwnPane(){
   p.set('n', String(state.n));
   if (state.ec) p.set('curve', [state.ecP, state.ecA, state.ecB].join(','));
   isoPane = { h: drawn.G.identity, q: cleanRingQuery(p.toString()), parent: null, g: null, sub: null, unlocked: true, link: 'none', blank: true };
-  isoPaneEl.hidden = false;
+  isoPaneEl.hidden = false; syncRingBodyHas();
   if (isoPickEl) isoPickEl.classList.add('is-chosen');
   loadIsoFrame();
   syncIsoPaneLabels();
@@ -22746,7 +22863,7 @@ function closeIsoPane(){
   isoSentK = null;
   isoHoverSent = null;
   setIsoHot(null);
-  isoPaneEl.hidden = true;
+  isoPaneEl.hidden = true; syncRingBodyHas();
   isoAskEl.hidden = true;
   isoPaneKey = null;
   isoPanePlotMin = false;
@@ -23282,7 +23399,7 @@ function openIsoPick(){
   isoPickEl.appendChild(menu);
   isoPaneEl.appendChild(isoPickEl);
   isoPaneEl.classList.add('is-picking');
-  isoPaneEl.hidden = false;
+  isoPaneEl.hidden = false; syncRingBodyHas();
   isoAddEl.classList.remove('is-shown');
   var close = translate('cyclicGroups.fsClose', { name: translate('cyclicGroups.fsRing') });
   isoPaneCloseEl.setAttribute('aria-label', close);
@@ -23333,7 +23450,7 @@ function openLeftPick(){
   var whole = Array.prototype.slice.call(isoGroupChipsEl.querySelectorAll('a.iso-chip'));
   var h = !G.cyclic ? G.identity : !state.noSub && G.orders[state.gen] === G.order ? state.gen : G.generators[0];
   isoPane = { h: h, q: cleanRingQuery(stateQuery().toString()), parent: null, g: null, sub: null, unlocked: true, link: 'none', blank: false, hostBlank: true };
-  isoPaneEl.hidden = false;
+  isoPaneEl.hidden = false; syncRingBodyHas();
   loadIsoFrame();
   isoAddLeftEl.classList.remove('is-shown');
   isoPickEl = document.createElement('div');
@@ -28611,7 +28728,7 @@ function paneFromQuery(q){
   };
   setGroupLock(locked);
   exprCoupled = o.expr === true;
-  isoPaneEl.hidden = false;
+  isoPaneEl.hidden = false; syncRingBodyHas();
   loadIsoFrame();
   syncIsoPaneLabels();
   syncIsoKeys();
