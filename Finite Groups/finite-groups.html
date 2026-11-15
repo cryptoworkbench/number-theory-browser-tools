@@ -5942,7 +5942,18 @@ function drawRing(parent, G, beads, box, paint){
         aN = aG.appendChild(svgEl('text', { 'class': 'scalar-hop-n', x: num(aP[0]), y: num(aP[1]) }));
         aN.textContent = String(latest(swA));
       }
-      slowRig(aG, aPt, swSize, aN, latest(swA), m0, swRaw[swA] ? { x: aH.to, j: swRaw[swA].q } : null);
+      // A hop out to a cell dives down its reduction line in step with
+      // the cells lighting under it: stops are the shares of that line
+      // at the centre of each lower cell, the last its bead.
+      var aCell = null;
+      if (swRaw[swA]){
+        var aQ = swRaw[swA].q, aRing = ringWheelRing(box.R), aR0 = box.R + beadR + 4, aFoot = box.R + beadR;
+        var aTurn = aR0 + (aQ + 0.5) * aRing - swRaw[swA].font * 0.7, aStops = [];
+        for (var aI = aQ - 1; aI >= 0; aI--) aStops.push((aTurn - aR0 - (aI + 0.5) * aRing) / (aTurn - aFoot));
+        aStops.push(1);
+        aCell = { x: aH.to, j: aQ, stops: aStops };
+      }
+      slowRig(aG, aPt, swSize, aN, latest(swA), m0, aCell);
     }
     ring.appendChild(swEl);
   }
@@ -19001,7 +19012,7 @@ combineModeBtns.element.addEventListener('click', function(){ setCombineMode('el
 // sits; past a lap a hop's new colour travels along it from its start
 // instead. k climbs one step per arrow while the k field is greyed out
 // and locked; going down is instant.
-var SLOW_GROW = 520, SLOW_BACK = 260, SLOW_RECOLOR = 520;
+var SLOW_GROW = 520, SLOW_BACK = 260, SLOW_BACK_CELL = 420, SLOW_RECOLOR = 520;
 var slowRun = null, slowAnim = null, slowLive = null, slowGen = 0;
 function slowOn(){ return state.combineSlow && state.combineMode === 'scalar'; }
 // Whether going to k draws new arrows: further from 0 the same way, or
@@ -19050,7 +19061,8 @@ function slowTick(gen){
     slowAnim.walked = now;
     walkWheelCell(cell.x, cell.j);
   }
-  var walking = cell && (slowAnim.walked === undefined || now < slowAnim.walked + wheelWalkMs(cell.j));
+  // After the walk down, the head goes home up the reduction line.
+  var walking = cell && (slowAnim.walked === undefined || now < slowAnim.walked + wheelWalkMs(cell.j) + SLOW_BACK_CELL);
   if (!walking && t >= (slowAnim.grow ? SLOW_GROW + SLOW_BACK : SLOW_RECOLOR)){
     slowAnim = slowLive = null;
     redrawRing();
@@ -19076,8 +19088,9 @@ function slowStop(){
 }
 // Called by drawNecklace with the hop being drawn: its group g (in the new
 // lap's colour), the point a share f along its path, its arrowhead size,
-// its number and the k it shows (m0 hops a lap); the next arrow waits for
-// the cell's walk (walkWheelCell) as well as for the head's slide back.
+// its number and the k it shows (m0 hops a lap); for a hop out to a cell,
+// the head dives down the reduction line with the cell's walk
+// (slowApplyCell), and the next arrow waits for it to come home.
 // cell, for a hop out to a cell of the congruence wheel, is that cell:
 // once the head reaches it, it lights up and walks down to its bead.
 function slowRig(g, pt, size, label, k, m0, cell){
@@ -19086,8 +19099,24 @@ function slowRig(g, pt, size, label, k, m0, cell){
   var newLap = lapClass(Math.floor((k - 1) / m0));
   var main = g.querySelector('path.chord:not(.is-reduce)'), head = g.querySelector('.chord-arrow');
   slowLive = { g: g, pt: pt, size: size, main: main, head: head, headCls: head ? head.getAttribute('class') : '', recol: [], after: [] };
-  var later = [g.querySelector('.is-reduce'), g.querySelector('.ring-raw')];
-  if (A.grow) slowLive.after = later.concat([label]).filter(Boolean);
+  var reduce = g.querySelector('.is-reduce'), later = [reduce, g.querySelector('.ring-raw')];
+  if (A.grow && A.cell && reduce){
+    // The reduction line is drawn live, from the cell in to the bead.
+    var ends = reduce.getAttribute('d').match(/-?[\d.]+/g).map(Number);
+    slowLive.reduce = reduce;
+    slowLive.r1 = [ends[0], ends[1]];
+    slowLive.r2 = [ends[2], ends[3]];
+    slowLive.after = [later[1]].filter(Boolean);
+    slowLive.label = label;
+    // The spiral's back half, for the head's way home.
+    var len = 0, prev = pt(0.5);
+    for (var i = 1; i <= 24; i++){
+      var nx = pt(0.5 + i / 48);
+      len += Math.hypot(nx[0] - prev[0], nx[1] - prev[1]);
+      prev = nx;
+    }
+    slowLive.halfLen = len;
+  } else if (A.grow) slowLive.after = later.concat([label]).filter(Boolean);
   else {
     // Under the new colour's growing line, the old lap's whole line.
     var under = main.cloneNode(false);
@@ -19111,9 +19140,51 @@ function slowPath(pt, q){
   }
   return d;
 }
+// The share of the reduction line the dive has reached a share u of the
+// way through the walk down: at each cell's lighting the head is in it.
+function slowDive(stops, u){
+  var x = u * stops.length, i = Math.floor(x);
+  if (i >= stops.length) return 1;
+  var from = i ? stops[i - 1] : 0;
+  return from + (stops[i] - from) * (x - i);
+}
+function slowLerp(a, b, f){ return [a[0] + (b[0] - a[0]) * f, a[1] + (b[1] - a[1]) * f]; }
+function slowPlaceHead(L, p, heading, w){
+  var head = arrowHead(L.headCls, p[0] - w * L.size * Math.cos(heading), p[1] - w * L.size * Math.sin(heading), heading, L.size);
+  L.head.replaceWith(head);
+  L.head = head;
+}
+// A hop out to a cell: the spiral grows to it; the cell lights and walks
+// down to the bead (walkWheelCell, started by slowTick) while the head
+// dives down the reduction line drawn behind it; then the head goes home,
+// back up that line and along the spiral to its middle.
+function slowApplyCell(L, A, t){
+  var q = Math.min(1, t / SLOW_GROW), W = wheelWalkMs(A.cell.j);
+  var diveAt = A.walked === undefined ? Infinity : A.walked - A.t0, backAt = diveAt + W;
+  var r = t < diveAt ? 0 : slowDive(A.cell.stops, Math.min(1, (t - diveAt) / W));
+  L.main.setAttribute('d', slowPath(L.pt, q));
+  var tip = slowLerp(L.r1, L.r2, r);
+  L.reduce.setAttribute('d', 'M ' + num(L.r1[0]) + ' ' + num(L.r1[1]) + ' L ' + num(tip[0]) + ' ' + num(tip[1]));
+  L.after.forEach(function(el){ el.style.visibility = t < SLOW_GROW ? 'hidden' : ''; });
+  if (L.label) L.label.style.visibility = t < backAt ? 'hidden' : '';
+  if (!L.head) return;
+  var dive = Math.atan2(L.r2[1] - L.r1[1], L.r2[0] - L.r1[0]);
+  if (t < diveAt){
+    var f = q, a = L.pt(Math.max(0, f - 0.01)), b = L.pt(Math.min(1, f + 0.01));
+    slowPlaceHead(L, L.pt(f), Math.atan2(b[1] - a[1], b[0] - a[0]), 1);
+    return;
+  }
+  if (t < backAt){ slowPlaceHead(L, tip, dive, 1); return; }
+  var home = slowEase(Math.min(1, (t - backAt) / SLOW_BACK_CELL)), lr = Math.hypot(L.r2[0] - L.r1[0], L.r2[1] - L.r1[1]);
+  var at = home * (lr + L.halfLen), w = 1 - home;
+  if (at < lr){ slowPlaceHead(L, slowLerp(L.r2, L.r1, at / lr), dive, w); return; }
+  var g = 1 - 0.5 * (at - lr) / L.halfLen, c = L.pt(Math.max(0, g - 0.01)), d = L.pt(Math.min(1, g + 0.01));
+  slowPlaceHead(L, L.pt(g), Math.atan2(d[1] - c[1], d[0] - c[0]), w);
+}
 function slowApply(t){
   var L = slowLive, A = slowAnim;
   if (!L || !A || !L.main) return;
+  if (A.grow && L.reduce){ slowApplyCell(L, A, t); return; }
   if (A.grow){
     var q = Math.min(1, t / SLOW_GROW), back = slowEase(Math.max(0, Math.min(1, (t - SLOW_GROW) / SLOW_BACK)));
     L.main.setAttribute('d', slowPath(L.pt, q));
