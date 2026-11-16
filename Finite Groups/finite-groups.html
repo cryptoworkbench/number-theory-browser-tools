@@ -13388,15 +13388,10 @@ function drawRingWheel(g, G, place, m, box, beadR){
   var keep = ringWheelUpright ? null : [G.key, m, dirSign(), num(box.cx), num(box.cy), num(R0), num(ring), depth, G.els.map(function(x){ return place[x]; }).join(',')].join('|');
   var clipKey = ringWheelClip ? [ringWheelClip.x, ringWheelClip.y, ringWheelClip.w, ringWheelClip.h].map(num).join(',') : '';
   // The same wheel kept in its layer through a turn alone: only its turn
-  // changes, made up by the layer's, and its % n turned upright again.
+  // changes, made up by the layer's; its % n turns with it.
   if (keep && wheelKept && wheelKept.key === keep && wheelKept.g === g && wheelKept.clip === clipKey && g.parentNode === wheelTurnEl && !wheelInRing){
     g.turn = turn;
     wheelTurnOffset = turn - (g.drawnTurn || 0);
-    var kept = g.querySelector(':scope > .dhc-wheel-mod');
-    if (kept){
-      if (turn) kept.setAttribute('transform', 'rotate(' + num(-turn) + ' ' + box.cx + ' ' + box.cy + ')');
-      else kept.removeAttribute('transform');
-    }
     wheelLit.forEach(function(c){ if (g.contains(c.el)) c.el.classList.add('is-kept'); });
     // Its clip and the blur's turned back as drawing it again turns them.
     var clipTurn = /rotate\((-?[\d.]+)/.exec(g.parentNode.getAttribute('transform') || '');
@@ -13431,7 +13426,6 @@ function drawRingWheel(g, G, place, m, box, beadR){
     g.insertBefore(c.el, g.querySelector('.dhc-wheel-num'));
   });
   var mod = svgEl('text', { 'class': 'dhc-wheel-mod', x: box.cx, y: box.cy, 'font-size': num(box.R * 0.12) });
-  if (g.turn) mod.setAttribute('transform', 'rotate(' + num(-g.turn) + ' ' + box.cx + ' ' + box.cy + ')');
   mod.textContent = translate('cyclicGroups.ringWheelMod', { n: N });
   g.appendChild(mod);
 }
