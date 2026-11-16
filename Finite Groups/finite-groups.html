@@ -6231,6 +6231,7 @@ function hopNum(cls, p, turn, k){
 function drawRingCombo(ring, G, beads, place, box, beadR, m, at){
   var sw = scalarWalk(G);
   rawReach.combo = [];
+  slowRunReach(G);
   if (sw && m > 1){
     var swFoot = box.R - beadR;
     var swSteps = humpSteps(sw.walk, place, m, 1, sw.sense);
@@ -20078,6 +20079,26 @@ function slowShow(k){
   ringStepOnly = true;
   try { combineScalar(k); } finally { ringStepOnly = false; }
 }
+// While slow aᵏ arrows run towards k, the raw results of every hop up to
+// that k count as reached already, so Keep every arrow in sight zooms out
+// for them all before the first arrow grows.
+function slowRunReach(G){
+  if (!slowRun || !comboKOn() || !ringRawShown(G, 'ak') || !Number.isInteger(combo.a)) return;
+  var to = slowRun.to, by = to < 0 ? G.inv[combo.a] : combo.a, K = Math.min(Math.abs(to), G.orders[combo.a]), x = G.identity;
+  for (var s = 0; s < K; s++){
+    var r = G.mode === 'multiplicative' ? x * by : x + by, q = Math.floor(r / G.n);
+    if (q >= 1) rawReach.combo.push({ q: q, el: r - q * G.n });
+    x = G.combine(x, by);
+  }
+}
+// A slow arrow waits, not yet grown, while the ring eases to a new zoom
+// (Keep every arrow in sight zooming out for it): its clock starts once
+// the ease is over.
+function slowHeld(A, now){
+  if (!ringEase || A.walked !== undefined || now - A.t0 >= SLOW_GROW) return false;
+  A.t0 = now;
+  return true;
+}
 // The pause button beside the a ∗ b / aᵏ choice shows while slow arrows
 // draw, aᵏ's or a ∗ b's, watched frame by frame from when one starts.
 var combineStopEl = $('combine-stop'), slowStopWatch = false;
@@ -20147,7 +20168,9 @@ function slowNext(){
 function slowTick(gen){
   if (!slowRun || slowRun.gen !== gen || !slowAnim) return;
   if (!comboKOn() || combo.k !== slowAnim.k || combo.a !== slowAnim.a){ slowStop(); return; }
-  var now = performance.now(), t = now - slowAnim.t0, cell = slowAnim.cell;
+  var now = performance.now();
+  if (slowHeld(slowAnim, now)){ slowApply(0); requestAnimationFrame(function(){ slowTick(gen); }); return; }
+  var t = now - slowAnim.t0, cell = slowAnim.cell;
   if (cell && slowAnim.walked === undefined && t >= SLOW_GROW){
     slowAnim.walked = now;
     walkWheelCell(cell.x, cell.j);
@@ -20470,7 +20493,9 @@ function abTick(A){
   if (abAnim !== A) return;
   var L = abLive;
   if (!L || !drawn || combo.a !== A.a || combo.b !== A.b || combo.key !== A.key){ abAnim = abLive = null; return; }
-  var now = performance.now(), t = now - A.t0;
+  var now = performance.now();
+  if (slowHeld(A, now)){ abApply(0); requestAnimationFrame(function(){ abTick(A); }); return; }
+  var t = now - A.t0;
   if (A.walked === undefined && t >= SLOW_GROW){
     A.walked = now;
     walkWheelCell(L.cell.x, L.cell.j);
