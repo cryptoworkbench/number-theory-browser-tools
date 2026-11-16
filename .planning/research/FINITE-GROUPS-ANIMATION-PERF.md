@@ -34,8 +34,15 @@ Benchmark scenario used since 2026-11-16: ⟨ℤ/37ℤ, ×⟩, a = 35, slow aᵏ
 | 11-16 | wheel numbers share one `rotate()` per wedge group (`dhc-wheel-nums`), placed pre-rotated, instead of a transform each | Layerize 3.3 → 1.9 s per 8 s (each transform was its own paint chunk); pixel-identical | dbdb828 [w8n] |
 | 11-16 | blur copy drops the wheel's clip-path (turned each step, it invalidated every copied number); copy rebuilt only when `frostRings` changes | | dbdb828 [w8n] |
 | 11-16 | `combineCopies` computes the card's hug before inserting its buttons (`combineHug`) | one forced style+layout fewer per step | dbdb828 [w8n] |
+| 11-16 | slow step writes the lines under the ring, their copy buttons and the card's plate into the ones drawn last (`ringKept.oldLines`, `patchCombineRoots`, `morphTree`; copy buttons read `btn.copyPlain` when clicked); the ≡ badge and the a ∗ b / aᵏ names change text-node data (`setTextData`) | step frames 92–129 → 57–63 ms, forced layout 56–82 → 29–34 ms; patched lines identical to a fresh drawing at k = 5 and 36 | 09787cf [x3m] |
 
-User's Chrome after 11-16: median frame 17–33 ms between steps; about 80–130 ms at each new arrow.
+User's Chrome after 11-16: median frame 14–33 ms between steps; about 57–63 ms at each new arrow (worst frame 69 ms).
+
+### Micro-measurements (user's Chrome, 11-16; median of 9, change plus forced layout)
+- Attribute change on an svg element: 0.0–0.3 ms. Class toggle: 0.0 ms.
+- Text node `.data` change: 0.5 ms. Replacing it through `textContent`: 18.5 ms on a tspan, 13.5 ms on an HTML span.
+- Insert: ~10–11 ms **per style pass, not per element** (1 element 10.1 ms, 20 elements 11.1 ms, fragment of 20 11.4 ms). Removal alone: ~0 ms; a tspan removal inside a text, 13.9 ms (text relayout).
+- So a step that has to insert anything (its new arrow) pays one such pass, whatever else is patched. Patching the combination layer's walk and halos in place would not remove that pass (not done for that reason).
 
 ## Rejected (don't retry without a new reason)
 
@@ -52,11 +59,10 @@ User's Chrome after 11-16: median frame 17–33 ms between steps; about 80–130
 
 ## Open (what's left, with what is already known)
 
-1. **The redraw at each new k** (~80–130 ms in the user's Chrome; noted as ~80 ms of style/layout already on 11-15 [wl1]).
-   - What's left in it: one forced style+layout in `fitText` (after `drawCombineLine` rebuilds the lines), plus the lifecycle pass.
-   - Every DOM insert, remove or text change in the window costs ~10 ms there, attributes ~0.1–1 ms.
-   - Candidate: patch the lines under the ring and the combination in place (text/attribute changes only, like the lit-cell pool) instead of rebuilding them.
-2. **The remaining `:has()` rules** (see Rejected).
+1. **The redraw at each new k**: now ~57–63 ms in the user's Chrome (was ~80 ms of style/layout on 11-15 [wl1], 230–270 ms early on 11-16). Done for the lines, copy buttons, plate and badge (09787cf).
+   - What's left in it: one forced style+layout (~30 ms) that pays for the combination layer's insertions (the new arrow; its walk group and ~10 halos are still rebuilt), plus the lifecycle pass.
+   - Patching the combination layer would not remove the one pass (see Micro-measurements).
+2. **The remaining `:has()` rules** (see Rejected). After 09787cf they are the floor of each step: one ~10 ms insertion pass (with all rules off, insert passes measured ~1–2 ms), plus the walk-end bead halo's insert. Worth at most ~10–20 ms of the ~60 ms step.
    - Candidates not tried yet:
      - rewrite only the rules whose argument is a descendant combinator anchored on `.fs-win-body` (e.g. `:has(:is(#coset-btn, #dir-toggle):is(:hover, :focus-visible))`, `:has(> .expr-slot:not(.is-side) :focus-visible …)`) into JS-set classes, as pf1 did for the `> …` ones;
      - move the big svg layers out of `.fs-win-body`.
