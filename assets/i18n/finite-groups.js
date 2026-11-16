@@ -315,7 +315,8 @@
    heading in the aᵏ and a ∗ b buttons' right-click menus and its two
    choices: the arrows drawn at once, or each growing along its path),
    and zoomFit (the switch beside the zoom pill keeping every arrow, the
-   raw results' included, in sight).
+   raw results' included, in sight), and combineStop (the pause button
+   beside the a ∗ b / aᵏ choice stopping slow arrows).
    Every other language shows the English value through NT.i18n's
    fallback meanwhile.
 
@@ -1438,6 +1439,7 @@
       dhClose: 'Close',
       pizzaTitle: 'Cosets of ⟨{h}⟩ within {g}',
       combineTopResult: 'Keep the result on top',
+      combineStop: 'Stop the arrows',
       spinHeldTip: 'Turn off Keep the result on top to use this control again.',
       spinHeldTipIcon: 'Turn off {icon} to use this control again.',
       ringWheel: 'Congruence wheel',
