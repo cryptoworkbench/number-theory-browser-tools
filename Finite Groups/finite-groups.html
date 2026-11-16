@@ -13254,7 +13254,17 @@ function cardCombineLines(G){
   if (!ext){ dropKept(); return; }
   var x0 = ext.x0, y0 = ext.y0, x1 = ext.x1, y1 = ext.y1;
   var card = { x: num(x0 - COMBINE_CARD_PAD), y: num(y0 - COMBINE_CARD_PAD / 2), width: num(x1 - x0 + 2 * COMBINE_CARD_PAD), height: num(y1 - y0 + COMBINE_CARD_PAD), rx: 10 };
-  ringDynamicEl.insertBefore(svgEl('rect', Object.assign({ 'class': 'ring-combine-plate' }, card)), lines[0]);
+  // A slow step reshapes the plate drawn last (see redrawRing), where it
+  // still lies before the lines.
+  var plate = svgEl('rect', Object.assign({ 'class': 'ring-combine-plate' }, card));
+  var oldPlate = ringKept && ringKept.oldLines && ringKept.oldLines.filter(function(el){ return el.matches('.ring-combine-plate'); })[0];
+  if (oldPlate && oldPlate.parentNode === ringDynamicEl && (oldPlate.compareDocumentPosition(lines[0]) & Node.DOCUMENT_POSITION_FOLLOWING)){
+    morphEl(oldPlate, plate);
+    oldPlate.combineKept = true;
+  } else {
+    if (oldPlate) oldPlate.remove();
+    ringDynamicEl.insertBefore(plate, lines[0]);
+  }
   frostCard = card;
   if (keptFrost){
     // Its two rects take the new plate, as new ones would have it, and its
@@ -13361,12 +13371,15 @@ function combineExtent(els){
 // the pointer is over the lines (syncCombineCardHot).
 var COMBINE_COPY_W = 14, COMBINE_COPY_H = 22;
 function combineCopies(){
-  if (IS_MOBILE || IS_PREVIEW) return;
+  // A slow step writes them into the buttons drawn last (see redrawRing);
+  // with none to draw, those go at once.
+  var old = ringKept && ringKept.oldLines && ringKept.oldLines.filter(function(el){ return el.matches('.ring-combine-copies'); })[0];
+  if (IS_MOBILE || IS_PREVIEW){ if (old) old.remove(); return; }
   var texts = Array.prototype.filter.call(ringDynamicEl.querySelectorAll('text.ring-combine'), function(t){
     return t.getAttribute('data-plain') || t.textContent.trim();
   });
   var all = combineExtent(texts);
-  if (!all) return;
+  if (!all){ if (old) old.remove(); return; }
   // What the card hugs (cardCombineLines), the lines' boxes and texts read
   // now, while the layout is fresh, and the buttons added below as they
   // are placed: read after they go in, the page's styles and layout would
@@ -13395,9 +13408,11 @@ function combineCopies(){
     };
     label('cyclicGroups.ctxCopyUnicode');
     icon(COPY_ICON);
+    // Read when clicked: a slow step writes the next line's into it.
+    btn.copyPlain = plain;
     var done = 0;
     var copy = function(){
-      copyText(plain);
+      copyText(btn.copyPlain);
       btn.classList.add('is-done');
       label('cyclicGroups.exportWinCopied');
       icon(DONE_ICON);
@@ -13442,7 +13457,11 @@ function combineCopies(){
     });
     area.setAttribute('width', num(+area.getAttribute('width') + 2 * (COMBINE_COPY_W + 4)));
   }
-  ringDynamicEl.appendChild(group);
+  var map = new Map();
+  if (old && morphTree(old, group, map) === old){
+    old.combineKept = true;
+    group.querySelectorAll('.ring-combine-copy').forEach(function(btn){ if (map.get(btn)) map.get(btn).copyPlain = btn.copyPlain; });
+  } else ringDynamicEl.appendChild(group);
   combineHug = { els: Array.prototype.slice.call(ringDynamicEl.querySelectorAll('.ring-combine-box, text.ring-combine, .ring-combine-copy')), ext: hug };
   syncCombineCardHot(combineCardPointer);
 }
@@ -15923,13 +15942,27 @@ function redrawRing(){
   // and redraws only what follows k in it (patchRingCombo), while no
   // rearrangement or flip is carrying the drawing.
   var oldRing = stepOnly && ringKept && !arranging && !flipping ? ringDynamicEl.querySelector(':scope > .ring') : null;
+  // The lines under the ring, their copy buttons and the card's plate stay
+  // too, for the new ones to be written into (patchCombineRoots): under the
+  // window's :has() rules, an element added or taken away costs the whole
+  // window's styles worked out again, a changed text or attribute next to
+  // nothing.
+  var oldLines = null;
   if (oldRing){
     ringKept.ring = oldRing;
+    oldLines = ringKept.oldLines = [];
     Array.prototype.slice.call(ringDynamicEl.children).forEach(function(el){
-      if (el !== oldRing && ringKept.heads.indexOf(el) === -1) el.remove();
+      if (el === oldRing || ringKept.heads.indexOf(el) !== -1) return;
+      if (el.matches('text.ring-combine, .ring-combine-box, .ring-combine-copies, .ring-combine-plate')) oldLines.push(el);
+      else el.remove();
     });
   } else ringDynamicEl.replaceChildren();
   drawNecklace(drawn.G, drawn.paint);
+  // Those not written into are gone.
+  if (oldLines) oldLines.forEach(function(el){
+    if (!el.combineKept && el.parentNode) el.remove();
+    el.combineKept = false;
+  });
   ringKept = null;
   if (turnOnly) keepRingReach(false);
   else if (!stepOnly) renderCombineKey(drawn.G);
@@ -16168,7 +16201,7 @@ function placeCombineCard(G){
     }
     parts.forEach(function(el){ combineWinSvgEl.appendChild(el); });
   } else if (at === 'min') parts.forEach(function(el){ el.remove(); });
-  $('combine-win-title').textContent = translate(kind === 'ak' ? 'cyclicGroups.combineWinAk' : 'cyclicGroups.combineWinAb');
+  setTextData($('combine-win-title'), translate(kind === 'ak' ? 'cyclicGroups.combineWinAk' : 'cyclicGroups.combineWinAb'));
   var spawned = combineWinEl.hidden && at === 'win';
   combineWinEl.hidden = at !== 'win';
   var task = at === 'min' ? kind : null;
@@ -19569,7 +19602,7 @@ function curveRows(G, y, mod){
     sa.textContent = elText(G, a);
     sk.textContent = signed(k);
     translateInto(given, 'cyclicGroups.combineScalarGiven', { a: sa, k: sk });
-    ringDynamicEl.appendChild(given);
+    addCombineRoot(given);
     fitText(given);
     if (sqmOn(G)) return sqmRows(G, mod);
     // Written in powers, as the groups of numbers write aᵏ: one line, the
@@ -19851,9 +19884,15 @@ document.addEventListener('copy', function(e){
   e.preventDefault();
 }, true);
 function drawCombineLine(G, y){
+  // A slow step writes the lines into the ones drawn last (see redrawRing):
+  // built apart first, then patched in, before anything is measured; with
+  // nothing to write, they go at once, before anything counts them.
+  var reuse = ringKept && ringKept.oldLines ? ringKept.oldLines.filter(function(el){ return el.matches('text.ring-combine, .ring-combine-box'); }) : null;
+  var dropReuse = function(){ if (reuse) reuse.forEach(function(el){ el.remove(); }); reuse = null; };
   var roles = combineRoles(G);
-  if (!roles.size || !comboLive(G)) return;
+  if (!roles.size || !comboLive(G)){ dropReuse(); return; }
   if (combo.b === null && combo.k === null){
+    dropReuse();
     if (comboPromptHook && comboPromptHook(G, y)) return;
     var t = svgEl('text', { 'class': 'ring-combine', x: SIZE / 2, y: y });
     var s = svgEl('tspan', { 'class': 'is-a' });
@@ -19863,6 +19902,7 @@ function drawCombineLine(G, y){
     fitText(t);
     return;
   }
+  combineFresh = reuse ? [] : null;
   var g = exprBy(G), two = g !== null;
   var log = two ? exprLog(G, g) : null;
   // In the signed form elements and exponents are written nearest 0 (E,
@@ -19891,7 +19931,7 @@ function drawCombineLine(G, y){
     sga.textContent = E(combo.a);
     sgk.textContent = signed(combo.k);
     translateInto(sg, 'cyclicGroups.combineScalarGiven', { a: sga, k: sgk });
-    ringDynamicEl.appendChild(sg);
+    addCombineRoot(sg);
     fitLater = sg;
     y += COMBINE_LINE;
     free = true;
@@ -19904,7 +19944,7 @@ function drawCombineLine(G, y){
     sa.textContent = E(a);
     sk.textContent = signed(k);
     translateInto(given, 'cyclicGroups.combineScalarGiven', { a: sa, k: sk });
-    ringDynamicEl.appendChild(given);
+    addCombineRoot(given);
     fitLater = given;
     y += COMBINE_LINE;
     // k is blue, as b is: a's exponent (yellow) and k mix into the green
@@ -20067,7 +20107,7 @@ function drawCombineLine(G, y){
     r0.push(['c', E(c)], [null, mod]);
   }
   var box = svgEl('g', { 'class': 'ring-combine-box' });
-  ringDynamicEl.appendChild(box);
+  addCombineRoot(box);
   var cols = [];
   // Each line its own height: under a line with ∏ or ∑ the next starts lower.
   var rowY = [], below = y;
@@ -20098,6 +20138,13 @@ function drawCombineLine(G, y){
     box.appendChild(t);
     return cells;
   });
+  if (combineFresh){
+    var map = patchCombineRoots(reuse, combineFresh), live = function(n){ return map.get(n) || n; };
+    combineFresh = null;
+    if (fitLater) fitLater = live(fitLater);
+    box = live(box);
+    built.forEach(function(cells){ cells.forEach(function(cell){ cell.spans = cell.spans.map(live); }); });
+  }
   if (fitLater) fitText(fitLater);
   var lines = built.map(function(cells, r){
     // Free lines stand alone, but for those joined to the first, or those
@@ -20158,6 +20205,26 @@ function drawCombineLine(G, y){
     box.setAttribute('transform', 'translate(' + num(SIZE / 2 * (1 - f)) + ' ' + num(y * (1 - f)) + ') scale(' + num(f) + ')');
   }
 }
+// The lines' top elements as drawCombineLine builds them: collected while
+// they are to be patched into the old ones, put in the ring otherwise.
+var combineFresh = null;
+function addCombineRoot(el){
+  if (combineFresh) combineFresh.push(el);
+  else ringDynamicEl.appendChild(el);
+}
+// The new lines written into the old, element for element where they are
+// built alike (morphTree), put in fresh where they are not; returns the map
+// from each new node to the node it was written into.
+function patchCombineRoots(old, fresh){
+  var map = new Map();
+  if (old.length !== fresh.length){
+    old.forEach(function(el){ el.remove(); });
+    fresh.forEach(function(el){ ringDynamicEl.appendChild(el); });
+    return map;
+  }
+  fresh.forEach(function(el, i){ if (morphTree(old[i], el, map) === old[i]) old[i].combineKept = true; });
+  return map;
+}
 document.addEventListener('keydown', function(e){
   if (e.key !== 'Escape' || (combo.a === null && combo.b === null) || e.defaultPrevented) return;
   if (e.target.closest && e.target.closest('input, select, textarea, [contenteditable]')) return;
@@ -20199,10 +20266,10 @@ function syncCombineMode(){
   // The data-i18n keys follow the mode, so a language change keeps the right name.
   name.setAttribute('data-i18n', key);
   box.setAttribute('data-i18n-aria-label', key);
-  name.textContent = translate(key);
+  setTextData(name, translate(key));
   box.setAttribute('aria-label', translate(key));
-  el.textContent = 'a ∗ b';
-  sc.textContent = 'aᵏ';
+  setTextData(el, 'a ∗ b');
+  setTextData(sc, 'aᵏ');
   el.setAttribute('aria-pressed', String(!scalar));
   sc.setAttribute('aria-pressed', String(scalar));
   k.parentNode.hidden = !scalar;
@@ -20224,16 +20291,30 @@ function syncCombineKMod(G){
   var on = k >= n;
   el.classList.toggle('is-idle', !on);
   el.disabled = !on;
-  el.textContent = '';
-  var shown = document.createElement('span'), size = document.createElement('span');
-  shown.textContent = on ? '≡ ' + (k % n) : '';
-  size.textContent = '≡ ' + (n - 1);
-  size.className = 'combine-k-mod-size';
-  size.setAttribute('aria-hidden', 'true');
-  el.append(shown, size);
+  // Its two spans written into, not made again: under the window's :has()
+  // rules an element added costs the whole window's styles again.
+  var shown = el.children[0], size = el.children[1];
+  if (el.children.length !== 2 || !size.classList.contains('combine-k-mod-size')){
+    el.textContent = '';
+    shown = document.createElement('span');
+    size = document.createElement('span');
+    size.className = 'combine-k-mod-size';
+    size.setAttribute('aria-hidden', 'true');
+    el.append(shown, size);
+  }
+  setTextData(shown, on ? '≡ ' + (k % n) : '');
+  setTextData(size, '≡ ' + (n - 1));
   if (!on){ el.removeAttribute('title'); el.removeAttribute('aria-label'); return; }
   el.title = translate('cyclicGroups.combineScalarKMod', { k: k, n: n, r: k % n });
   el.setAttribute('aria-label', el.title);
+}
+// An element's text changed in its text node's data where it has just one,
+// with no node added or taken away.
+function setTextData(el, text){
+  var t = el.firstChild;
+  if (t && t.nodeType === 3 && el.childNodes.length === 1){ if (t.data !== text) t.data = text; return; }
+  el.textContent = text;
+  if (!el.firstChild) el.appendChild(document.createTextNode(''));
 }
 // Clicked, the reduction is made: k becomes k mod |G|.
 $('combine-k-mod').addEventListener('click', function(){
@@ -20480,6 +20561,26 @@ function morphEl(el, like){
   Array.prototype.slice.call(el.attributes).forEach(function(a){ if (!like.hasAttribute(a.name)) el.removeAttribute(a.name); });
   Array.prototype.forEach.call(like.attributes, function(a){ if (el.getAttribute(a.name) !== a.value) el.setAttribute(a.name, a.value); });
   return true;
+}
+// Writes fresh into live, node for node, keeping live's nodes: attributes
+// and text data changed in place where the two are built alike (the same
+// tags, as many children), fresh put in live's place where they are not.
+// map takes each fresh node to the live one standing for it. Returns the
+// node now in place.
+function morphTree(live, fresh, map){
+  if (live.nodeName !== fresh.nodeName || live.childNodes.length !== fresh.childNodes.length){
+    live.replaceWith(fresh);
+    return fresh;
+  }
+  map.set(fresh, live);
+  if (live.nodeType === 3){
+    if (live.data !== fresh.data) live.data = fresh.data;
+    return live;
+  }
+  morphEl(live, fresh);
+  var a = Array.prototype.slice.call(live.childNodes), b = Array.prototype.slice.call(fresh.childNodes);
+  for (var i = 0; i < a.length; i++) morphTree(a[i], b[i], map);
+  return live;
 }
 function slowPlaceHead(L, p, heading, w){
   var head = arrowHead(L.headCls, p[0] - w * L.size * Math.cos(heading), p[1] - w * L.size * Math.sin(heading), heading, L.size);
