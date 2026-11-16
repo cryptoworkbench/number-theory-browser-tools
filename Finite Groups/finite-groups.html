@@ -14186,12 +14186,15 @@ function dropZoomPreview(){
   // slide in from the preview's scale.
   requestAnimationFrame(function(){ p.els.forEach(function(el){ if (!zoomPreview) el.style.transition = ''; }); });
 }
-// A zoom asked for by hand: it ends Keep every arrow in sight.
+// A zoom asked for by hand on the slider or the scroll wheel: it ends
+// Keep every arrow in sight.
 function userZoom(i){
   setZoomFit(false);
   previewRingZoom(i);
 }
-function stepUserZoom(by){ if (canZoom(by)) userZoom(zoomShown() + by); }
+// A step from the pill's − and + or the − and + keys leaves it on: the fit
+// still zooms out after a step in that puts an arrow out of sight.
+function stepUserZoom(by){ if (canZoom(by)) previewRingZoom(zoomShown() + by); }
 function tellPaneZoom(i, at){
   if (!isoPaneFrame) return;
   try { isoPaneFrame.contentWindow.postMessage({ ringhost: 'zoom', i: i, at: at }, '*'); } catch (e) { /* a frame that is gone needs nothing */ }
@@ -14942,7 +14945,8 @@ document.addEventListener('keydown', function(e){
 // Keep every arrow in sight: while on, the ring zooms out as far as it
 // takes for every arrow drawn, the raw results' reaching out over the
 // congruence wheel included, to lie in the main area (see fitRingZoom),
-// and never zooms back in by itself; zooming by hand turns it off. Kept in
+// and never zooms back in by itself; zooming with the slider or the scroll
+// wheel, or resetting the zoom, turns it off, a − or + step does not. Kept in
 // storage.
 var ZOOM_FIT_KEY = 'cyclic-groups-zoom-fit';
 var zoomFitEl = $('zoom-fit'), zoomFitOn = false;
