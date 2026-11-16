@@ -1363,6 +1363,7 @@
   :root.is-card-lines-solid .ring-combine-plate, :root.is-card-lines-solid .ring-combine-plate.is-hot{ fill:var(--surface); }
   :root.is-card-lines-solid .ring-combine-frost{ display:none; }
   .ring-wheel-lit.is-out{ opacity:0; }
+  .ring-wheel-lit.is-passed{ opacity:0; transition-duration:.15s; }
   @keyframes ring-wheel-lit{ from{ opacity:0; } }
   /* The reduced bead's halo flashes three times, then is gone. */
   .bead-reduced{ fill:none; stroke:var(--pointer-edge); pointer-events:none; opacity:0; animation:bead-reduced 1.5s linear; }
@@ -13512,7 +13513,9 @@ function ringWheelCellAt(e){
 }
 // The double-tapped cell lights up, then each cell under it in turn, and last the
 // bead: the cell's number reduced mod n is the bead's. A new tap, or the
-// wheel redrawn, starts over.
+// wheel redrawn, starts over. A double tap's walk (one) lights one cell at
+// a time, each going out as the next lights; the others' cells stay lit
+// until the walk is done.
 // Shapes el as the cell of bead x's wedge in ring k of the wheel g; false
 // where the wheel no longer has that cell.
 function litWheelCell(g, x, k, el){
@@ -13529,7 +13532,7 @@ function wheelCellTap(x, j){
   var now = Date.now(), last = lastWheelTap;
   if (last && last.x === x && last.j === j && now - last.t <= 450){
     lastWheelTap = null;
-    walkWheelCell(x, j);
+    walkWheelCell(x, j, true);
     return;
   }
   lastWheelTap = { x: x, j: j, t: now };
@@ -13556,8 +13559,18 @@ function lightWheelCell(x, j){
 // How long the walk down from ring j takes, the bead's halo included.
 function wheelWalkMs(j){ return (j + 1) * wheelWalkStep(j); }
 function wheelWalkStep(j){ return Math.min(260, 2600 / (j + 1)); }
-function walkWheelCell(x, j){
+function walkWheelCell(x, j, one){
   var walk = ++wheelWalk, step = wheelWalkStep(j), lit = [];
+  // The cell lit before goes out quickly (is-passed) and is dropped once faded.
+  var pass = function(){
+    var el = one && lit.pop();
+    if (!el) return;
+    el.classList.add('is-passed');
+    setTimeout(function(){
+      el.remove();
+      wheelLit = wheelLit.filter(function(c){ return c.el !== el; });
+    }, 200);
+  };
   wheelLit.forEach(function(c){ c.el.remove(); });
   wheelLit = [];
   var done = function(){
@@ -13571,6 +13584,7 @@ function walkWheelCell(x, j){
     var g = ringWheelG(), c = g && g.cells;
     if (walk !== wheelWalk || !c || c.place[x] === undefined){ done(); return; }
     if (k < 0){
+      pass();
       var ringEl = ringDynamicEl.querySelector('.ring'), b = ringEl && ringEl.querySelector('.bead[data-el="' + x + '"]');
       if (b){
         var r = +b.getAttribute('r');
@@ -13580,6 +13594,7 @@ function walkWheelCell(x, j){
       done();
       return;
     }
+    pass();
     var cell = svgEl('path', { 'class': 'ring-wheel-lit' });
     if (litWheelCell(g, x, k, cell)) g.insertBefore(cell, g.querySelector('.dhc-wheel-num'));
     lit.push(cell);
