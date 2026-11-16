@@ -1346,8 +1346,9 @@
      over it as they do over a zoomed ring (has-wheel, see topBand). */
   .fs-win-body.is-ring > svg.ring-svg.has-wheel{ position:relative; z-index:-2; }
   /* A tapped cell of that wheel lights up, then the cell under it, ring by
-     ring down to the beads, and the bead holding its residue gets a white
-     halo for a moment; the lit cells then fade together. */
+     ring down to the beads, one cell lit at a time (is-passed fading the
+     one before), and the bead holding its residue gets a white halo for a
+     moment. */
   .ring-wheel-lit{ fill:color-mix(in srgb, var(--accent) 42%, transparent); stroke:none; animation:ring-wheel-lit .18s ease-out; transition:opacity .6s ease; }
   .ring-wheel-lit.is-kept{ animation:none; }
   /* Over the wheel the combination's lines (a ∗ b, aᵏ) sit on a rounded
@@ -13513,9 +13514,9 @@ function ringWheelCellAt(e){
 }
 // The double-tapped cell lights up, then each cell under it in turn, and last the
 // bead: the cell's number reduced mod n is the bead's. A new tap, or the
-// wheel redrawn, starts over. A double tap's walk (one) lights one cell at
-// a time, each going out as the next lights; the others' cells stay lit
-// until the walk is done.
+// wheel redrawn, starts over. One cell is lit at a time, each going out as
+// the next lights, the last as the bead's halo shows; so for every walk
+// down (a double tap, Ctrl + R, and slow aᵏ's and a ∗ b's arrows).
 // Shapes el as the cell of bead x's wedge in ring k of the wheel g; false
 // where the wheel no longer has that cell.
 function litWheelCell(g, x, k, el){
@@ -13532,7 +13533,7 @@ function wheelCellTap(x, j){
   var now = Date.now(), last = lastWheelTap;
   if (last && last.x === x && last.j === j && now - last.t <= 450){
     lastWheelTap = null;
-    walkWheelCell(x, j, true);
+    walkWheelCell(x, j);
     return;
   }
   lastWheelTap = { x: x, j: j, t: now };
@@ -13559,11 +13560,11 @@ function lightWheelCell(x, j){
 // How long the walk down from ring j takes, the bead's halo included.
 function wheelWalkMs(j){ return (j + 1) * wheelWalkStep(j); }
 function wheelWalkStep(j){ return Math.min(260, 2600 / (j + 1)); }
-function walkWheelCell(x, j, one){
+function walkWheelCell(x, j){
   var walk = ++wheelWalk, step = wheelWalkStep(j), lit = [];
   // The cell lit before goes out quickly (is-passed) and is dropped once faded.
   var pass = function(){
-    var el = one && lit.pop();
+    var el = lit.pop();
     if (!el) return;
     el.classList.add('is-passed');
     setTimeout(function(){
