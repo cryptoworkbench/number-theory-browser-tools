@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-10-02)
 Phase: 4 — Continued Fractions Tool
 Plan: Not started
 Status: Ready to plan
-Last activity: 2026-11-16 - Completed quick task 261116-qwc: Finite Groups cell walk one at a time
+Last activity: 2026-11-16 - Completed quick task 261116-r4k: Finite Groups fit survives zoom steps
 
 Progress: [█████████░] 86%
 
@@ -715,6 +715,7 @@ None yet.
 | 261116-pzs | Finite Groups: pause button (and Space) stopping slow aᵏ / a ∗ b arrows; Keep every arrow in sight lit while on (branch smooth-zoom-fit) | 2026-11-16 | 6102e08 | [261116-pzs-finite-groups-slow-arrows-stop-button](./quick/261116-pzs-finite-groups-slow-arrows-stop-button/) |
 | 261116-qfz | Finite Groups: Keep every arrow in sight zooms out before slow arrows grow (branch smooth-zoom-fit) | 2026-11-16 | 466c195 | [261116-qfz-finite-groups-fit-before-slow-arrows](./quick/261116-qfz-finite-groups-fit-before-slow-arrows/) |
 | 261116-qwc | Finite Groups: a double-clicked wheel cell walks down one lit cell at a time (branch smooth-zoom-fit) | 2026-11-16 | 78a0ae1 | [261116-qwc-finite-groups-cell-walk-one-at-a-time](./quick/261116-qwc-finite-groups-cell-walk-one-at-a-time/) |
+| 261116-r4k | Finite Groups: − / + zoom steps leave Keep every arrow in sight on (branch smooth-zoom-fit) | 2026-11-16 | 049b476 | [261116-r4k-finite-groups-fit-survives-zoom-steps](./quick/261116-r4k-finite-groups-fit-survives-zoom-steps/) |
 | 261115-fm2 | Finite Groups: forward/backward path overlaps drawn in the both-paths green | 2026-11-15 | f3d01dd | [261115-fm2-finite-groups-shared-forward-backward-pa](./quick/261115-fm2-finite-groups-shared-forward-backward-pa/) |
 | fast | Cyclic Groups DH time cylinder, Per hop: hairline slice rims so the grey beads stay visible | 2026-11-04 | e6f0b6c | — |
 | fast | Cyclic Groups: Subgroup switched off keeps the group's name in the subgroup row, without G and ⟨h⟩ | 2026-11-04 | 20274e9 | — |
@@ -987,4 +988,4 @@ Last session: 2026-10-03
 Stopped at: Quick task 261005-dn2 complete — Venn Diagram double-click respects thumbnail scroll
 Resume file: None
 
-Last activity: 2026-11-16 - Completed quick task 261116-qwc: Finite Groups cell walk one at a time
+Last activity: 2026-11-16 - Completed quick task 261116-r4k: Finite Groups fit survives zoom steps
