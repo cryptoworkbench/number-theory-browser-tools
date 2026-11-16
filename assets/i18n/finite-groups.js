@@ -1436,6 +1436,7 @@
       dhClose: 'Close',
       pizzaTitle: 'Cosets of ⟨{h}⟩ within {g}',
       combineTopResult: 'Keep the result on top',
+      spinHeldTip: 'Turn off Keep the result on top to use this again',
       ringWheel: 'Congruence wheel',
       ringWheelMod: '% {n}',
       reduceAsk: 'Reduce a number in this specific modular arithmetic system:',
