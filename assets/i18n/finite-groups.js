@@ -315,7 +315,7 @@
    heading in the aᵏ and a ∗ b buttons' right-click menus and its two
    choices: the arrows drawn at once, or each growing along its path),
    and zoomFit (the switch beside the zoom pill keeping every arrow, the
-   raw results' included, in sight), and combineStop (the pause button
+   raw results' included, in sight), and combineStop (the stop button
    beside the a ∗ b / aᵏ choice stopping slow arrows).
    Every other language shows the English value through NT.i18n's
    fallback meanwhile.
