@@ -14915,10 +14915,11 @@ document.addEventListener('keydown', function(e){
   e.preventDefault();
   stepUserZoom(by);
 });
-// Keep every arrow in sight: while on, the ring takes the largest zoom, up
-// to 100%, at which every arrow drawn, the raw results' reaching out over
-// the congruence wheel included, lies in the main area (see fitRingZoom);
-// zooming by hand turns it off. Kept in storage.
+// Keep every arrow in sight: while on, the ring zooms out as far as it
+// takes for every arrow drawn, the raw results' reaching out over the
+// congruence wheel included, to lie in the main area (see fitRingZoom),
+// and never zooms back in by itself; zooming by hand turns it off. Kept in
+// storage.
 var ZOOM_FIT_KEY = 'cyclic-groups-zoom-fit';
 var zoomFitEl = $('zoom-fit'), zoomFitOn = false;
 try { zoomFitOn = localStorage.getItem(ZOOM_FIT_KEY) === '1'; } catch (e) { /* storage unavailable */ }
@@ -14934,15 +14935,15 @@ zoomFitEl.setAttribute('aria-pressed', zoomFitOn ? 'true' : 'false');
 zoomFitEl.addEventListener('click', function(){ setZoomFit(!zoomFitOn); });
 // The view the last drawing set (see render), which fitRingZoom zooms.
 var zoomFitView = null, zoomFitQueued = false;
-// The largest zoom up to 100% at which the outer edge of every cell the
-// raw results reach lies in the main area, worked out from the drawing's
+// The largest zoom up to the present one at which the outer edge of every
+// cell the raw results reach lies in the main area, worked out from the drawing's
 // view and places alone: the view box as render sets it at that zoom,
 // fitted into the ring svg, against the wheel's clip (ringWheelClip), the
 // main area on screen, which no zoom moves.
 function fitRingZoom(){
   var G = drawn && drawn.G, v = zoomFitView, map = ringLayerMap, clip = ringWheelClip, place = rawReach.place;
   var reach = rawReach.walks.concat(rawReach.combo);
-  if (!G || !v || !map || !clip || !place || !reach.length || !ringWheelShown(G)) return RING_ZOOM_FIT;
+  if (!G || !v || !map || !clip || !place || !reach.length || !ringWheelShown(G)) return ringZoom;
   var box = v.box, m = rawReach.m, ring = ringWheelRing(box.R), R0 = box.R + beadRadius(m, box.R) + 4;
   var wheel = ringDynamicEl.querySelector('.ring'), turned = wheel && /rotate\((-?[\d.]+)/.exec(wheel.getAttribute('transform') || '');
   var turn = turned ? +turned[1] : 0, pad = 8;
@@ -14956,7 +14957,7 @@ function fitRingZoom(){
     seen[key] = true;
     pts.push(polar(box.cx, box.cy, R0 + (c.q + 1) * ring, dirSign() * 360 * place[c.el] / m + turn));
   });
-  for (var i = RING_ZOOM_FIT; i > 0; i--){
+  for (var i = ringZoom; i > 0; i--){
     var z = RING_ZOOMS[i], vw = SIZE / z, vh = (v.low - v.top) / z;
     var vx = box.cx - box.cx / z, vy = box.cy - (box.cy - v.top) / z + ringLift;
     var k = Math.min(map.w / vw, map.h / vh), ox = (map.w - vw * k) / 2 - vx * k, oy = (map.h - vh * k) / 2 - vy * k;
@@ -14977,7 +14978,7 @@ function queueZoomFit(){
     zoomFitQueued = false;
     if (!zoomFitOn || zoomPreview) return;
     var i = fitRingZoom();
-    if (i !== ringZoom) setRingZoom(i);
+    if (i < ringZoom) setRingZoom(i);
   });
 }
 
