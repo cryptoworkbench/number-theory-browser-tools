@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-10-02)
 Phase: 4 — Continued Fractions Tool
 Plan: Not started
 Status: Ready to plan
-Last activity: 2026-11-16 - Completed quick task 261116-u5w: Finite Groups slow aᵏ wheel smooth and thin fit
+Last activity: 2026-11-16 - Completed quick task 261116-v2k: Finite Groups walk down no wheel repaint
 
 Progress: [█████████░] 86%
 
@@ -721,6 +721,7 @@ None yet.
 | 261115-fm2 | Finite Groups: forward/backward path overlaps drawn in the both-paths green | 2026-11-15 | f3d01dd | [261115-fm2-finite-groups-shared-forward-backward-pa](./quick/261115-fm2-finite-groups-shared-forward-backward-pa/) |
 | 261116-t3z | Finite Groups: zooming out redraws the ring each frame instead of shrinking the old drawing over bare background | 2026-11-16 | 6e98b81 | [261116-t3z-finite-groups-zoom-out-no-bare-background](./quick/261116-t3z-finite-groups-zoom-out-no-bare-background/) |
 | 261116-u5w | Finite Groups: slow aᵏ over the congruence wheel: no flicker (static frost copy), walk down in step with the diving head, Keep every arrow in sight thins the cells past 25% | 2026-11-16 | cf3f291 | [261116-u5w-finite-groups-slow-ak-wheel-smooth-and-thin-fit](./quick/261116-u5w-finite-groups-slow-ak-wheel-smooth-and-thin-fit/) |
+| 261116-v2k | Finite Groups: lit cells in their own pooled layer, frost copy culled to the card: slow aᵏ over the wheel 17-33 ms frames (was 117-150) | 2026-11-16 | 35982c5 | [261116-v2k-finite-groups-walk-down-no-wheel-repaint](./quick/261116-v2k-finite-groups-walk-down-no-wheel-repaint/) |
 | fast | Cyclic Groups DH time cylinder, Per hop: hairline slice rims so the grey beads stay visible | 2026-11-04 | e6f0b6c | — |
 | fast | Cyclic Groups: Subgroup switched off keeps the group's name in the subgroup row, without G and ⟨h⟩ | 2026-11-04 | 20274e9 | — |
 | fast | Cyclic Groups: Diffie-Hellman Colours switch, Alice and Bob in own colours or the forward/backward path colours | 2026-11-04 | 5bd6ece | — |
@@ -992,4 +993,4 @@ Last session: 2026-10-03
 Stopped at: Quick task 261005-dn2 complete — Venn Diagram double-click respects thumbnail scroll
 Resume file: None
 
-Last activity: 2026-11-16 - Completed quick task 261116-u5w: Finite Groups slow aᵏ wheel smooth and thin fit
+Last activity: 2026-11-16 - Completed quick task 261116-v2k: Finite Groups walk down no wheel repaint
