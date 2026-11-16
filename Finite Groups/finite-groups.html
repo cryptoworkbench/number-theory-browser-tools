@@ -13247,7 +13247,9 @@ function cardCombineLines(G){
   // measuring again would lay the page out for.
   var els = Array.prototype.slice.call(lines), ext;
   var same = ringKept && ringKept.lines && cardExtKept && cardExtKept.els.length === els.length && els.every(function(el, i){ return el === cardExtKept.els[i]; });
-  ext = same ? cardExtKept.ext : combineExtent(lines);
+  var hugged = combineHug && combineHug.els.length === els.length && els.every(function(el, i){ return el === combineHug.els[i]; });
+  ext = same ? cardExtKept.ext : hugged ? combineHug.ext : combineExtent(lines);
+  combineHug = null;
   cardExtKept = ext ? { els: els, ext: ext } : null;
   if (!ext){ dropKept(); return; }
   var x0 = ext.x0, y0 = ext.y0, x1 = ext.x1, y1 = ext.y1;
@@ -13261,8 +13263,10 @@ function cardCombineLines(G){
       rect.removeAttribute('transform');
       Object.keys(card).forEach(function(k){ rect.setAttribute(k, card[k]); });
     });
-    if (JSON.stringify(keptFrost.card) !== JSON.stringify(card)){
-      keptFrost.card = card;
+    // Copied again only once it reaches other rings.
+    keptFrost.card = card;
+    if (String(frostRings(wheel, card)) !== String(frostRings(wheel, keptFrost.copiedFor))){
+      keptFrost.copiedFor = card;
       var was = keptFrost.querySelector(':scope > .ring-frost-wheel');
       if (was) was.replaceWith(frostWheelCopy(wheel, card));
     }
@@ -13273,7 +13277,7 @@ function cardCombineLines(G){
     frost.appendChild(svgEl('rect', Object.assign({ 'class': 'ring-card-turn ring-combine-ground' }, card)));
     frost.appendChild(frostWheelCopy(wheel, card));
     frost.wheel = wheel;
-    frost.card = card;
+    frost.card = frost.copiedFor = card;
     frost.drawn = wheel.drawn;
     if (wheel.parentNode === wheelTurnEl) frostTurnEl.appendChild(frost);
     else wheel.parentNode.insertBefore(frost, wheel.nextSibling);
@@ -13292,23 +13296,33 @@ function cardCombineLines(G){
 // the card (a margin round it for the blur) reaches into are copied, as
 // many as show through it however the wheel turns: the whole wheel's,
 // thousands zoomed out, made every frame of the page cost their painting.
+// The rings of the wheel g a card reaches into, a margin round it for the
+// blur: [first, last], or null.
+function frostRings(g, card){
+  var c = g.cells;
+  if (!c || !card) return null;
+  var pad = 20, x0 = +card.x - pad, y0 = +card.y - pad, x1 = +card.x + +card.width + pad, y1 = +card.y + +card.height + pad;
+  var lo = Math.hypot(Math.max(x0 - c.cx, 0, c.cx - x1), Math.max(y0 - c.cy, 0, c.cy - y1));
+  var hi = Math.max(Math.hypot(x0 - c.cx, y0 - c.cy), Math.hypot(x1 - c.cx, y0 - c.cy), Math.hypot(x0 - c.cx, y1 - c.cy), Math.hypot(x1 - c.cx, y1 - c.cy));
+  return [Math.floor((lo - c.R0) / c.ring) - 1, Math.ceil((hi - c.R0) / c.ring) + 1];
+}
 function frostWheelCopy(wheel, card){
-  var copy = wheel.cloneNode(false), c = wheel.cells, near = null;
+  var copy = wheel.cloneNode(false), rings = frostRings(wheel, card), near = null;
   copy.setAttribute('class', 'dhc-wheel ring-frost-wheel');
   copy.removeAttribute('id');
-  if (c && card){
-    var pad = 20, x0 = +card.x - pad, y0 = +card.y - pad, x1 = +card.x + +card.width + pad, y1 = +card.y + +card.height + pad;
-    var lo = Math.hypot(Math.max(x0 - c.cx, 0, c.cx - x1), Math.max(y0 - c.cy, 0, c.cy - y1));
-    var hi = Math.max(Math.hypot(x0 - c.cx, y0 - c.cy), Math.hypot(x1 - c.cx, y0 - c.cy), Math.hypot(x0 - c.cx, y1 - c.cy), Math.hypot(x1 - c.cx, y1 - c.cy));
-    near = function(el){
-      var j = +String(el.getAttribute('data-cell')).split(',')[1], r = c.R0 + (j + 0.5) * c.ring;
-      return !(r < lo - c.ring || r > hi + c.ring);
-    };
-  }
+  // The card's window clips it: the wheel's clip, turned at every step,
+  // would have every number in it laid out again.
+  copy.removeAttribute('clip-path');
+  if (rings) near = function(el){
+    var j = +String(el.getAttribute('data-cell')).split(',')[1];
+    return j >= rings[0] && j <= rings[1];
+  };
   Array.prototype.forEach.call(wheel.children, function(el){
     if (el.tagName === 'clipPath' || el.classList.contains('ring-wheel-lit')) return;
-    if (near && el.classList.contains('dhc-wheel-num') && !near(el)) return;
-    copy.appendChild(el.cloneNode(true));
+    if (!near || !el.classList.contains('dhc-wheel-nums')){ copy.appendChild(el.cloneNode(true)); return; }
+    var nums = el.cloneNode(false);
+    Array.prototype.forEach.call(el.children, function(t){ if (near(t)) nums.appendChild(t.cloneNode(true)); });
+    if (nums.firstChild) copy.appendChild(nums);
   });
   return copy;
 }
@@ -13319,6 +13333,7 @@ function refreshFrostWheel(g){
       if (frost.wheel !== g) return;
       var old = frost.querySelector(':scope > .ring-frost-wheel');
       if (old) old.replaceWith(frostWheelCopy(g, frost.card));
+      frost.copiedFor = frost.card;
       frost.drawn = g.drawn;
     });
   });
@@ -13352,6 +13367,14 @@ function combineCopies(){
   });
   var all = combineExtent(texts);
   if (!all) return;
+  // What the card hugs (cardCombineLines), the lines' boxes and texts read
+  // now, while the layout is fresh, and the buttons added below as they
+  // are placed: read after they go in, the page's styles and layout would
+  // be worked out all over again.
+  var hug = combineExtent(ringDynamicEl.querySelectorAll('.ring-combine-box, text.ring-combine')) || all;
+  var hugRect = function(x0, y0, w, h){
+    hug = { x0: Math.min(hug.x0, x0), y0: Math.min(hug.y0, y0), x1: Math.max(hug.x1, x0 + w), y1: Math.max(hug.y1, y0 + h) };
+  };
   var x = all.x1 + 6;
   var group = svgEl('g', { 'class': 'ring-combine-copies' });
   group.appendChild(svgEl('rect', { 'class': 'ring-combine-area', x: num(all.x0 - COMBINE_CARD_PAD), y: num(all.y0 - COMBINE_CARD_PAD / 2), width: num(x + COMBINE_COPY_W - all.x0 + 2 * COMBINE_CARD_PAD), height: num(all.y1 - all.y0 + COMBINE_CARD_PAD), fill: 'none', 'pointer-events': 'none' }));
@@ -13361,6 +13384,7 @@ function combineCopies(){
     var plain = t.getAttribute('data-plain') || t.textContent.trim(), cy = (at.y0 + at.y1) / 2;
     var btn = svgEl('g', { 'class': 'ring-combine-copy', role: 'button', tabindex: '0' });
     btn.appendChild(svgEl('rect', { x: num(x), y: num(cy - COMBINE_COPY_H / 2), width: COMBINE_COPY_W, height: COMBINE_COPY_H, rx: 4 }));
+    hugRect(x, cy - COMBINE_COPY_H / 2, COMBINE_COPY_W, COMBINE_COPY_H);
     var glyph = btn.appendChild(svgEl('g', { transform: 'translate(' + num(x + 1) + ' ' + num(cy - 6) + ') scale(' + num(12 / 14) + ')' }));
     var label = function(key){
       btn.setAttribute('data-title', translate(key));
@@ -13403,6 +13427,7 @@ function combineCopies(){
       var bx = x + (i + 1) * (COMBINE_COPY_W + 4);
       var btn = svgEl('g', { 'class': 'ring-combine-copy is-card', role: 'button', tabindex: '0', 'data-title': translate(b[0]), 'aria-label': translate(b[0]) });
       btn.appendChild(svgEl('rect', { x: num(bx), y: num(cy - COMBINE_COPY_H / 2), width: COMBINE_COPY_W, height: COMBINE_COPY_H, rx: 4 }));
+      hugRect(bx, cy - COMBINE_COPY_H / 2, COMBINE_COPY_W, COMBINE_COPY_H);
       var glyph = btn.appendChild(svgEl('g', { transform: 'translate(' + num(bx + 1) + ' ' + num(cy - 6) + ')' }));
       b[1].forEach(function(d){ glyph.appendChild(svgEl('path', { d: d })); });
       var go = function(){ setCombineCard(b[2]); };
@@ -13418,8 +13443,12 @@ function combineCopies(){
     area.setAttribute('width', num(+area.getAttribute('width') + 2 * (COMBINE_COPY_W + 4)));
   }
   ringDynamicEl.appendChild(group);
+  combineHug = { els: Array.prototype.slice.call(ringDynamicEl.querySelectorAll('.ring-combine-box, text.ring-combine, .ring-combine-copy')), ext: hug };
   syncCombineCardHot(combineCardPointer);
 }
+// The reach combineCopies worked out for the card, with the elements it
+// covers, or null.
+var combineHug = null;
 // The blur's ground is whatever the ring is drawn on, read again whenever
 // the theme changes.
 // The ground is read once for each look of the page: the theme and the
@@ -13508,7 +13537,7 @@ function drawRingWheel(g, G, place, m, box, beadR){
   }
   if (keep && wheelKept && wheelKept.key === keep) wheelKept.nodes.forEach(function(el){ g.appendChild(el); });
   else drawRingWheelCells(g, G, place, m, box, R0, ring, depth, outer, wedge);
-  wheelKept = keep ? { key: keep, g: g, clip: clipKey, nodes: Array.prototype.slice.call(g.querySelectorAll(':scope > .dhc-wheel-band, :scope > .dhc-wheel-ring, :scope > .dhc-wheel-num')) } : null;
+  wheelKept = keep ? { key: keep, g: g, clip: clipKey, nodes: Array.prototype.slice.call(g.querySelectorAll(':scope > .dhc-wheel-band, :scope > .dhc-wheel-ring, :scope > .dhc-wheel-nums')) } : null;
   // What a tap on a cell needs to find it (see ringWheelCellAt).
   g.cells = { G: G, place: place, m: m, cx: box.cx, cy: box.cy, R0: R0, ring: ring, depth: depth };
   // Cells lit by a tap stay lit through the redraw, under the numbers,
@@ -13538,12 +13567,17 @@ function drawRingWheelCells(g, G, place, m, box, R0, ring, depth, outer, wedge){
       var p1 = polar(box.cx, box.cy, R0, mid - wedge / 2), p2 = polar(box.cx, box.cy, outer, mid - wedge / 2);
       g.appendChild(svgEl('line', { 'class': 'dhc-wheel-ring', x1: num(p1[0]), y1: num(p1[1]), x2: num(p2[0]), y2: num(p2[1]) }));
     }
+    // The wedge's numbers share one turn, about the wheel's centre, each
+    // laid where that turn carries it to its place: turned about its own
+    // place, every number was a transform of its own, and the thousands of
+    // them made each frame's layering of the page cost as many pieces.
     var rot = mid > 90 && mid < 270 ? mid + 180 : mid;
+    var nums = g.appendChild(svgEl('g', { 'class': 'dhc-wheel-nums', transform: 'rotate(' + num(rot) + ' ' + box.cx + ' ' + box.cy + ')' }));
     for (var j = 0; j < depth; j++){
-      var q = polar(box.cx, box.cy, R0 + (j + 0.5) * ring, mid);
-      var t = svgEl('text', { 'class': 'dhc-wheel-num', 'data-cell': x + ',' + j, x: num(q[0]), y: num(q[1]), 'font-size': num(size), transform: 'rotate(' + num(rot) + ' ' + num(q[0]) + ' ' + num(q[1]) + ')' });
+      var q = polar(box.cx, box.cy, R0 + (j + 0.5) * ring, mid - rot);
+      var t = svgEl('text', { 'class': 'dhc-wheel-num', 'data-cell': x + ',' + j, x: num(q[0]), y: num(q[1]), 'font-size': num(size) });
       t.textContent = String(x + j * N);
-      g.appendChild(t);
+      nums.appendChild(t);
     }
   });
 }
@@ -13593,13 +13627,16 @@ function litWheelCell(g, x, k, el){
   var tint = el.firstChild || el.appendChild(svgEl('path', {}));
   tint.setAttribute('d', annularSectorPath(c.cx, c.cy, c.R0 + k * c.ring, c.R0 + (k + 1) * c.ring, mid - half, mid + half));
   // Reshaped in place where it has one already (see takeLitCell).
+  // The copy takes its wedge's turn (see drawRingWheelCells).
   var n = g.querySelector('.dhc-wheel-num[data-cell="' + x + ',' + k + '"]'), old = tint.nextSibling;
-  if (!old) el.appendChild(n ? n.cloneNode(true) : svgEl('text', { display: 'none' }));
+  if (!old) old = el.appendChild(n ? n.cloneNode(true) : svgEl('text', { display: 'none' }));
   else if (!n) old.setAttribute('display', 'none');
   else if (morphEl(old, n) && old.textContent !== n.textContent){
     if (old.firstChild) old.firstChild.data = n.textContent;
     else old.textContent = n.textContent;
   }
+  var turn = n && n.parentNode.getAttribute('transform');
+  if (turn && old.getAttribute('transform') !== turn) old.setAttribute('transform', turn);
   return true;
 }
 // A lit cell put over the wheel g: in the lit cells' own layer, turned as
@@ -13607,7 +13644,7 @@ function litWheelCell(g, x, k, el){
 // wheel with all its numbers; while a flip carries the wheel in the ring,
 // in the wheel itself, under its numbers.
 function putLitCell(g, cell){
-  if (g.parentNode !== wheelTurnEl){ g.insertBefore(cell, g.querySelector('.dhc-wheel-num')); return; }
+  if (g.parentNode !== wheelTurnEl){ g.insertBefore(cell, g.querySelector(':scope > .dhc-wheel-nums')); return; }
   var tf = g.getAttribute('transform');
   if (litTurnEl.getAttribute('transform') !== tf){
     if (tf) litTurnEl.setAttribute('transform', tf);
