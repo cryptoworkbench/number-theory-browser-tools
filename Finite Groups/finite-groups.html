@@ -4039,6 +4039,182 @@ const { annularSectorPath, easeInOutCubic, polar, svgEl } = NT.svg;
 const { readModeNParams, readSharedGroup, writeSharedGroup } = NT.store;
 const { getLang, onLangChange, setLang, translate, translateInto } = NT.i18n;
 
+/* ---------- :has() as classes ---------- */
+// The style rules are written with :has(), but the browser never sees one:
+// any :has() rule made every element added anywhere in the window (a slow
+// arrow's every step) cost the browser a check of the whole window for what
+// it asks. At load each rule's :has(ARG) becomes a class, hs-N, kept here
+// on every element the rule could apply to by asking el.matches(':has(ARG)')
+// (a query from script sets none of the browser's :has() bookkeeping),
+// again whenever something it could depend on changes: the page's elements
+// or attributes outside the drawings' svgs, focus, hover (only rules that
+// ask for it), and a control's value. The class stands in the selector as
+// :is(:where(.hs-N), ARG:not(*)), so each rule keeps the specificity :has()
+// gave it.
+var hasShim = (function(){
+  var close = function(s, i){
+    for (var d = 0, j = i; j < s.length; j++){
+      if (s[j] === '(') d++;
+      else if (s[j] === ')' && --d === 0) return j;
+    }
+    return -1;
+  };
+  // s split at depth 0 on any of the characters in at.
+  var splitTop = function(s, at){
+    var out = [], d = 0, last = 0;
+    for (var i = 0; i < s.length; i++){
+      var c = s[i];
+      if (c === '(' || c === '[') d++;
+      else if (c === ')' || c === ']') d--;
+      else if (!d && at.indexOf(c) !== -1){ out.push(s.slice(last, i)); last = i + 1; }
+    }
+    out.push(s.slice(last));
+    return out;
+  };
+  var stripHas = function(s){
+    var out = '', i = 0, h;
+    while ((h = s.indexOf(':has(', i)) !== -1){ out += s.slice(i, h) + ':is(*)'; i = close(s, h + 4) + 1; }
+    return (out + s.slice(i)).replace(/:not\(:is\(\*\)\)/g, '');
+  };
+  // The elements the :has() at h in sel stands on: its compound, or, where
+  // that compound is nothing but pseudo-classes (as in :is(.x, :has(…))),
+  // the compound holding the function it is in, without its :has()es.
+  var anchorOf = function(sel, h){
+    for (var pos = h;;){
+      var open = -1;
+      for (var d = 0, i = pos - 1; i >= 0; i--){
+        if (sel[i] === ')') d++;
+        else if (sel[i] === '('){ if (!d){ open = i; break; } d--; }
+      }
+      var end = open < 0 ? sel.length : close(sel, open), from = open + 1, inner = sel.slice(from, end), at = pos - from;
+      var segs = splitTop(inner, ' >+~,'), seg = '', n = 0;
+      for (var k = 0; k < segs.length; k++){
+        if (at >= n && at <= n + segs[k].length){ seg = segs[k]; break; }
+        n += segs[k].length + 1;
+      }
+      // Without its :has()es, pseudo-elements and the dynamic states the
+      // classes are kept through anyway.
+      var bare = stripHas(seg).replace(/:is\(\*\)/g, '').replace(/::?(before|after)\b|::[\w-]+|:(hover|focus-visible|focus-within|focus|active)\b/g, '');
+      if (/[.#\[]|^[a-zA-Z*]/.test(bare)) return bare;
+      if (open < 0) return '*';
+      pos = sel.lastIndexOf(':', open);
+    }
+  };
+  var args = [], argIndex = {};
+  var classFor = function(arg, anchor){
+    var n = argIndex[arg];
+    if (n === undefined){
+      n = argIndex[arg] = args.length;
+      args.push({ arg: ':has(' + arg + ')', cls: 'hs-' + n, anchors: [], hover: /:hover/.test(arg), focus: /:focus/.test(arg), on: [] });
+    }
+    if (args[n].anchors.indexOf(anchor) === -1) args[n].anchors.push(anchor);
+    return n;
+  };
+  var rewrite = function(sel){
+    var out = '', i = 0, h;
+    while ((h = sel.indexOf(':has(', i)) !== -1){
+      var e = close(sel, h + 4), arg = sel.slice(h + 5, e).trim(), n = classFor(arg, anchorOf(sel, h));
+      var like = splitTop(arg, ',').map(function(a){ return a.trim().replace(/^[>+~]\s*/, '') + ':not(*)'; }).join(', ');
+      out += sel.slice(i, h) + ':is(:where(.hs-' + n + '), ' + like + ')';
+      i = e + 1;
+    }
+    return out + sel.slice(i);
+  };
+  var rules = [], failed = 0;
+  Array.prototype.forEach.call(document.styleSheets, function(sheet){
+    var walk = function(list){
+      Array.prototype.forEach.call(list, function(r){
+        if (r.selectorText && r.selectorText.indexOf(':has(') !== -1) rules.push(r);
+        else if (r.cssRules) walk(r.cssRules);
+      });
+    };
+    try { walk(sheet.cssRules); } catch (e) { /* another origin's sheet */ }
+  });
+  var from = rules.map(function(r){ return r.selectorText; });
+  rules.forEach(function(r){
+    r.selectorText = rewrite(r.selectorText);
+    if (r.selectorText.indexOf(':has(') !== -1) failed++;
+  });
+  // Each anchor read from the browser's own live list of the elements with
+  // one of its classes (or its id), filtered by the whole anchor: a query of
+  // the document would walk every element of the drawings each time.
+  args.forEach(function(a){
+    a.sources = a.anchors.map(function(sel){
+      var cls = /\.(-?[_a-zA-Z][\w-]*)/.exec(sel), id = /#(-?[_a-zA-Z][\w-]*)/.exec(sel);
+      return { sel: sel, list: cls ? document.getElementsByClassName(cls[1]) : null, id: !cls && id ? id[1] : null };
+    });
+  });
+  var candidates = function(a){
+    var out = [];
+    a.sources.forEach(function(src){
+      var list = src.list || (src.id ? [document.getElementById(src.id)].filter(Boolean) : document.querySelectorAll(src.sel));
+      for (var i = 0; i < list.length; i++){
+        var el = list[i];
+        if (out.indexOf(el) === -1 && el.matches(src.sel)) out.push(el);
+      }
+    });
+    return out;
+  };
+  var applying = false;
+  // only: 'hover' or 'focus' for the rules that ask for that state alone.
+  var sync = function(only){
+    applying = true;
+    args.forEach(function(a){
+      if (only && !a[only]) return;
+      var now = [];
+      try {
+        candidates(a).forEach(function(el){ if (el.matches(a.arg)) now.push(el); });
+      } catch (e) { /* a selector this browser cannot read */ }
+      a.on.forEach(function(el){ if (now.indexOf(el) === -1) el.classList.remove(a.cls); });
+      now.forEach(function(el){ if (!el.classList.contains(a.cls)) el.classList.add(a.cls); });
+      a.on = now;
+    });
+    mo.takeRecords();
+    applying = false;
+  };
+  // Changes inside a drawing's svg (every frame of an animation), what an
+  // svg holds, and inline styles (layers moved and turned) leave every rule
+  // as it was; no rule looks into an svg.
+  var mo = new MutationObserver(function(list){
+    if (applying) return;
+    for (var i = 0; i < list.length; i++){
+      var m = list[i], t = m.target;
+      if (m.type === 'attributes' && m.attributeName === 'style') continue;
+      if (t.nodeType !== 1) t = t.parentNode;
+      if (!t || t.ownerSVGElement || (m.type !== 'attributes' && t instanceof SVGElement)) continue;
+      sync();
+      return;
+    }
+  });
+  // Several events in a row synced once, before the next frame is drawn.
+  var queued = null;
+  var queue = function(only){
+    if (queued !== null){ if (queued !== only) queued = ''; return; }
+    queued = only || '';
+    queueMicrotask(function(){ var q = queued; queued = null; sync(q || undefined); });
+  };
+  var start = function(){
+    sync();
+    mo.observe(document.documentElement, { subtree: true, childList: true, attributes: true, characterData: true });
+    ['focusin', 'focusout', 'change', 'input'].forEach(function(t){ document.addEventListener(t, function(){ queue(); }, true); });
+    // A key can make a focus given by the mouse visible.
+    document.addEventListener('keydown', function(){ setTimeout(function(){ queue('focus'); }); }, true);
+    if (args.some(function(a){ return a.hover; })) ['pointerover', 'pointerout'].forEach(function(t){ document.addEventListener(t, function(){ queue('hover'); }, true); });
+    // A box ticked or cleared by script changes no attribute and fires no
+    // event: its setter queues a sync too.
+    var checked = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'checked');
+    if (checked && checked.set && args.some(function(a){ return /:checked/.test(a.arg); })){
+      Object.defineProperty(HTMLInputElement.prototype, 'checked', {
+        configurable: true, enumerable: checked.enumerable, get: checked.get,
+        set: function(v){ checked.set.call(this, v); queue(); }
+      });
+    }
+  };
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start);
+  else start();
+  return { rules: rules, from: from, args: args, failed: failed, sync: sync };
+})();
+
 /* ---------- constants ---------- */
 var MIN_N = 2;
 // Both kinds of group run on to 1000, past the ring's hundred beads: a
