@@ -3987,11 +3987,12 @@
         <div class="zoom-wrap" id="zoom-wrap">
         <div class="zoom-ctl" id="zoom-ctl" role="group" aria-label="Zoom" data-i18n-aria-label="cyclicGroups.zoomLabel">
           <button type="button" class="zoom-step" id="zoom-out" title="Zoom out" aria-label="Zoom out" data-i18n-title="cyclicGroups.ctxZoomOut" data-i18n-aria-label="cyclicGroups.ctxZoomOut"><svg viewBox="0 0 12 12" width="10" height="10" aria-hidden="true" focusable="false"><line x1="2.5" y1="6" x2="9.5" y2="6"/></svg></button>
-          <input type="range" id="zoom-slider" min="0" max="8" step="1" value="3" title="Zoom" aria-label="Zoom" data-i18n-title="cyclicGroups.zoomLabel" data-i18n-aria-label="cyclicGroups.zoomLabel">
+          <input type="range" id="zoom-slider" min="0" max="23" step="1" value="12" title="Zoom" aria-label="Zoom" data-i18n-title="cyclicGroups.zoomLabel" data-i18n-aria-label="cyclicGroups.zoomLabel">
           <button type="button" class="zoom-step" id="zoom-in" title="Zoom in" aria-label="Zoom in" data-i18n-title="cyclicGroups.ctxZoomIn" data-i18n-aria-label="cyclicGroups.ctxZoomIn"><svg viewBox="0 0 12 12" width="10" height="10" aria-hidden="true" focusable="false"><line x1="2.5" y1="6" x2="9.5" y2="6"/><line x1="6" y1="2.5" x2="6" y2="9.5"/></svg></button>
           <button type="button" class="zoom-reset" id="zoom-reset" title="Reset the zoom to 100%" aria-label="Reset the zoom to 100%" data-i18n-title="cyclicGroups.zoomReset" data-i18n-aria-label="cyclicGroups.zoomReset">100%</button>
         </div>
         <button type="button" class="fs-win-btn key-corner" id="zoom-wheel" aria-pressed="false" title="Zoom with the scroll wheel" aria-label="Zoom with the scroll wheel" data-i18n-title="cyclicGroups.zoomWheel" data-i18n-aria-label="cyclicGroups.zoomWheel"><svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true" focusable="false"><rect x="3" y="1.2" width="6" height="9.6" rx="3"/><line x1="6" y1="3" x2="6" y2="5"/></svg></button>
+        <button type="button" class="fs-win-btn key-corner" id="zoom-fit" aria-pressed="false" title="Keep every arrow in sight" aria-label="Keep every arrow in sight" data-i18n-title="cyclicGroups.zoomFit" data-i18n-aria-label="cyclicGroups.zoomFit"><svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true" focusable="false"><path d="M1.2 3.6V1.2H3.6M8.4 1.2H10.8V3.6M10.8 8.4V10.8H8.4M3.6 10.8H1.2V8.4"/><circle cx="6" cy="6" r="2.4"/></svg></button>
         </div>
         <span class="ring-corner-sep" aria-hidden="true"></span>
         <button type="button" class="fs-win-btn key-corner show-corner" id="cord-corner" aria-pressed="true" title="Show corresponding polygon" aria-label="Show corresponding polygon" data-i18n-title="cyclicGroups.layerCord" data-i18n-aria-label="cyclicGroups.layerCord"><svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true" focusable="false"><path d="M6 1.3 10.5 4.6 8.8 10.2H3.2L1.5 4.6Z"/></svg></button>
@@ -5980,6 +5981,9 @@ function drawRing(parent, G, beads, box, paint){
   // A turn alone keeps them as they were, turned by the layer (see
   // drawNecklace).
   var keptPaths = pathsReused && under === pathsTurnEl ? pathsTurnEl.querySelector(':scope > .walks') : null;
+  rawReach.place = place;
+  rawReach.m = m;
+  if (!keptPaths) rawReach.walks = [];
   if (state.guide && !keptPaths) under.appendChild(svgEl('circle', { 'class': 'guide', cx: box.cx, cy: box.cy, r: box.R }));
   if (m > 1 && mirrorShown(G) && !keptPaths){
     // Through the identity, wherever the turn has put it.
@@ -6075,12 +6079,14 @@ function drawRing(parent, G, beads, box, paint){
       var by = w.raw === 'inv' ? G.inv[h] : h;
       return function(hop){
         var r = G.mode === 'multiplicative' ? hop.from * by : hop.from + by, q = Math.floor(r / G.n);
+        if (q >= 1) rawReach.walks.push({ q: q, el: r - q * G.n });
         if (q < 1 || q >= ringWheelDepth) return null;
         return { raw: r, q: q, font: ringWheelNumSize(G, m, box.R + beadR + 4, ringWheelRing(box.R), ringWheelDepth) };
       };
     };
     ring.redrawWalks = function(places){
       var edge = box.R + beadR;
+      rawReach.walks = [];
       ring.walkPlaces = places;
       if (pathsTurnOffset && walksEl.parentNode === pathsTurnEl) foldPathsTurn();
       walksEl.removeAttribute('transform');
@@ -6217,6 +6223,7 @@ function hopNum(cls, p, turn, k){
 // their place, see patchRingCombo).
 function drawRingCombo(ring, G, beads, place, box, beadR, m, at){
   var sw = scalarWalk(G);
+  rawReach.combo = [];
   if (sw && m > 1){
     var swFoot = box.R - beadR;
     var swSteps = humpSteps(sw.walk, place, m, 1, sw.sense);
@@ -6236,6 +6243,7 @@ function drawRingCombo(ring, G, beads, place, box, beadR, m, at){
       var swFont = ringWheelNumSize(G, m, box.R + beadR + 4, ringWheelRing(box.R), ringWheelDepth);
       swSteps.forEach(function(h, s){
         var r = G.mode === 'multiplicative' ? h.from * swBy : h.from + swBy, q = Math.floor(r / G.n);
+        if (q >= 1) rawReach.combo.push({ q: q, el: r - q * G.n });
         if (q >= 1 && q < ringWheelDepth) swRaw[s] = { raw: r, q: q, font: swFont, turn: numTurn };
       });
     }
@@ -6300,6 +6308,7 @@ function drawRingCombo(ring, G, beads, place, box, beadR, m, at){
   // a∘b's raw result, under the halos it runs between.
   if (ringRawShown(G, 'ab') && comboLive(G) && !comboBOnly(G) && combo.k === null && combo.b !== null && G.els.indexOf(combo.b) !== -1){
     var abRaw = G.mode === 'multiplicative' ? combo.a * combo.b : combo.a + combo.b, abQ = Math.floor(abRaw / G.n);
+    rawReach.combo.push({ q: abQ, el: abRaw - abQ * G.n });
     if (abQ < ringWheelDepth) drawRawCombine(ring, G, place, m, box, beadR, { raw: abRaw, q: abQ, c: G.combine(combo.a, combo.b), font: ringWheelNumSize(G, m, box.R + beadR + 4, ringWheelRing(box.R), ringWheelDepth), turn: comboNumTurn(G, place, m) });
   }
   // With aᵏ only the last visit's halo shows, in its lap's colour.
@@ -12814,6 +12823,8 @@ function drawNecklace(G, paint){
     // takes the ring svg's place.
     if (!ringKept && !ringWheelG()) syncWheelLayer();
     syncLiftUi();
+    zoomFitView = { box: box, top: top, low: low };
+    queueZoomFit();
   }
   wheelReused = pathsReused = comboReused = false;
 }
@@ -13039,6 +13050,11 @@ var ringWheelOn = (function(){
   try { return localStorage.getItem(RING_WHEEL_KEY) === '1'; } catch (e) { return false; }
 })();
 var ringWheelDepth = 6, ringWheelClip = null;
+// The cells the raw results reach, the walks' and the combination's, each
+// a ring of the wheel (q) over an element's wedge (el), whether drawn or
+// past the rings drawn; with the places they were drawn at, for
+// fitRingZoom.
+var rawReach = { walks: [], combo: [], place: null, m: 0 };
 function ringWheelShown(G){ return ringWheelOn && !IS_PREVIEW && dhcWheelFits(G); }
 // Show raw results before reduction, one switch per path in the menu's
 // Reduction submenu while the wheel is on: the forward path (the walk by
@@ -13858,7 +13874,9 @@ window.addEventListener('pointermove', function(e){
 // Beside a pane the two rings zoom together while they turn together,
 // each telling the other its zoom; apart, each ring zooms on its own, from
 // its own pill.
-var RING_ZOOMS = [0.5, 0.6, 0.75, 1, 1.25, 1.5, 2, 2.5, 3];
+// The steps lie about a tenth apart, and keep every value a link may carry
+// from before (0.5, 0.6, 0.75, 1, 1.25, 1.5, 2, 2.5, 3).
+var RING_ZOOMS = [0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0.6, 0.67, 0.75, 0.83, 0.9, 1, 1.1, 1.25, 1.4, 1.5, 1.75, 2, 2.25, 2.5, 3, 3.5, 4];
 var RING_ZOOM_FIT = RING_ZOOMS.indexOf(1);
 var ringZoom = RING_ZOOM_FIT, paneZoom = RING_ZOOM_FIT;
 var formulaLevelEl = $('formula-level');
@@ -14069,19 +14087,87 @@ var zoomWrapEl = $('zoom-wrap'), zoomSliderEl = $('zoom-slider'), zoomOutEl = $(
 function twoRings(){ return !IS_ISOPANE && !!isoPane && !!isoPaneFrame && !isoPaneEl.hidden; }
 // Whether each ring has its own pill: beside a pane, the rings turning apart.
 function zoomApart(){ return !!groupControlsEl && (IS_ISOPANE || twoRings()) && !isoTurnsTogether(); }
-function canZoom(by){ return !!RING_ZOOMS[ringZoom + by]; }
+function canZoom(by){ return !!RING_ZOOMS[zoomShown() + by]; }
+// The zoom the pill shows: a gesture's while one is under way.
+function zoomShown(){ return zoomPreview ? zoomPreview.i : ringZoom; }
 // This ring's own zoom.
 // at, from the other ring, keeps the two eases in step (see
 // easeRingResize); returns the moment this ring's ease began.
 function applyZoom(i, at){
   queueCentreG();
   i = clamp(i, 0, RING_ZOOMS.length - 1);
-  if (i === ringZoom) return;
+  if (i === ringZoom){ dropZoomPreview(); syncZoomCtl(); return; }
   ringZoom = i;
-  var began = easeRingResize(render, at);
+  // A gesture's preview already shows the new zoom, scaled as the redraw
+  // draws it: the redraw simply replaces it, with nothing to ease.
+  if (zoomPreview && zoomPreview.i === i){
+    dropZoomPreview();
+    render();
+    syncZoomCtl();
+    return;
+  }
+  var began = easeRingResize(function(){ dropZoomPreview(); render(); }, at);
   syncZoomCtl();
   return began;
 }
+// A zoom gesture (the slider dragged, the scroll wheel turned, + or −
+// pressed or held) is shown at once by scaling the ring and its layers on
+// the compositor, about the ring's centre, and drawn for real only once it
+// settles: one redraw however many steps it took.
+var ZOOM_SETTLE_MS = 160;
+var zoomPreview = null;
+function zoomLayerEls(){ return [ringSvgEl, wheelHostEl, frostHostEl, pathsHostEl, comboHostEl]; }
+function previewRingZoom(i){
+  i = clamp(i, 0, RING_ZOOMS.length - 1);
+  if (!zoomPreview){
+    if (i === ringZoom) return;
+    var ctm = ringSvgEl.getScreenCTM();
+    if (!ctm || IS_PREVIEW){ setRingZoom(i); return; }
+    if (ringEase){ ringEase.cancel(); ringEase = null; ringSvgEl.style.transformOrigin = ''; }
+    // The point the view box keeps in place as it zooms: the ring's centre,
+    // moved by its lift (see render).
+    var box = ringBox(), ux = box.cx, uy = box.cy + ringLift;
+    var px = (ctm.a * ux + ctm.c * uy + ctm.e) / PAGE_ZOOM, py = (ctm.b * ux + ctm.d * uy + ctm.f) / PAGE_ZOOM;
+    var slide = !(reduceMotionMq && reduceMotionMq.matches);
+    zoomPreview = { from: ringZoom, i: i, timer: 0, els: zoomLayerEls() };
+    zoomPreview.els.forEach(function(el){
+      var b = boxOf(el), st = el.style;
+      st.willChange = 'transform';
+      st.transformOrigin = num(px - b.left) + 'px ' + num(py - b.top) + 'px';
+      st.transition = slide ? 'transform .14s ease-out' : 'none';
+    });
+  }
+  zoomPreview.i = i;
+  var k = RING_ZOOMS[i] / RING_ZOOMS[zoomPreview.from];
+  zoomPreview.els.forEach(function(el){ el.style.transform = 'scale(' + num(k) + ')'; });
+  clearTimeout(zoomPreview.timer);
+  zoomPreview.timer = setTimeout(settleZoom, ZOOM_SETTLE_MS);
+  syncZoomCtl();
+}
+// The gesture over: its zoom drawn for real.
+function settleZoom(){
+  if (zoomPreview) setRingZoom(zoomPreview.i);
+}
+function dropZoomPreview(){
+  var p = zoomPreview;
+  if (!p) return;
+  zoomPreview = null;
+  clearTimeout(p.timer);
+  p.els.forEach(function(el){
+    var st = el.style;
+    st.transition = 'none';
+    st.transform = st.transformOrigin = st.willChange = '';
+  });
+  // Left at none until the redraw is painted, so the new view does not
+  // slide in from the preview's scale.
+  requestAnimationFrame(function(){ p.els.forEach(function(el){ if (!zoomPreview) el.style.transition = ''; }); });
+}
+// A zoom asked for by hand: it ends Keep every arrow in sight.
+function userZoom(i){
+  setZoomFit(false);
+  previewRingZoom(i);
+}
+function stepUserZoom(by){ if (canZoom(by)) userZoom(zoomShown() + by); }
 function tellPaneZoom(i, at){
   if (!isoPaneFrame) return;
   try { isoPaneFrame.contentWindow.postMessage({ ringhost: 'zoom', i: i, at: at }, '*'); } catch (e) { /* a frame that is gone needs nothing */ }
@@ -14093,7 +14179,6 @@ function setRingZoom(i){
   if (IS_ISOPANE){ tellHost({ isopane: 'zoom', i: ringZoom, at: at }); return; }
   if (twoRings() && isoTurnsTogether() && paneZoom !== ringZoom){ paneZoom = ringZoom; tellPaneZoom(ringZoom, at); }
 }
-function stepRingZoom(by){ if (canZoom(by)) setRingZoom(ringZoom + by); }
 // The pane's zoom, as it reports it: followed here while the rings turn
 // together.
 function heardPaneZoom(i, at){
@@ -14107,12 +14192,13 @@ function matchPaneZoom(){
 }
 function syncZoomCtl(){
   zoomSliderEl.max = String(RING_ZOOMS.length - 1);
-  zoomSliderEl.value = String(ringZoom);
-  zoomSliderEl.setAttribute('aria-valuetext', Math.round(RING_ZOOMS[ringZoom] * 100) + '%');
+  var z = zoomShown();
+  zoomSliderEl.value = String(z);
+  zoomSliderEl.setAttribute('aria-valuetext', Math.round(RING_ZOOMS[z] * 100) + '%');
   zoomOutEl.disabled = !canZoom(-1);
   zoomInEl.disabled = !canZoom(1);
-  zoomResetEl.textContent = Math.round(RING_ZOOMS[ringZoom] * 100) + '%';
-  zoomResetEl.disabled = ringZoom === RING_ZOOM_FIT;
+  zoomResetEl.textContent = Math.round(RING_ZOOMS[z] * 100) + '%';
+  zoomResetEl.disabled = z === RING_ZOOM_FIT;
   document.documentElement.classList.toggle('is-zoom-apart', zoomApart());
   placeZoom();
 }
@@ -14790,13 +14876,17 @@ if (window.MutationObserver){
   ringReachMo = new MutationObserver(function(){ ringReachUnits = null; syncRingOverlapSoon(); });
   ringReachMo.observe(ringDynamicEl, { childList: true });
 }
-zoomSliderEl.addEventListener('input', function(){ setRingZoom(parseInt(zoomSliderEl.value, 10) || 0); });
-zoomSliderEl.addEventListener('dblclick', function(){ setRingZoom(RING_ZOOM_FIT); });
-zoomOutEl.addEventListener('click', function(){ stepRingZoom(-1); });
-zoomResetEl.addEventListener('click', function(){ setRingZoom(RING_ZOOM_FIT); });
-zoomInEl.addEventListener('click', function(){ stepRingZoom(1); });
-// With the switch on, the wheel over a ring zooms it, a step for each
-// notch (a touchpad's small scrolls add up to one), instead of scrolling.
+// The slider previews while dragged and is drawn once let go (or once the
+// keys that move it pause).
+zoomSliderEl.addEventListener('input', function(){ userZoom(parseInt(zoomSliderEl.value, 10) || 0); });
+zoomSliderEl.addEventListener('change', settleZoom);
+zoomSliderEl.addEventListener('dblclick', function(){ setZoomFit(false); setRingZoom(RING_ZOOM_FIT); });
+zoomOutEl.addEventListener('click', function(){ stepUserZoom(-1); });
+zoomResetEl.addEventListener('click', function(){ setZoomFit(false); setRingZoom(RING_ZOOM_FIT); });
+zoomInEl.addEventListener('click', function(){ stepUserZoom(1); });
+// With the switch on, the wheel over a ring zooms it, a step for every
+// 40px scrolled (a mouse's notch two steps, a touchpad's small scrolls
+// adding up), instead of scrolling.
 // The pane hears the switch with the shared settings.
 var zoomWheelOn = false, zoomWheelSum = 0;
 zoomWheelEl.addEventListener('click', function(){
@@ -14809,9 +14899,11 @@ ringSvgEl.addEventListener('wheel', function(e){
   if (!zoomWheelOn || e.ctrlKey || !e.deltaY) return;
   e.preventDefault();
   zoomWheelSum += e.deltaMode ? e.deltaY * 40 : e.deltaY;
-  if (Math.abs(zoomWheelSum) < 50) return;
-  stepRingZoom(zoomWheelSum < 0 ? 1 : -1);
-  zoomWheelSum = 0;
+  var steps = Math.trunc(zoomWheelSum / 40);
+  if (!steps) return;
+  zoomWheelSum -= steps * 40;
+  var to = clamp(zoomShown() - steps, 0, RING_ZOOMS.length - 1);
+  if (to !== zoomShown()) userZoom(to);
 }, { passive: false });
 document.addEventListener('keydown', function(e){
   if (e.ctrlKey || e.metaKey || e.altKey || IS_PREVIEW) return;
@@ -14821,8 +14913,73 @@ document.addEventListener('keydown', function(e){
   if (IS_DESKTOP && !cgEntered) return;
   if (e.target.closest && e.target.closest('input, select, textarea, [contenteditable], .ec-reels')) return;
   e.preventDefault();
-  stepRingZoom(by);
+  stepUserZoom(by);
 });
+// Keep every arrow in sight: while on, the ring takes the largest zoom, up
+// to 100%, at which every arrow drawn, the raw results' reaching out over
+// the congruence wheel included, lies in the main area (see fitRingZoom);
+// zooming by hand turns it off. Kept in storage.
+var ZOOM_FIT_KEY = 'cyclic-groups-zoom-fit';
+var zoomFitEl = $('zoom-fit'), zoomFitOn = false;
+try { zoomFitOn = localStorage.getItem(ZOOM_FIT_KEY) === '1'; } catch (e) { /* storage unavailable */ }
+function setZoomFit(on){
+  on = !!on;
+  zoomFitEl.setAttribute('aria-pressed', on ? 'true' : 'false');
+  if (on === zoomFitOn) return;
+  zoomFitOn = on;
+  try { localStorage.setItem(ZOOM_FIT_KEY, on ? '1' : '0'); } catch (e) { /* storage unavailable */ }
+  if (on) queueZoomFit();
+}
+zoomFitEl.setAttribute('aria-pressed', zoomFitOn ? 'true' : 'false');
+zoomFitEl.addEventListener('click', function(){ setZoomFit(!zoomFitOn); });
+// The view the last drawing set (see render), which fitRingZoom zooms.
+var zoomFitView = null, zoomFitQueued = false;
+// The largest zoom up to 100% at which the outer edge of every cell the
+// raw results reach lies in the main area, worked out from the drawing's
+// view and places alone: the view box as render sets it at that zoom,
+// fitted into the ring svg, against the wheel's clip (ringWheelClip), the
+// main area on screen, which no zoom moves.
+function fitRingZoom(){
+  var G = drawn && drawn.G, v = zoomFitView, map = ringLayerMap, clip = ringWheelClip, place = rawReach.place;
+  var reach = rawReach.walks.concat(rawReach.combo);
+  if (!G || !v || !map || !clip || !place || !reach.length || !ringWheelShown(G)) return RING_ZOOM_FIT;
+  var box = v.box, m = rawReach.m, ring = ringWheelRing(box.R), R0 = box.R + beadRadius(m, box.R) + 4;
+  var wheel = ringDynamicEl.querySelector('.ring'), turned = wheel && /rotate\((-?[\d.]+)/.exec(wheel.getAttribute('transform') || '');
+  var turn = turned ? +turned[1] : 0, pad = 8;
+  // The main area in the ring svg's px.
+  var x0 = map.ox + clip.x * map.k + pad, x1 = map.ox + (clip.x + clip.w) * map.k - pad;
+  var y0 = map.oy + clip.y * map.k + pad, y1 = map.oy + (clip.y + clip.h) * map.k - pad;
+  var pts = [], seen = {};
+  reach.forEach(function(c){
+    var key = c.q + ',' + c.el;
+    if (seen[key] || place[c.el] == null) return;
+    seen[key] = true;
+    pts.push(polar(box.cx, box.cy, R0 + (c.q + 1) * ring, dirSign() * 360 * place[c.el] / m + turn));
+  });
+  for (var i = RING_ZOOM_FIT; i > 0; i--){
+    var z = RING_ZOOMS[i], vw = SIZE / z, vh = (v.low - v.top) / z;
+    var vx = box.cx - box.cx / z, vy = box.cy - (box.cy - v.top) / z + ringLift;
+    var k = Math.min(map.w / vw, map.h / vh), ox = (map.w - vw * k) / 2 - vx * k, oy = (map.h - vh * k) / 2 - vy * k;
+    if (pts.every(function(p){
+      var x = ox + p[0] * k, y = oy + p[1] * k;
+      return x >= x0 && x <= x1 && y >= y0 && y <= y1;
+    })) return i;
+  }
+  return 0;
+}
+// After a drawing, while Keep every arrow in sight is on, the zoom it
+// asks for, once the drawing's own task is done: one more drawing, eased,
+// only when the reach has changed.
+function queueZoomFit(){
+  if (!zoomFitOn || zoomFitQueued || IS_PREVIEW || (IS_ISOPANE && !zoomApart())) return;
+  zoomFitQueued = true;
+  queueMicrotask(function(){
+    zoomFitQueued = false;
+    if (!zoomFitOn || zoomPreview) return;
+    var i = fitRingZoom();
+    if (i !== ringZoom) setRingZoom(i);
+  });
+}
 
 // How far down the on-screen view starts: a margin above the ring for the
 // outer humps and labels.

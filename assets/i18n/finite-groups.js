@@ -313,7 +313,9 @@
    with one-column arrays and LaTeX in amsmath's bmatrix), and
    combineArrows, combineArrowsInstant and combineArrowsSlow (the Arrows
    heading in the aᵏ and a ∗ b buttons' right-click menus and its two
-   choices: the arrows drawn at once, or each growing along its path).
+   choices: the arrows drawn at once, or each growing along its path),
+   and zoomFit (the switch beside the zoom pill keeping every arrow, the
+   raw results' included, in sight).
    Every other language shows the English value through NT.i18n's
    fallback meanwhile.
 
@@ -1545,6 +1547,7 @@
       zoomLabel: 'Zoom',
       zoomWheel: 'Zoom with the scroll wheel',
       zoomReset: 'Reset the zoom to 100%',
+      zoomFit: 'Keep every arrow in sight',
       exprLockCouple: 'Couple the two expression sliders',
       exprLockUncouple: 'Uncouple the two expression sliders',
       ctxCopyLatex: 'Copy in LaTeX formatting',
