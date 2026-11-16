@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-10-02)
 Phase: 4 — Continued Fractions Tool
 Plan: Not started
 Status: Ready to plan
-Last activity: 2026-11-16 - Completed quick task 261116-y2s: Finite Groups generic :has() shim
+Last activity: 2026-11-17 - Completed quick task 261117-z1f: Finite Groups first-step frame (shim cost)
 
 Progress: [█████████░] 86%
 
@@ -726,6 +726,7 @@ None yet.
 | 261116-x3m | Finite Groups: slow aᵏ step patches the lines under the ring in place: step frames 92-129 → 57-63 ms | 2026-11-16 | 09787cf | [261116-x3m-finite-groups-patch-combination-lines](./quick/261116-x3m-finite-groups-patch-combination-lines/) |
 | 261116-x9h | Finite Groups: :has(:focus-visible) rules replaced by JS-kept classes: forced layout per slow aᵏ step 44-53 → 27-30 ms | 2026-11-16 | be069bd | [261116-x9h-finite-groups-focus-visible-has](./quick/261116-x9h-finite-groups-focus-visible-has/) |
 | 261116-y2s | Finite Groups: every :has() rule becomes a JS-kept class at load: insert pass 4.0 → ~0.1 ms in Chrome | 2026-11-16 | 2b4731a | [261116-y2s-finite-groups-has-shim](./quick/261116-y2s-finite-groups-has-shim/) |
+| 261117-z1f | Finite Groups: :has() shim keeps candidates and asks id-named elements directly (first-step syncs 111 → 6 ms); first-step cost traced to the wheel numbers | 2026-11-17 | 75b23bd | [261117-z1f-finite-groups-first-step](./quick/261117-z1f-finite-groups-first-step/) |
 | fast | Cyclic Groups DH time cylinder, Per hop: hairline slice rims so the grey beads stay visible | 2026-11-04 | e6f0b6c | — |
 | fast | Cyclic Groups: Subgroup switched off keeps the group's name in the subgroup row, without G and ⟨h⟩ | 2026-11-04 | 20274e9 | — |
 | fast | Cyclic Groups: Diffie-Hellman Colours switch, Alice and Bob in own colours or the forward/backward path colours | 2026-11-04 | 5bd6ece | — |
@@ -997,4 +998,4 @@ Last session: 2026-10-03
 Stopped at: Quick task 261005-dn2 complete — Venn Diagram double-click respects thumbnail scroll
 Resume file: None
 
-Last activity: 2026-11-16 - Completed quick task 261116-y2s: Finite Groups generic :has() shim
+Last activity: 2026-11-17 - Completed quick task 261117-z1f: Finite Groups first-step frame (shim cost)
