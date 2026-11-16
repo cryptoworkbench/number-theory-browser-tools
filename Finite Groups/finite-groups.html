@@ -4135,25 +4135,52 @@ var hasShim = (function(){
     r.selectorText = rewrite(r.selectorText);
     if (r.selectorText.indexOf(':has(') !== -1) failed++;
   });
-  // Each anchor read from the browser's own live list of the elements with
-  // one of its classes (or its id), filtered by the whole anchor: a query of
-  // the document would walk every element of the drawings each time.
+  // The elements each rule could apply to (its candidates) are kept between
+  // syncs, and found afresh, all in one query of the document, only when
+  // the page's own elements come or go; an element whose class, id or
+  // hidden changes is put in or taken out alone (see the observer below).
+  // An argument ending, in each of its alternatives, at an element named by
+  // id is asked the other way round: that element, found by id, is asked
+  // whether it lies where the argument says under the anchor (marked for
+  // the moment by an attribute no rule reads), which walks only its
+  // ancestors; the browser's :has() walks all of the anchor's descendants,
+  // the drawings' thousands included.
   args.forEach(function(a){
-    a.sources = a.anchors.map(function(sel){
-      var cls = /\.(-?[_a-zA-Z][\w-]*)/.exec(sel), id = /#(-?[_a-zA-Z][\w-]*)/.exec(sel);
-      return { sel: sel, list: cls ? document.getElementsByClassName(cls[1]) : null, id: !cls && id ? id[1] : null };
+    var items = splitTop(a.arg.slice(5, -1), ','), ids = [], rel = [];
+    var ok = items.every(function(item){
+      item = item.trim();
+      var comps = splitTop(item.replace(/\s*([>+~])\s*/g, ' $1 '), ' ').filter(Boolean), found = (comps[comps.length - 1] || '').match(/#-?[_a-zA-Z][\w-]*/g);
+      if (!found) return false;
+      found.forEach(function(id){ if (ids.indexOf(id.slice(1)) === -1) ids.push(id.slice(1)); });
+      rel.push('[data-hs-at] ' + item);
+      return true;
     });
+    if (ok) { a.ids = ids; a.rel = rel.join(', '); }
   });
-  var candidates = function(a){
-    var out = [];
-    a.sources.forEach(function(src){
-      var list = src.list || (src.id ? [document.getElementById(src.id)].filter(Boolean) : document.querySelectorAll(src.sel));
-      for (var i = 0; i < list.length; i++){
-        var el = list[i];
-        if (out.indexOf(el) === -1 && el.matches(src.sel)) out.push(el);
-      }
+  var holds = function(a, el){
+    if (!a.ids) return el.matches(a.arg);
+    el.setAttribute('data-hs-at', '');
+    var hit = a.ids.some(function(id){ var t = document.getElementById(id); return !!t && t.matches(a.rel); });
+    el.removeAttribute('data-hs-at');
+    return hit;
+  };
+  var anchorAll = [];
+  args.forEach(function(a){ a.anchors.forEach(function(sel){ if (anchorAll.indexOf(sel) === -1) anchorAll.push(sel); }); });
+  var anchorSel = anchorAll.join(', ');
+  var findAll = function(){
+    args.forEach(function(a){ a.cands = []; });
+    var els = [];
+    try { els = document.querySelectorAll(anchorSel); } catch (e) { /* a selector this browser cannot read */ }
+    Array.prototype.forEach.call(els, function(el){
+      args.forEach(function(a){ if (a.anchors.some(function(sel){ return el.matches(sel); })) a.cands.push(el); });
     });
-    return out;
+  };
+  var recheck = function(el){
+    args.forEach(function(a){
+      var is = a.anchors.some(function(sel){ return el.matches(sel); }), at = a.cands.indexOf(el);
+      if (is && at === -1) a.cands.push(el);
+      else if (!is && at !== -1) a.cands.splice(at, 1);
+    });
   };
   var applying = false;
   // only: 'hover' or 'focus' for the rules that ask for that state alone.
@@ -4163,7 +4190,7 @@ var hasShim = (function(){
       if (only && !a[only]) return;
       var now = [];
       try {
-        candidates(a).forEach(function(el){ if (el.matches(a.arg)) now.push(el); });
+        a.cands.forEach(function(el){ if (el.isConnected && holds(a, el)) now.push(el); });
       } catch (e) { /* a selector this browser cannot read */ }
       a.on.forEach(function(el){ if (now.indexOf(el) === -1) el.classList.remove(a.cls); });
       now.forEach(function(el){ if (!el.classList.contains(a.cls)) el.classList.add(a.cls); });
@@ -4175,16 +4202,24 @@ var hasShim = (function(){
   // Changes inside a drawing's svg (every frame of an animation), what an
   // svg holds, and inline styles (layers moved and turned) leave every rule
   // as it was; no rule looks into an svg.
+  var ANCHOR_ATTRS = ['class', 'id', 'hidden'];
+  var isPageEl = function(n){ return n.nodeType === 1 && !(n instanceof SVGElement && n.ownerSVGElement); };
   var mo = new MutationObserver(function(list){
     if (applying) return;
+    var any = false, all = false, changed = [];
     for (var i = 0; i < list.length; i++){
       var m = list[i], t = m.target;
       if (m.type === 'attributes' && m.attributeName === 'style') continue;
       if (t.nodeType !== 1) t = t.parentNode;
       if (!t || t.ownerSVGElement || (m.type !== 'attributes' && t instanceof SVGElement)) continue;
-      sync();
-      return;
+      any = true;
+      if (m.type === 'childList' && !all) all = Array.prototype.some.call(m.addedNodes, isPageEl) || Array.prototype.some.call(m.removedNodes, isPageEl);
+      if (m.type === 'attributes' && ANCHOR_ATTRS.indexOf(m.attributeName) !== -1 && changed.indexOf(t) === -1) changed.push(t);
     }
+    if (!any) return;
+    if (all) findAll();
+    else changed.forEach(recheck);
+    sync();
   });
   // Several events in a row synced once, before the next frame is drawn.
   var queued = null;
@@ -4194,6 +4229,7 @@ var hasShim = (function(){
     queueMicrotask(function(){ var q = queued; queued = null; sync(q || undefined); });
   };
   var start = function(){
+    findAll();
     sync();
     mo.observe(document.documentElement, { subtree: true, childList: true, attributes: true, characterData: true });
     ['focusin', 'focusout', 'change', 'input'].forEach(function(t){ document.addEventListener(t, function(){ queue(); }, true); });
