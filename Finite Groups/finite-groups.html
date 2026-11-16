@@ -4127,6 +4127,9 @@ var wheelReused = false, wheelTurnOffset = 0;
 // numbers are turned to read upright where they stand): pathsReused,
 // pathsTurnOffset.
 var pathsReused = false, pathsTurnOffset = 0;
+// The combination's layer likewise, while its numbers turn with the ring
+// (see comboNumTurn): comboReused, comboTurnOffset.
+var comboReused = false, comboTurnOffset = 0;
 // The ring's guide, cord, mirror axis and paths have a layer of their own
 // over the wheel's (pathsTurnEl, see drawRing), turned with it and carried
 // in the ring with it.
@@ -5615,6 +5618,16 @@ function drawInner(ring, walk, cls, scale, sense, place, box, beadR, m, width, r
   ring.appendChild(group);
 }
 
+// A raw number's turn at angle to on the wheel, reading outward as the
+// wheel's own figure there does: upright where it stands, or, given turn
+// (see comboNumTurn), as it stands with the identity at the top, then
+// turned with the ring.
+function rawNumRot(to, turn){
+  turn = turn || 0;
+  var mid = (to - turn) % 360;
+  if (mid < 0) mid += 360;
+  return (mid > 90 && mid < 270 ? mid + 180 : mid) + turn;
+}
 // Raw results (the ring menu's choice, on the congruence wheel): a hop from
 // x by y whose unreduced x+y or x·y lies past n first spirals out, the
 // walk's way round, to that number's cell on the wheel, ex.q rings out
@@ -5641,9 +5654,7 @@ function drawRawHop(group, h, ex, box, beadR, width, size){
   // step with the others along their shared stretch.
   var p1 = polar(box.cx, box.cy, turn, to), p2 = polar(box.cx, box.cy, foot, to);
   group.appendChild(svgEl('path', { 'class': 'chord is-reduce', d: 'M ' + num(p2[0]) + ' ' + num(p2[1]) + ' L ' + num(p1[0]) + ' ' + num(p1[1]), 'stroke-width': width }));
-  var mid = to % 360;
-  if (mid < 0) mid += 360;
-  var rot = mid > 90 && mid < 270 ? mid + 180 : mid, c = polar(box.cx, box.cy, cell, to);
+  var rot = rawNumRot(to, ex.turn), c = polar(box.cx, box.cy, cell, to);
   var label = svgEl('text', { 'class': 'ring-raw', x: num(c[0]), y: num(c[1]), 'font-size': num(font), transform: 'rotate(' + num(rot) + ' ' + num(c[0]) + ' ' + num(c[1]) + ')' });
   label.textContent = String(ex.raw);
   group.appendChild(label);
@@ -5681,9 +5692,7 @@ function drawRawCombine(ring, G, place, m, box, beadR, ex){
   var p1 = polar(box.cx, box.cy, turn, to), p2 = polar(box.cx, box.cy, foot + 2 + size, to), tip = polar(box.cx, box.cy, foot + 2, to);
   var reduce = turn > foot + 2 + size ? g.appendChild(svgEl('path', { 'class': 'combine-raw is-c is-reduce', d: 'M ' + num(p1[0]) + ' ' + num(p1[1]) + ' L ' + num(p2[0]) + ' ' + num(p2[1]) })) : null;
   var headC = g.appendChild(arrowHead('combine-raw-head is-c', p2[0], p2[1], Math.atan2(tip[1] - p1[1], tip[0] - p1[0]), size));
-  var mid = to % 360;
-  if (mid < 0) mid += 360;
-  var rot = mid > 90 && mid < 270 ? mid + 180 : mid, c = polar(box.cx, box.cy, cell, to);
+  var rot = rawNumRot(to, ex.turn), c = polar(box.cx, box.cy, cell, to);
   var label = svgEl('text', { 'class': 'ring-raw is-c', x: num(c[0]), y: num(c[1]), 'font-size': num(ex.font), transform: 'rotate(' + num(rot) + ' ' + num(c[0]) + ' ' + num(c[1]) + ')' });
   label.textContent = String(ex.raw);
   g.appendChild(label);
@@ -6102,7 +6111,19 @@ function drawRing(parent, G, beads, box, paint){
   // repeats; a later lap's numbers replace the earlier ones.
   var dhIn = dhLive(G) ? dhReach(G) : null;
   if (dhIn) drawDhRing(ring, G, place, box, beadR, m, at);
-  drawRingCombo(comboHost(ring, dhIn), G, beads, place, box, beadR, m, at);
+  // A turn alone keeps the combination's layer, turned by the layer.
+  var comboAt = comboHost(ring, dhIn);
+  if (comboReused && comboAt === comboTurnEl){
+    comboTurnOffset = dirSign() * 360 * (place[G.identity] - comboTurnEl.drawnAt) / m;
+    turnWheelLayer(0);
+  } else {
+    if (comboReused){
+      comboTurnEl.replaceChildren();
+      comboTurnOffset = 0;
+    }
+    drawRingCombo(comboAt, G, beads, place, box, beadR, m, at);
+    comboTurnEl.drawnAt = place[G.identity];
+  }
 
   beads.forEach(function(a, i){
     var p = at(i);
@@ -6172,6 +6193,21 @@ function drawRing(parent, G, beads, box, paint){
 // itself for a preview, while a flip or rearrangement carries the drawing,
 // and while the Diffie–Hellman exchange plays on the ring.
 function comboHost(ring, dhIn){ return wheelInRing || IS_PREVIEW || dhIn ? ring : comboTurnEl; }
+// With the wheel shown and Keep the numbers readable at every turn off, the
+// numbers on aᵏ's arrows and a∘b's raw result read as the wheel's own do:
+// drawn as they stand with the identity at the top, then turned with the
+// ring (by the degrees returned), so a turn alone leaves the combination
+// as it was (comboReused). 0 turns them upright where they stand.
+function comboNumTurn(G, place, m){
+  return ringWheelShown(G) && !ringWheelUpright && place[G.identity] !== undefined ? dirSign() * 360 * place[G.identity] / m : 0;
+}
+// A hop's number at p, turned with the ring by turn.
+function hopNum(cls, p, turn, k){
+  var t = svgEl('text', { 'class': cls, x: num(p[0]), y: num(p[1]) });
+  if (turn) t.setAttribute('transform', 'rotate(' + num(turn) + ' ' + num(p[0]) + ' ' + num(p[1]) + ')');
+  t.textContent = String(k);
+  return t;
+}
 // What the ring shows of the combination, after its paths and before its
 // beads: aᵏ's walk, a∘b's raw result and the halos, appended to ring (the
 // ring itself, or, for a slow step to the next k, a fragment put back in
@@ -6191,13 +6227,13 @@ function drawRingCombo(ring, G, beads, place, box, beadR, m, at){
     // Raw results, the ring menu's choice on the congruence wheel: a hop
     // whose unreduced x+a or x·a lies on a ring of the wheel past the first
     // leaves the chain for it, as a path's does (see drawRawHop).
-    var swBy = combo.k < 0 ? G.inv[combo.a] : combo.a, swRaw = [];
+    var swBy = combo.k < 0 ? G.inv[combo.a] : combo.a, swRaw = [], numTurn = comboNumTurn(G, place, m);
     var swSize = Math.max(4, Math.min(8, 110 / swSteps.length));
     if (ringRawShown(G, 'ak')){
       var swFont = ringWheelNumSize(G, m, box.R + beadR + 4, ringWheelRing(box.R), ringWheelDepth);
       swSteps.forEach(function(h, s){
         var r = G.mode === 'multiplicative' ? h.from * swBy : h.from + swBy, q = Math.floor(r / G.n);
-        if (q >= 1 && q < ringWheelDepth) swRaw[s] = { raw: r, q: q, font: swFont };
+        if (q >= 1 && q < ringWheelDepth) swRaw[s] = { raw: r, q: q, font: swFont, turn: numTurn };
       });
     }
     var swD = '', swLap = null, swOut = [];
@@ -6221,8 +6257,7 @@ function drawRingCombo(ring, G, beads, place, box, beadR, m, at){
       if (!swRaw[s]) swEl.appendChild(humpArrow('chord-arrow ' + hopLap(s), box, swFoot, -1, h, swSize));
       if (m > 40) return;
       var p = swRaw[s] ? swOut[s](0.3) : humpPoint(box, swFoot, -1, h, 0.3);
-      var t = swEl.appendChild(svgEl('text', { 'class': 'scalar-hop-n ' + hopLap(s), x: num(p[0]), y: num(p[1]) }));
-      t.textContent = String(latest(s));
+      swEl.appendChild(hopNum('scalar-hop-n ' + hopLap(s), p, numTurn, latest(s)));
     });
     if (swA >= 0){
       var aH = swSteps[swA], aG = swEl.appendChild(svgEl('g', { 'class': hopLap(swA) })), aPt;
@@ -6235,8 +6270,7 @@ function drawRingCombo(ring, G, beads, place, box, beadR, m, at){
       var aN = null;
       if (m <= 40){
         var aP = aPt(0.3);
-        aN = aG.appendChild(svgEl('text', { 'class': 'scalar-hop-n', x: num(aP[0]), y: num(aP[1]) }));
-        aN.textContent = String(latest(swA));
+        aN = aG.appendChild(hopNum('scalar-hop-n', aP, numTurn, latest(swA)));
       }
       // A hop out to a cell dives down its reduction line in step with
       // the cells lighting under it: stops are the shares of that line
@@ -6263,7 +6297,7 @@ function drawRingCombo(ring, G, beads, place, box, beadR, m, at){
   // a∘b's raw result, under the halos it runs between.
   if (ringRawShown(G, 'ab') && comboLive(G) && !comboBOnly(G) && combo.k === null && combo.b !== null && G.els.indexOf(combo.b) !== -1){
     var abRaw = G.mode === 'multiplicative' ? combo.a * combo.b : combo.a + combo.b, abQ = Math.floor(abRaw / G.n);
-    if (abQ < ringWheelDepth) drawRawCombine(ring, G, place, m, box, beadR, { raw: abRaw, q: abQ, c: G.combine(combo.a, combo.b), font: ringWheelNumSize(G, m, box.R + beadR + 4, ringWheelRing(box.R), ringWheelDepth) });
+    if (abQ < ringWheelDepth) drawRawCombine(ring, G, place, m, box, beadR, { raw: abRaw, q: abQ, c: G.combine(combo.a, combo.b), font: ringWheelNumSize(G, m, box.R + beadR + 4, ringWheelRing(box.R), ringWheelDepth), turn: comboNumTurn(G, place, m) });
   }
   // With aᵏ only the last visit's halo shows, in its lap's colour.
   var lastOnly = combo.k !== null && !!scalarWalk(G);
@@ -6289,6 +6323,12 @@ function patchRingCombo(ring, G, beads, box){
   var at = function(i){ return polar(box.cx, box.cy, box.R, dirSign() * 360 * i / m); };
   ring.querySelectorAll(':scope > .walk-scalar, :scope > .combine-raw-g, :scope > .combine-halo, :scope > .ring-combine-frost, :scope > .bead-reduced').forEach(function(el){ el.remove(); });
   comboTurnEl.replaceChildren();
+  comboTurnEl.drawnAt = place[G.identity];
+  if (comboTurnOffset){
+    comboTurnOffset = 0;
+    var turnedBy = /rotate\((-?[\d.]+)/.exec(ring.getAttribute('transform') || '');
+    turnWheelLayer(turnedBy ? +turnedBy[1] : 0);
+  }
   var into = document.createDocumentFragment(), host = comboHost(ring, dhLive(G) ? dhReach(G) : null);
   drawRingCombo(into, G, beads, place, box, beadR, m, at);
   if (host === ring) ring.insertBefore(into, ring.querySelector(':scope > .bead'));
@@ -12693,6 +12733,7 @@ function drawNecklace(G, paint){
   // card's blur of it too, where it can (see drawRingWheel).
   wheelReused = !!(ringKept && !ringKept.ring && !wheelInRing && !ringWheelUpright && ringWheelShown(G) && wheelTurnEl.querySelector(':scope > .ring-wheel'));
   pathsReused = !!(ringKept && !ringKept.ring && !wheelInRing && !IS_PREVIEW && pathsTurnEl.querySelector(':scope > .walks') && !pathsTurnEl.querySelector('.ring-raw'));
+  comboReused = !!(ringKept && !ringKept.ring && !wheelInRing && !IS_PREVIEW && ringWheelShown(G) && !ringWheelUpright && comboTurnEl.firstChild && comboTurnEl.drawnAt !== undefined);
   if (!(ringKept && ringKept.ring)){
     if (!wheelReused){
       frostTurnEl.replaceChildren();
@@ -12703,7 +12744,10 @@ function drawNecklace(G, paint){
       pathsTurnEl.replaceChildren();
       pathsTurnOffset = 0;
     }
-    comboTurnEl.replaceChildren();
+    if (!comboReused){
+      comboTurnEl.replaceChildren();
+      comboTurnOffset = 0;
+    }
     turnWheelLayer(0);
     placeFrostWindow();
   }
@@ -12768,7 +12812,7 @@ function drawNecklace(G, paint){
     if (!ringKept && !ringWheelG()) syncWheelLayer();
     syncLiftUi();
   }
-  wheelReused = pathsReused = false;
+  wheelReused = pathsReused = comboReused = false;
 }
 // The wheel's layer takes the ring svg's place, size, view box and clip,
 // so the two draw as one: read while the layout is fresh from the fill.
@@ -12813,12 +12857,13 @@ function syncWheelLayer(){
 }
 // The wheel turned with the ring, by the compositor alone.
 function turnWheelLayer(angle){
-  var v = angle ? 'rotate(' + num(angle) + 'deg)' : '', w = angle + wheelTurnOffset ? 'rotate(' + num(angle + wheelTurnOffset) + 'deg)' : '';
+  var w = angle + wheelTurnOffset ? 'rotate(' + num(angle + wheelTurnOffset) + 'deg)' : '';
   if (wheelLayerEl.style.transform !== w) wheelLayerEl.style.transform = w;
   if (frostLayerEl.style.transform !== w) frostLayerEl.style.transform = w;
   var pv = angle + pathsTurnOffset ? 'rotate(' + num(angle + pathsTurnOffset) + 'deg)' : '';
   if (pathsLayerEl.style.transform !== pv) pathsLayerEl.style.transform = pv;
-  if (comboLayerEl.style.transform !== v) comboLayerEl.style.transform = v;
+  var cv = angle + comboTurnOffset ? 'rotate(' + num(angle + comboTurnOffset) + 'deg)' : '';
+  if (comboLayerEl.style.transform !== cv) comboLayerEl.style.transform = cv;
 }
 // The paths' layer's make-up turn written into its drawing, element by
 // element (or into copies of them, for a picture).
@@ -12837,6 +12882,14 @@ function foldPathsTurn(){
   if (walks && drawn) walks.drawnAt += by * drawn.G.order / (dirSign() * 360);
   var at = /rotate\((-?[\d.]+)/.exec((ringDynamicEl.querySelector(':scope > .ring') || pathsTurnEl).getAttribute('transform') || '');
   turnWheelLayer(at ? +at[1] : 0);
+}
+// The combination's make-up turn written into its drawing, which a flip or
+// rearrangement then carries in the ring and draws again.
+function foldComboTurn(){
+  var by = comboTurnOffset;
+  comboTurnOffset = 0;
+  comboTurnEl.drawnAt = undefined;
+  if (by) turnPathsBy(Array.prototype.slice.call(comboTurnEl.children), by);
 }
 // The wheel's group (or a copy of it) turned as drawing it again now would
 // turn it, at rest: by its turn, its clip turned back.
@@ -12881,6 +12934,7 @@ function placeFrostWindow(){
 function wheelIntoRing(ring){
   foldWheelTurn();
   foldPathsTurn();
+  foldComboTurn();
   var parts = ringLayerParts(false);
   turnWheelLayer(0);
   if (parts.length) ring.insertBefore(parts.reduce(function(f, el){ f.appendChild(el); return f; }, document.createDocumentFragment()), ring.firstChild);
@@ -12897,6 +12951,7 @@ function wheelOutOfRing(){
     ring.querySelectorAll(':scope > :is(.guide, .mirror-axis, .cord, .walks)').forEach(function(el){ pathsTurnEl.appendChild(el); });
     pathsTurnEl.setAttribute('class', ring.getAttribute('class').replace(/^ring\b/, 'ring-paths'));
     if (!ring.classList.contains('is-dh')) ring.querySelectorAll(':scope > :is(.walk-scalar:not(.walk-dh), .combine-raw-g, .combine-halo)').forEach(function(el){ comboTurnEl.appendChild(el); });
+    comboTurnEl.drawnAt = undefined;
   }
   var at = /rotate\((-?[\d.]+)/.exec(ring.getAttribute('transform') || '');
   turnWheelLayer(at ? +at[1] : 0);
@@ -12920,6 +12975,7 @@ function ringLayerParts(copies){
       var copy = copies ? el.cloneNode(true) : el;
       if (copies && el.drawnTurn !== el.turn) trueWheelTurn(copy, el);
       if (copies && host === pathsTurnEl && pathsTurnOffset) turnPathsBy([copy], pathsTurnOffset);
+      if (copies && host === comboTurnEl && comboTurnOffset) turnPathsBy([copy], comboTurnOffset);
       parts.push(copy);
     });
   });
@@ -26175,6 +26231,7 @@ function snapshotRing(){
   var liveWheel = wheelTurnEl.querySelector(':scope > .ring-wheel');
   if (liveWheel && liveWheel.drawnTurn !== liveWheel.turn) trueWheelTurn(wheelCopy.querySelector(':scope > .ring-wheel'), liveWheel);
   if (pathsTurnOffset) turnPathsBy(Array.prototype.slice.call(pathsCopy.children), pathsTurnOffset);
+  if (comboTurnOffset) turnPathsBy(Array.prototype.slice.call(comboCopy.children), comboTurnOffset);
   var cloneRing = clone.querySelector('.ring');
   if (cloneRing){
     while (comboCopy.lastChild) cloneRing.insertBefore(comboCopy.lastChild, cloneRing.firstChild);
