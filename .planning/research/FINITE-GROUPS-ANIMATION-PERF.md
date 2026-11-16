@@ -35,8 +35,9 @@ Benchmark scenario used since 2026-11-16: ⟨ℤ/37ℤ, ×⟩, a = 35, slow aᵏ
 | 11-16 | blur copy drops the wheel's clip-path (turned each step, it invalidated every copied number); copy rebuilt only when `frostRings` changes | | dbdb828 [w8n] |
 | 11-16 | `combineCopies` computes the card's hug before inserting its buttons (`combineHug`) | one forced style+layout fewer per step | dbdb828 [w8n] |
 | 11-16 | slow step writes the lines under the ring, their copy buttons and the card's plate into the ones drawn last (`ringKept.oldLines`, `patchCombineRoots`, `morphTree`; copy buttons read `btn.copyPlain` when clicked); the ≡ badge and the a ∗ b / aᵏ names change text-node data (`setTextData`) | step frames 92–129 → 57–63 ms, forced layout 56–82 → 29–34 ms; patched lines identical to a fresh drawing at k = 5 and 36 | 09787cf [x3m] |
+| 11-16 | keyboard focus marked with classes (`syncFocusVisible`: `has-fv` on the focused element and its ancestors, `has-fv-sub` inside `.sub-ctls`), and the rules asking `:has(:focus-visible)` / `:has(… :focus-visible)` (22 selector occurrences in 17 rules) rewritten to `.has-fv`, `:has(> X.has-fv)` or `.has-fv-sub` | headless insert pass 5.3 → 4.5 ms (2.6 with no `:has()` at all); user's Chrome forced layout per step 44–53 → 27–30 ms; old and new selectors match the same elements | be069bd [x9h] |
 
-User's Chrome after 11-16: median frame 14–33 ms between steps; about 57–63 ms at each new arrow (worst frame 69 ms).
+User's Chrome after 11-16: median frame 14–33 ms between steps; about 57–68 ms at each new arrow. The first step of a run with Keep every arrow in sight zooming to 25% takes one ~1.4 s frame (the whole wheel redrawn at the new zoom and cell height); not looked at yet.
 
 ### Micro-measurements (user's Chrome, 11-16; median of 9, change plus forced layout)
 - Attribute change on an svg element: 0.0–0.3 ms. Class toggle: 0.0 ms.
@@ -62,7 +63,14 @@ User's Chrome after 11-16: median frame 14–33 ms between steps; about 57–63 
 1. **The redraw at each new k**: now ~57–63 ms in the user's Chrome (was ~80 ms of style/layout on 11-15 [wl1], 230–270 ms early on 11-16). Done for the lines, copy buttons, plate and badge (09787cf).
    - What's left in it: one forced style+layout (~30 ms) that pays for the combination layer's insertions (the new arrow; its walk group and ~10 halos are still rebuilt), plus the lifecycle pass.
    - Patching the combination layer would not remove the one pass (see Micro-measurements).
-2. **The remaining `:has()` rules** (see Rejected). After 09787cf they are the floor of each step: one ~10 ms insertion pass (with all rules off, insert passes measured ~1–2 ms), plus the walk-end bead halo's insert. Worth at most ~10–20 ms of the ~60 ms step.
+2. **The remaining `:has()` rules** (85 selectors in the CSSOM before be069bd). Measured on 11-16:
+   - Upper bound in the user's Chrome, interleaved runs, every rule off vs on: step frames 84–100 → 51–63 ms, forced 44–53 → 7–30 ms.
+   - Headless insert pass, family on alone vs all off (2.5): `:focus-visible` family 5.0 (all on 5.3) → fixed by be069bd.
+   - After be069bd: all on 4.5, all off 2.6. Each remaining rule alone adds roughly 0.3–1.3 ms over the baseline, and they don't add up. That fits a largely fixed cost once any `:has()` rule can be affected by an insertion. Only converting all of them would remove it.
+   - Not effective: rewriting `:focus-visible` to a class inside the same descendant `:has()` (`.is-fv`), 5.0 → 4.2; marking ancestors and dropping the descendant search did better.
+   - Switching off the 25 rules anchored on an ancestor of the ring's layers, or the 10 of those with descendant arguments: no measurable change.
+   - Candidate not tried: a generic shim that rewrites every `X:has(arg)` to a class kept by JS (`el.matches(':has(arg)')` on anchors, rerun on focus, hover, change events and on mutations outside the svg layers). Check first whether a JS `matches(':has(…)')` call itself sets Chrome's has-invalidation flags.
+   - Measurement caution: the user's machine drifts 2–4× within minutes (median frame flips between 17 and 33 ms). Only interleaved comparisons count.
    - Candidates not tried yet:
      - rewrite only the rules whose argument is a descendant combinator anchored on `.fs-win-body` (e.g. `:has(:is(#coset-btn, #dir-toggle):is(:hover, :focus-visible))`, `:has(> .expr-slot:not(.is-side) :focus-visible …)`) into JS-set classes, as pf1 did for the `> …` ones;
      - move the big svg layers out of `.fs-win-body`.

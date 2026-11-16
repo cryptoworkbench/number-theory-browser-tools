@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-10-02)
 Phase: 4 — Continued Fractions Tool
 Plan: Not started
 Status: Ready to plan
-Last activity: 2026-11-16 - Completed quick task 261116-x3m: Finite Groups patch combination lines
+Last activity: 2026-11-16 - Completed quick task 261116-x9h: Finite Groups focus-visible :has rework
 
 Progress: [█████████░] 86%
 
@@ -724,6 +724,7 @@ None yet.
 | 261116-v2k | Finite Groups: lit cells in their own pooled layer, frost copy culled to the card: slow aᵏ over the wheel 17-33 ms frames (was 117-150) | 2026-11-16 | 35982c5 | [261116-v2k-finite-groups-walk-down-no-wheel-repaint](./quick/261116-v2k-finite-groups-walk-down-no-wheel-repaint/) |
 | 261116-w8n | Finite Groups: slow aᵏ per-arrow stall 230-270 ms → ~80-130 ms (per-wedge number turn, frost copy without clip, one forced layout fewer) | 2026-11-16 | dbdb828 | [261116-w8n-finite-groups-step-stall](./quick/261116-w8n-finite-groups-step-stall/) |
 | 261116-x3m | Finite Groups: slow aᵏ step patches the lines under the ring in place: step frames 92-129 → 57-63 ms | 2026-11-16 | 09787cf | [261116-x3m-finite-groups-patch-combination-lines](./quick/261116-x3m-finite-groups-patch-combination-lines/) |
+| 261116-x9h | Finite Groups: :has(:focus-visible) rules replaced by JS-kept classes: forced layout per slow aᵏ step 44-53 → 27-30 ms | 2026-11-16 | be069bd | [261116-x9h-finite-groups-focus-visible-has](./quick/261116-x9h-finite-groups-focus-visible-has/) |
 | fast | Cyclic Groups DH time cylinder, Per hop: hairline slice rims so the grey beads stay visible | 2026-11-04 | e6f0b6c | — |
 | fast | Cyclic Groups: Subgroup switched off keeps the group's name in the subgroup row, without G and ⟨h⟩ | 2026-11-04 | 20274e9 | — |
 | fast | Cyclic Groups: Diffie-Hellman Colours switch, Alice and Bob in own colours or the forward/backward path colours | 2026-11-04 | 5bd6ece | — |
@@ -995,4 +996,4 @@ Last session: 2026-10-03
 Stopped at: Quick task 261005-dn2 complete — Venn Diagram double-click respects thumbnail scroll
 Resume file: None
 
-Last activity: 2026-11-16 - Completed quick task 261116-x3m: Finite Groups patch combination lines
+Last activity: 2026-11-16 - Completed quick task 261116-x9h: Finite Groups focus-visible :has rework
