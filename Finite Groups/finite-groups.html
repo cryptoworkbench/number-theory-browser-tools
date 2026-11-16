@@ -884,6 +884,9 @@
   /* A tooltip lies over everything, the menus it explains included. */
   .title-tip{ z-index:100; max-width:min(30em, calc(100vw - 8px)); white-space:pre-line; overflow-wrap:anywhere; }
   .title-tip.is-one-line{ max-width:calc(100vw - 8px); }
+  /* A button named in a tip, drawn small as it looks pressed. */
+  .tip-btn{ display:inline-grid; place-items:center; width:16px; height:16px; margin:0 1px; vertical-align:-3px; color:var(--role-result); border:1px solid var(--role-result); border-radius:var(--radius-ctl); background:color-mix(in srgb, var(--role-result) 16%, transparent); }
+  .tip-btn svg{ fill:none; stroke:currentColor; stroke-width:1.6; stroke-linecap:round; stroke-linejoin:round; }
   .akey-tip table{ border-collapse:collapse; }
   .akey-tip :is(th, td){ padding:2px 8px; white-space:nowrap; }
   .akey-tip :is(th, td) + :is(th, td){ border-left:1px solid var(--panel-border); }
@@ -20127,14 +20130,16 @@ function setTopResult(on){
   spinSliderEl.disabled = on;
   ['spin-back', 'spin-fwd', 'rot-back', 'rot-fwd'].forEach(function(id){ $(id).disabled = on; });
   ['spin-back', 'spin-fwd'].forEach(function(id){ $(id).classList.toggle('is-held', on); });
+  // The tip shows the button itself, small, where it names it.
   var ruler = $('spin-ruler');
   if (on){
-    ruler.setAttribute('data-i18n-title', 'cyclicGroups.spinHeldTip');
-    ruler.title = translate('cyclicGroups.spinHeldTip');
-  } else {
-    ruler.removeAttribute('data-i18n-title');
-    ruler.removeAttribute('title');
-  }
+    var icon = document.createElement('span');
+    icon.className = 'tip-btn';
+    icon.appendChild($('combine-top').querySelector('svg').cloneNode(true));
+    var tip = document.createElement('span');
+    translateInto(tip, 'cyclicGroups.spinHeldTipIcon', { icon: icon });
+    setTitleMath(ruler, translate('cyclicGroups.spinHeldTip'), tip);
+  } else ruler.removeAttribute('title');
   if (!on) return;
   setKeepTop('off');
   if (state.autoRotate !== 'off'){
