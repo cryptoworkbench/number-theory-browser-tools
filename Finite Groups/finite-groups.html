@@ -14113,7 +14113,7 @@ function twoRings(){ return !IS_ISOPANE && !!isoPane && !!isoPaneFrame && !isoPa
 function zoomApart(){ return !!groupControlsEl && (IS_ISOPANE || twoRings()) && !isoTurnsTogether(); }
 function canZoom(by){ return !!RING_ZOOMS[zoomShown() + by]; }
 // The zoom the pill shows: a gesture's while one is under way.
-function zoomShown(){ return zoomPreview ? zoomPreview.i : ringZoom; }
+function zoomShown(){ return zoomOutTo >= 0 ? zoomOutTo : zoomPreview ? zoomPreview.i : ringZoom; }
 // This ring's own zoom.
 // at, from the other ring, keeps the two eases in step (see
 // easeRingResize); returns the moment this ring's ease began.
@@ -14140,9 +14140,25 @@ function applyZoom(i, at){
 // settles: one redraw however many steps it took.
 var ZOOM_SETTLE_MS = 160;
 var zoomPreview = null;
+// Zooming out, the scaled-down drawing would leave bare background round it
+// until the redraw, so a step out from the drawn zoom is drawn for real
+// instead, at most once a frame: zoomOutTo is the step waiting for its frame.
+var zoomOutTo = -1;
 function zoomLayerEls(){ return [ringSvgEl, wheelHostEl, frostHostEl, pathsHostEl, comboHostEl]; }
 function previewRingZoom(i){
   i = clamp(i, 0, RING_ZOOMS.length - 1);
+  if (RING_ZOOMS[i] < RING_ZOOMS[zoomPreview ? zoomPreview.from : ringZoom]){
+    var queued = zoomOutTo >= 0;
+    zoomOutTo = i;
+    syncZoomCtl();
+    if (!queued) requestAnimationFrame(function(){
+      var to = zoomOutTo;
+      zoomOutTo = -1;
+      if (to >= 0) setRingZoom(to);
+    });
+    return;
+  }
+  zoomOutTo = -1;
   if (!zoomPreview){
     if (i === ringZoom) return;
     var ctm = ringSvgEl.getScreenCTM();
