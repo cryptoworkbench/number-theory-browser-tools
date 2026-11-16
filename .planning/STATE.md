@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-10-02)
 Phase: 4 — Continued Fractions Tool
 Plan: Not started
 Status: Ready to plan
-Last activity: 2026-11-16 - Completed quick task 261116-rgx: Finite Groups wheel zoom whole area
+Last activity: 2026-11-16 - Completed quick task 261116-t3z: Finite Groups zoom out no bare background
 
 Progress: [█████████░] 86%
 
@@ -719,6 +719,7 @@ None yet.
 | 261116-rbw | Finite Groups: Zoom with the scroll wheel lights up while on (branch smooth-zoom-fit) | 2026-11-16 | 523a0aa | [261116-rbw-finite-groups-zoom-wheel-lit](./quick/261116-rbw-finite-groups-zoom-wheel-lit/) |
 | 261116-rgx | Finite Groups: Zoom with the scroll wheel works over the whole main area, not only the ring svg box (branch smooth-zoom-fit) | 2026-11-16 | 9da36e9 | [261116-rgx-finite-groups-wheel-zoom-whole-area](./quick/261116-rgx-finite-groups-wheel-zoom-whole-area/) |
 | 261115-fm2 | Finite Groups: forward/backward path overlaps drawn in the both-paths green | 2026-11-15 | f3d01dd | [261115-fm2-finite-groups-shared-forward-backward-pa](./quick/261115-fm2-finite-groups-shared-forward-backward-pa/) |
+| 261116-t3z | Finite Groups: zooming out redraws the ring each frame instead of shrinking the old drawing over bare background | 2026-11-16 | 6e98b81 | [261116-t3z-finite-groups-zoom-out-no-bare-background](./quick/261116-t3z-finite-groups-zoom-out-no-bare-background/) |
 | fast | Cyclic Groups DH time cylinder, Per hop: hairline slice rims so the grey beads stay visible | 2026-11-04 | e6f0b6c | — |
 | fast | Cyclic Groups: Subgroup switched off keeps the group's name in the subgroup row, without G and ⟨h⟩ | 2026-11-04 | 20274e9 | — |
 | fast | Cyclic Groups: Diffie-Hellman Colours switch, Alice and Bob in own colours or the forward/backward path colours | 2026-11-04 | 5bd6ece | — |
@@ -990,4 +991,4 @@ Last session: 2026-10-03
 Stopped at: Quick task 261005-dn2 complete — Venn Diagram double-click respects thumbnail scroll
 Resume file: None
 
-Last activity: 2026-11-16 - Completed quick task 261116-rgx: Finite Groups wheel zoom whole area
+Last activity: 2026-11-16 - Completed quick task 261116-t3z: Finite Groups zoom out no bare background
