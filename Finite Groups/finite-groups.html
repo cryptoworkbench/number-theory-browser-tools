@@ -14922,8 +14922,15 @@ zoomWheelEl.addEventListener('click', function(){
   zoomWheelEl.setAttribute('aria-pressed', zoomWheelOn ? 'true' : 'false');
   postIsoShared(false);
 });
-ringSvgEl.addEventListener('wheel', function(e){
-  if (!zoomWheelOn || e.ctrlKey || !e.deltaY) return;
+// Over the ring's main area: the ring itself, or the bare window body it
+// draws in, where the congruence wheel and a zoomed-out ring reach past
+// the ring svg's box; the rows of controls, the cards and the menus over
+// it keep the wheel for themselves.
+function zoomWheelAt(t){
+  return zoomWheelOn && !!t && (ringSvgEl.contains(t) || t === ringSvgEl.parentNode);
+}
+ringSvgEl.parentNode.addEventListener('wheel', function(e){
+  if (!zoomWheelAt(e.target) || e.ctrlKey || !e.deltaY) return;
   e.preventDefault();
   zoomWheelSum += e.deltaMode ? e.deltaY * 40 : e.deltaY;
   var steps = Math.trunc(zoomWheelSum / 40);
@@ -22826,7 +22833,7 @@ window.addEventListener('wheel', function(e){
   if (IS_DESKTOP && !cgEntered) return;
   var t = e.target;
   if (t.closest && t.closest('textarea, [contenteditable], [role="menu"], [role="listbox"], .bar-menu, .ec-reels')) return;
-  if (zoomWheelOn && t.closest && t.closest('svg.ring-svg')) return;
+  if (zoomWheelAt(t)) return;
   // The time cylinder zooms on the wheel itself.
   if (t.closest && t.closest('.dhc-svg')) return;
   e.preventDefault();
@@ -22848,7 +22855,7 @@ window.addEventListener('wheel', function(e){
   if (IS_DESKTOP && !cgEntered) return;
   var t = e.target;
   if (t.closest && t.closest('textarea, [contenteditable], [role="menu"], [role="listbox"], .bar-menu, .ec-reels')) return;
-  if (zoomWheelOn && t.closest && t.closest('svg.ring-svg')) return;
+  if (zoomWheelAt(t)) return;
   // The time cylinder zooms on the wheel itself.
   if (t.closest && t.closest('.dhc-svg')) return;
   // With k·a drawn, the wheel over the ring or the k field steps k instead.
@@ -24421,7 +24428,7 @@ function applyIsoShared(d){
   hostDock = dk && typeof dk === 'object' && fin(dk.top) && fin(dk.bottom) && fin(dk.right) && fin(dk.maxW) && dk.bottom > dk.top ? dk : null;
   fitDockedPlot();
   fitDockedCayley();
-  if (flag(d.zoomwheel)) zoomWheelOn = d.zoomwheel;
+  if (flag(d.zoomwheel)){ zoomWheelOn = d.zoomwheel; zoomWheelEl.setAttribute('aria-pressed', zoomWheelOn ? 'true' : 'false'); }
   // Merged into the holder's table of pairs, this ring's table goes.
   if (flag(d.cayleyMerged)) paneCayleyMerged = d.cayleyMerged;
   // The link's generator here, which the holding ring may move to another
