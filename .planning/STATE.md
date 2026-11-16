@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-10-02)
 Phase: 4 — Continued Fractions Tool
 Plan: Not started
 Status: Ready to plan
-Last activity: 2026-11-16 - Completed quick task 261116-pzs: Finite Groups slow arrows stop button
+Last activity: 2026-11-16 - Completed quick task 261116-qfz: Finite Groups fit before slow arrows
 
 Progress: [█████████░] 86%
 
@@ -713,6 +713,7 @@ None yet.
 | 261116-sht | Finite Groups: the blurred auto-rotation speed ruler's tooltip says to turn off Keep the result on top | 2026-11-16 | 90b0a32 | [261116-sht-finite-groups-held-speed-ruler-tooltip](./quick/261116-sht-finite-groups-held-speed-ruler-tooltip/) |
 | 261116-ozr | Finite Groups: finer ring zoom (25%–400%), gestures previewed on the compositor and drawn once, Keep every arrow in sight (branch smooth-zoom-fit) | 2026-11-16 | a15c73a | [261116-ozr-finite-groups-smooth-ring-zoom-and-fit-a](./quick/261116-ozr-finite-groups-smooth-ring-zoom-and-fit-a/) |
 | 261116-pzs | Finite Groups: pause button (and Space) stopping slow aᵏ / a ∗ b arrows; Keep every arrow in sight lit while on (branch smooth-zoom-fit) | 2026-11-16 | 6102e08 | [261116-pzs-finite-groups-slow-arrows-stop-button](./quick/261116-pzs-finite-groups-slow-arrows-stop-button/) |
+| 261116-qfz | Finite Groups: Keep every arrow in sight zooms out before slow arrows grow (branch smooth-zoom-fit) | 2026-11-16 | 466c195 | [261116-qfz-finite-groups-fit-before-slow-arrows](./quick/261116-qfz-finite-groups-fit-before-slow-arrows/) |
 | 261115-fm2 | Finite Groups: forward/backward path overlaps drawn in the both-paths green | 2026-11-15 | f3d01dd | [261115-fm2-finite-groups-shared-forward-backward-pa](./quick/261115-fm2-finite-groups-shared-forward-backward-pa/) |
 | fast | Cyclic Groups DH time cylinder, Per hop: hairline slice rims so the grey beads stay visible | 2026-11-04 | e6f0b6c | — |
 | fast | Cyclic Groups: Subgroup switched off keeps the group's name in the subgroup row, without G and ⟨h⟩ | 2026-11-04 | 20274e9 | — |
@@ -985,4 +986,4 @@ Last session: 2026-10-03
 Stopped at: Quick task 261005-dn2 complete — Venn Diagram double-click respects thumbnail scroll
 Resume file: None
 
-Last activity: 2026-11-16 - Completed quick task 261116-pzs: Finite Groups slow arrows stop button
+Last activity: 2026-11-16 - Completed quick task 261116-qfz: Finite Groups fit before slow arrows
