@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-10-02)
 Phase: 4 — Continued Fractions Tool
 Plan: Not started
 Status: Ready to plan
-Last activity: 2026-11-17 - Completed quick task 261117-zeh: Finite Groups rise walks (branch)
+Last activity: 2026-11-17 - Completed quick task 261117-zfm: Finite Groups no layer-1 walks (branch)
 
 Progress: [█████████░] 86%
 
@@ -996,6 +996,7 @@ None yet.
 | 261117-zcr | Finite Groups (branch dhc-raw-on-floor): time cylinder raw results lie flat over their floor cells' numbers | 2026-11-17 | efa703d | [261117-zcr-finite-groups-dhc-raw-on-floor](./quick/261117-zcr-finite-groups-dhc-raw-on-floor/) |
 | 261117-zdt | Finite Groups (branch dhc-rise-with-walk): Per frame's rise to layer 1 grows with the walk on it | 2026-11-17 | fe88d08 | [261117-zdt-finite-groups-dhc-rise-with-walk](./quick/261117-zdt-finite-groups-dhc-rise-with-walk/) |
 | 261117-zeh | Finite Groups (branch dhc-rise-walks): Per frame's rise to layer 1 climbs through the walk (chords, raw results) | 2026-11-17 | 50706a0 | [261117-zeh-finite-groups-dhc-rise-walks](./quick/261117-zeh-finite-groups-dhc-rise-walks/) |
+| 261117-zfm | Finite Groups (branch dhc-rise-walks): no walks on layer 1; the rise carries heads, numbers, raw results, walk down | 2026-11-17 | 06e43a3 | [261117-zfm-finite-groups-dhc-no-layer1-walks](./quick/261117-zfm-finite-groups-dhc-no-layer1-walks/) |
 
 ## Deferred Items
 
@@ -1011,4 +1012,4 @@ Last session: 2026-10-03
 Stopped at: Quick task 261005-dn2 complete — Venn Diagram double-click respects thumbnail scroll
 Resume file: None
 
-Last activity: 2026-11-17 - Completed quick task 261117-zeh: Finite Groups rise walks (branch)
+Last activity: 2026-11-17 - Completed quick task 261117-zfm: Finite Groups no layer-1 walks (branch)
