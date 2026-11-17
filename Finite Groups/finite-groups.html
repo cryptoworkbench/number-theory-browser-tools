@@ -13212,12 +13212,37 @@ if (document.fonts){
   document.fonts.ready.then(paintWheelNums);
   document.fonts.addEventListener('loadingdone', paintWheelNums);
 }
+// A wheel kept through turns is turned by its layer (wheelTurnOffset), and
+// a layer this large (the numbers' canvas above all) turned by the
+// compositor costs the GPU every frame: a ring kept with its result on top
+// ran at ~30-45 fps. So once the ring has stopped turning, the turn is
+// folded into the wheel's drawing (foldWheelTurn) and its numbers painted
+// again, its layers standing straight.
+var wheelFoldTimer = 0, ringAngleNow = 0;
+function foldWheelAtRest(){
+  wheelFoldTimer = 0;
+  if (spin || wheelInRing || ringAngleNow || !wheelTurnOffset) return;
+  // The blur's copy, built in a frame of its own, takes the same turn on
+  // top of the one it has (foldWheelTurn would give it the wheel's).
+  var copy = frostTurnEl.querySelector('.ring-frost-wheel'), by = wheelTurnOffset;
+  var had = copy && /rotate\((-?[\d.e]+)/.exec(copy.getAttribute('transform') || '');
+  foldWheelTurn();
+  if (copy){
+    var box = ringBox(), turn = (had ? +had[1] : 0) + by;
+    copy.setAttribute('transform', 'rotate(' + num(turn) + ' ' + box.cx + ' ' + box.cy + ')');
+  }
+  turnWheelLayer(0);
+  paintWheelNums();
+}
 // The wheel turned with the ring, by the compositor alone.
 function turnWheelLayer(angle){
   var w = angle + wheelTurnOffset ? 'rotate(' + num(angle + wheelTurnOffset) + 'deg)' : '';
   if (wheelLayerEl.style.transform !== w) wheelLayerEl.style.transform = w;
   if (litLayerEl.style.transform !== w) litLayerEl.style.transform = w;
   if (numCanvasEl.style.transform !== w) numCanvasEl.style.transform = w;
+  ringAngleNow = angle;
+  if (wheelFoldTimer) clearTimeout(wheelFoldTimer);
+  wheelFoldTimer = wheelTurnOffset && !wheelInRing ? setTimeout(foldWheelAtRest, 150) : 0;
   if (frostLayerEl.style.transform !== w) frostLayerEl.style.transform = w;
   var pv = angle + pathsTurnOffset ? 'rotate(' + num(angle + pathsTurnOffset) + 'deg)' : '';
   if (pathsLayerEl.style.transform !== pv) pathsLayerEl.style.transform = pv;
