@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-10-02)
 Phase: 4 — Continued Fractions Tool
 Plan: Not started
 Status: Ready to plan
-Last activity: 2026-11-17 - Completed quick task 261117-zmk: Finite Groups swap lands on walk
+Last activity: 2026-11-17 - Completed quick task 261117-znr: Finite Groups keep all beads
 
 Progress: [█████████░] 86%
 
@@ -1003,6 +1003,7 @@ None yet.
 | 261117-zkd | Finite Groups: Per frame slow arrows, Alice and Bob reach K at the same moment | 2026-11-17 | a315519 | [261117-zkd-finite-groups-dhc-sync-k](./quick/261117-zkd-finite-groups-dhc-sync-k/) |
 | 261117-zlf | Finite Groups: time cylinder slow arrowheads show only once their line has grown through them | 2026-11-17 | 15a00bc | [261117-zlf-finite-groups-dhc-heads-in-time](./quick/261117-zlf-finite-groups-dhc-heads-in-time/) |
 | 261117-zmk | Finite Groups: Per frame's swap lines land on the receiver's walk to K where its colour turns | 2026-11-17 | a94b3e3 | [261117-zmk-finite-groups-dhc-swap-lands-on-walk](./quick/261117-zmk-finite-groups-dhc-swap-lands-on-walk/) |
+| 261117-znr | Finite Groups: time cylinder menu Keep all beads on every layer (off: polygon corners only) | 2026-11-17 | 7877b6b | [261117-znr-finite-groups-dhc-keep-beads](./quick/261117-znr-finite-groups-dhc-keep-beads/) |
 
 ## Deferred Items
 
@@ -1018,4 +1019,4 @@ Last session: 2026-10-03
 Stopped at: Quick task 261005-dn2 complete — Venn Diagram double-click respects thumbnail scroll
 Resume file: None
 
-Last activity: 2026-11-17 - Completed quick task 261117-zmk: Finite Groups swap lands on walk
+Last activity: 2026-11-17 - Completed quick task 261117-znr: Finite Groups keep all beads
