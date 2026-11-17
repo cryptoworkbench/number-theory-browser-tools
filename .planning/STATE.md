@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-10-02)
 Phase: 4 — Continued Fractions Tool
 Plan: Not started
 Status: Ready to plan
-Last activity: 2026-11-17 - Completed quick task 261117-z1f: Finite Groups first-step frame (shim cost)
+Last activity: 2026-11-17 - Completed quick task 261117-z2c: Finite Groups wheel numbers on a canvas
 
 Progress: [█████████░] 86%
 
@@ -983,6 +983,7 @@ None yet.
 | 627 | Cyclic Groups: scalar combination aᵏ (mode toggle, k field with mod-|G| reduction button, derivation naming a, k, A with exponent reduced through |G| and φ(n)), lap halos and lap-replacing hop numbers, forward-path eye, formula-menu Main/Row swap; English-first keys | 2026-10-23 | b783dd6 | — |
 | 261029-kcf | Cyclic Groups: one Generator dropdown plus a Sequential button in the Arrangement row | 2026-10-29 | 99aafc7 | [261029-kcf-cyclic-groups-one-generator-dropdown-plu](./quick/261029-kcf-cyclic-groups-one-generator-dropdown-plu/) |
 | 261029-tr | Cyclic Groups: catch-up translation of 122 English-first keys into all thirty languages | 2026-10-29 | b70f6eb | — |
+| 261117-z2c | Finite Groups: congruence wheel numbers painted on a canvas (svg texts only where needed): first step ~25-35% shorter headless, no long paint after | 2026-11-17 | 7da315d | [261117-z2c-finite-groups-wheel-numbers-canvas](./quick/261117-z2c-finite-groups-wheel-numbers-canvas/) |
 
 ## Deferred Items
 
@@ -998,4 +999,4 @@ Last session: 2026-10-03
 Stopped at: Quick task 261005-dn2 complete — Venn Diagram double-click respects thumbnail scroll
 Resume file: None
 
-Last activity: 2026-11-17 - Completed quick task 261117-z1f: Finite Groups first-step frame (shim cost)
+Last activity: 2026-11-17 - Completed quick task 261117-z2c: Finite Groups wheel numbers on a canvas
