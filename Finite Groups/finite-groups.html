@@ -5925,10 +5925,12 @@ function rawNumRot(to, turn){
 // above the wedge of its residue, then comes straight back in, dashed, to
 // its bead: the reduction mod n. The raw number is written over the
 // wheel's own figure for it in the walk's colour. size 0 leaves out the
-// arrowhead. Returns the way out's point at a share of it.
+// arrowhead. Returns the way out's point at a share of it. Switching raw
+// results on or off (ex.mix, 0 in to 1 out), the turn eases out from the
+// bead to its cell or back in, and the number fades with it.
 function drawRawHop(group, h, ex, box, beadR, width, size){
-  var ring = ringWheelRing(box.R), R0 = box.R + beadR + 4, foot = box.R + beadR;
-  var cell = R0 + (ex.q + 0.5) * ring, font = ex.font, turn = cell - font * 0.7;
+  var ring = ringWheelRing(box.R), R0 = box.R + beadR + 4, foot = box.R + beadR, mix = ex.mix === undefined ? 1 : ex.mix;
+  var cell = foot + (R0 - foot + (ex.q + 0.5) * ring) * mix, font = ex.font, turn = cell - font * 0.7 * mix;
   var to = h.a0 + h.d, samples = Math.max(16, Math.ceil(Math.abs(h.d) / humpCoarse)), d = '';
   var pt = function(f){ return polar(box.cx, box.cy, foot + (turn - foot) * f, h.a0 + h.d * f); };
   for (var t = 0; t <= samples; t++){
@@ -5948,6 +5950,7 @@ function drawRawHop(group, h, ex, box, beadR, width, size){
   var rot = rawNumRot(to, ex.turn), c = polar(box.cx, box.cy, cell, to);
   var label = svgEl('text', { 'class': 'ring-raw', x: num(c[0]), y: num(c[1]), 'font-size': num(font), transform: 'rotate(' + num(rot) + ' ' + num(c[0]) + ' ' + num(c[1]) + ')' });
   label.textContent = String(ex.raw);
+  if (mix < 1) label.style.opacity = num(mix);
   group.appendChild(label);
   return pt;
 }
@@ -5958,10 +5961,11 @@ function drawRawHop(group, h, ex, box, beadR, width, size){
 // wedge of its residue, and meet there; from there one arrow comes straight
 // back in, dashed, to the result's halo: the reduction mod n. The raw
 // number is written over the wheel's own figure for it in the result's
-// colour.
+// colour. Switching raw results on or off (ex.mix), all of it eases out
+// from the halos or back in, as drawRawHop's does.
 function drawRawCombine(ring, G, place, m, box, beadR, ex){
-  var R0 = box.R + beadR + 4, foot = box.R + beadR + 4, size = 6;
-  var cell = R0 + (ex.q + 0.5) * ringWheelRing(box.R), turn = cell - ex.font * 0.7;
+  var R0 = box.R + beadR + 4, foot = R0, size = 6, mix = ex.mix === undefined ? 1 : ex.mix;
+  var cell = foot + (ex.q + 0.5) * ringWheelRing(box.R) * mix, turn = cell - ex.font * 0.7 * mix;
   var angle = function(x){ return dirSign() * 360 * place[x] / m; };
   var to = angle(ex.c), g = svgEl('g', { 'class': 'combine-raw-g', 'aria-hidden': 'true' });
   // Slow a ∗ b (abSlowOn): the parts abApply animates.
@@ -5982,10 +5986,12 @@ function drawRawCombine(ring, G, place, m, box, beadR, ex){
   // The tip stops at the result's halo.
   var p1 = polar(box.cx, box.cy, turn, to), p2 = polar(box.cx, box.cy, foot + 2 + size, to), tip = polar(box.cx, box.cy, foot + 2, to);
   var reduce = turn > foot + 2 + size ? g.appendChild(svgEl('path', { 'class': 'combine-raw is-c is-reduce', d: 'M ' + num(p1[0]) + ' ' + num(p1[1]) + ' L ' + num(p2[0]) + ' ' + num(p2[1]) })) : null;
-  var headC = g.appendChild(arrowHead('combine-raw-head is-c', p2[0], p2[1], Math.atan2(tip[1] - p1[1], tip[0] - p1[0]), size));
+  // Pointing straight in, however far out the turn is.
+  var back = polar(box.cx, box.cy, foot + 3 + size, to), headC = g.appendChild(arrowHead('combine-raw-head is-c', p2[0], p2[1], Math.atan2(tip[1] - back[1], tip[0] - back[0]), size));
   var rot = rawNumRot(to, ex.turn), c = polar(box.cx, box.cy, cell, to);
   var label = svgEl('text', { 'class': 'ring-raw is-c', x: num(c[0]), y: num(c[1]), 'font-size': num(ex.font), transform: 'rotate(' + num(rot) + ' ' + num(c[0]) + ' ' + num(c[1]) + ')' });
   label.textContent = String(ex.raw);
+  if (mix < 1) label.style.opacity = num(mix);
   g.appendChild(label);
   ring.appendChild(g);
   if (live){
@@ -6363,12 +6369,12 @@ function drawRing(parent, G, beads, box, paint){
     // no reduction or reaching past the rings drawn (see drawRawHop).
     var rawFor = function(w){
       if (!w.raw || !ringRawShown(G, w.raw === 'both' ? null : w.raw)) return null;
-      var by = w.raw === 'inv' ? G.inv[h] : h;
+      var by = w.raw === 'inv' ? G.inv[h] : h, mix = ringRawMix(w.raw === 'both' ? null : w.raw);
       return function(hop){
         var r = G.mode === 'multiplicative' ? hop.from * by : hop.from + by, q = Math.floor(r / G.n);
         if (q >= 1) rawReach.walks.push({ q: q, el: r - q * G.n });
         if (q < 1 || q >= ringWheelDepth) return null;
-        return { raw: r, q: q, font: ringWheelNumSize(G, m, box.R + beadR + 4, ringWheelRing(box.R), ringWheelDepth) };
+        return { raw: r, q: q, font: ringWheelNumSize(G, m, box.R + beadR + 4, ringWheelRing(box.R), ringWheelDepth), mix: mix };
       };
     };
     ring.redrawWalks = function(places){
@@ -6528,11 +6534,11 @@ function drawRingCombo(ring, G, beads, place, box, beadR, m, at){
     var swBy = combo.k < 0 ? G.inv[combo.a] : combo.a, swRaw = [], numTurn = comboNumTurn(G, place, m);
     var swSize = Math.max(4, Math.min(8, 110 / swSteps.length));
     if (ringRawShown(G, 'ak')){
-      var swFont = ringWheelNumSize(G, m, box.R + beadR + 4, ringWheelRing(box.R), ringWheelDepth);
+      var swFont = ringWheelNumSize(G, m, box.R + beadR + 4, ringWheelRing(box.R), ringWheelDepth), swMix = ringRawMix('ak');
       swSteps.forEach(function(h, s){
         var r = G.mode === 'multiplicative' ? h.from * swBy : h.from + swBy, q = Math.floor(r / G.n);
         if (q >= 1) rawReach.combo.push({ q: q, el: r - q * G.n });
-        if (q >= 1 && q < ringWheelDepth) swRaw[s] = { raw: r, q: q, font: swFont, turn: numTurn };
+        if (q >= 1 && q < ringWheelDepth) swRaw[s] = { raw: r, q: q, font: swFont, turn: numTurn, mix: swMix };
       });
     }
     var swD = '', swLap = null, swOut = [];
@@ -6597,7 +6603,7 @@ function drawRingCombo(ring, G, beads, place, box, beadR, m, at){
   if (ringRawShown(G, 'ab') && comboLive(G) && !comboBOnly(G) && combo.k === null && combo.b !== null && G.els.indexOf(combo.b) !== -1){
     var abRaw = G.mode === 'multiplicative' ? combo.a * combo.b : combo.a + combo.b, abQ = Math.floor(abRaw / G.n);
     rawReach.combo.push({ q: abQ, el: abRaw - abQ * G.n });
-    if (abQ < ringWheelDepth) drawRawCombine(ring, G, place, m, box, beadR, { raw: abRaw, q: abQ, c: G.combine(combo.a, combo.b), font: ringWheelNumSize(G, m, box.R + beadR + 4, ringWheelRing(box.R), ringWheelDepth), turn: comboNumTurn(G, place, m) });
+    if (abQ < ringWheelDepth) drawRawCombine(ring, G, place, m, box, beadR, { raw: abRaw, q: abQ, c: G.combine(combo.a, combo.b), font: ringWheelNumSize(G, m, box.R + beadR + 4, ringWheelRing(box.R), ringWheelDepth), turn: comboNumTurn(G, place, m), mix: ringRawMix('ab') });
   }
   // With aᵏ only the last visit's halo shows, in its lap's colour.
   var lastOnly = combo.k !== null && !!scalarWalk(G);
@@ -13424,11 +13430,41 @@ function setWheelThick(i){
   try { localStorage.setItem(RING_WHEEL_THICK_KEY, String(ringWheelThick)); } catch (e) { /* storage unavailable */ }
   if (drawn){ redrawRing(); mirrorToUrl(drawn.G); }
 }
-function ringRawShown(G, path){ return (path ? ringRawOn[path] : ringRawOn.el || ringRawOn.inv) && ringWheelShown(G); }
+// Switching a path's raw results on or off eases them out to their cells
+// on the wheel or back in to their beads over RING_RAW_MS, as the time
+// cylinder's floor does (see dhcRawMix): ringRawMix is where a path's raw
+// results are now (0 in, 1 out; for none, the forward and backward paths'
+// furthest), and a path stays drawn while it eases back in.
+var RING_RAW_MS = 700, ringRawMorph = {}, ringRawTicking = false;
+function ringRawMix(path){
+  if (!path) return Math.max(ringRawMix('el'), ringRawMix('inv'));
+  var mo = ringRawMorph[path], to = ringRawOn[path] ? 1 : 0;
+  if (!mo) return to;
+  var p = clamp((performance.now() - mo.t0) / RING_RAW_MS, 0, 1);
+  if (p >= 1 || reducedMotion && reducedMotion.matches){ delete ringRawMorph[path]; return to; }
+  var e = p * p * (3 - 2 * p);
+  return mo.from + (to - mo.from) * e;
+}
+function ringRawLive(path){
+  ringRawMix(path);
+  return ringRawOn[path] || !!ringRawMorph[path];
+}
+function ringRawShown(G, path){ return (path ? ringRawLive(path) : ringRawLive('el') || ringRawLive('inv')) && ringWheelShown(G); }
 function toggleRingRaw(path){
+  ringRawMorph[path] = { t0: performance.now(), from: ringRawMix(path) };
   ringRawOn[path] = !ringRawOn[path];
   try { localStorage.setItem(RING_RAW[path].key, ringRawOn[path] ? '1' : '0'); } catch (e) { /* storage unavailable */ }
   if (drawn){ redrawRing(); mirrorToUrl(drawn.G); }
+  // The ring redrawn each frame until every easing is over.
+  if (ringRawTicking) return;
+  ringRawTicking = true;
+  var tick = function(){
+    var live = Object.keys(ringRawMorph).some(function(p){ ringRawMix(p); return !!ringRawMorph[p]; });
+    if (drawn) redrawRing();
+    if (live) requestAnimationFrame(tick);
+    else ringRawTicking = false;
+  };
+  requestAnimationFrame(tick);
 }
 function toggleRingWheel(){
   ringWheelOn = !ringWheelOn;
