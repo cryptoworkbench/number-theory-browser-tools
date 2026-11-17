@@ -17637,16 +17637,19 @@ function dhcTimelineHop(G){
     { slice: T, x: v.K, who: 'key', owner: 'pub', step: 4, hop: M }
   ];
   var gA = lap(G, dh.g, a + 1), gB = lap(G, dh.g, b + 1), bA = lap(G, v.B, a + 1), aB = lap(G, v.A, b + 1);
-  // A person's own walk ends where it makes her or his public number.
+  // A person's own walk ends where it makes her or his public number. With
+  // slow arrows Alice's and Bob's walks are synced (sync): each runs on its
+  // own and both arrive together, at A and B and at K; the shorter walk to
+  // K then rises straight up to the top (stay) once both have arrived.
   var walkOne = function(who, secret, powers, step){
     var pts = [];
-    for (t = 0; t <= secret; t++) pts.push({ slice: t, x: powers[t], step: step, hop: t, by: t ? dh.g : undefined });
+    for (t = 0; t <= secret; t++) pts.push({ slice: t, x: powers[t], step: step, hop: t, by: t ? dh.g : undefined, sync: t > 0 });
     return { who: who, owner: who, pts: pts };
   };
   var walkTwo = function(who, secret, powers, firstStep, by){
     var pts = [{ slice: S, x: e, step: 3, hop: 0 }];
-    for (t = 1; t <= secret; t++) pts.push({ slice: S + t, x: powers[t], step: firstStep, hop: t, by: by });
-    for (t = secret + 1; t <= M; t++) pts.push({ slice: S + t, x: v.K, step: 4, hop: t });
+    for (t = 1; t <= secret; t++) pts.push({ slice: S + t, x: powers[t], step: firstStep, hop: t, by: by, sync: true });
+    for (t = secret + 1; t <= M; t++) pts.push({ slice: S + t, x: v.K, step: 4, hop: t, stay: true });
     // A walk by the other's number mixes both colours.
     return { who: 'mix', owner: who, pts: pts };
   };
@@ -18161,7 +18164,9 @@ function drawDhCyl(){
           }
           return;
         }
-        var ch = chain(c.step, c.hop, t.owner);
+        var ch = chain(c.step, c.hop);
+        if (ch && c.sync) ch.lane = t.owner;
+        if (ch && c.stay) ch.stay = true;
         var d = ((p1 - p0) % m + m) % m;
         if (d > m / 2) d -= m;
         var count = Math.max(4, Math.ceil(Math.abs(d) * 360 / m / 15)), z0 = zOf(a.slice), z1 = zOf(c.slice);
@@ -18350,6 +18355,7 @@ function dhcGrowStart(GA, chains, grows){
     c.grow = SLOW_GROW;
     c.reach = c.grow + (c.walk ? c.walk.ms : 0);
     if (c.lane){ (lanes[c.lane] = lanes[c.lane] || []).push(c); return; }
+    if (c.stay) return;
     arrive[c.hop] = Math.max(arrive[c.hop] || 0, c.reach);
     slot[c.hop] = Math.max(slot[c.hop] || 0, c.reach + (heads ? SLOW_BACK : 0));
     hops[c.hop] = true;
@@ -18360,26 +18366,50 @@ function dhcGrowStart(GA, chains, grows){
     startOf[h] = t;
     t += slot[h] || 0;
   });
-  // A lane (a walk synced with the other's: the walks to A and B) runs its
-  // hops one after another on its own, and the lanes arrive together: the
-  // shorter's hops grow more slowly, so its last hop lands as the longer's
-  // does.
+  // A lane (a walk synced with the other's: Alice's and Bob's walks to A
+  // and B, and to K) runs its hops one after another on its own, and the
+  // lanes arrive together: the shorter's hops grow more slowly, so its last
+  // hop lands as the longer's does. Hops go by their numbers, a hop the
+  // other lane draws for both (the shared cylinder's) keeping its time.
   var laneArrive = function(cs){
-    var at = 0;
-    cs.forEach(function(c, i){ c.at = at; at += c.reach + back; });
-    return cs.length ? cs[cs.length - 1].at + cs[cs.length - 1].reach : 0;
+    var at = 0, last = 0, n = 0, byHop = {};
+    cs.forEach(function(c){ byHop[c.hop] = c; n = Math.max(n, c.hop); });
+    for (var h = 1; h <= n; h++){
+      var c = byHop[h];
+      if (c){ c.at = at; last = at + c.reach; at += c.reach + back; }
+      else at += SLOW_GROW + (cs.extra || 0) + back;
+    }
+    cs.n = n;
+    return last;
   };
   var keys = Object.keys(lanes), T = 0;
-  keys.forEach(function(k){ lanes[k].sort(function(a, b){ return a.hop - b.hop; }); T = Math.max(T, laneArrive(lanes[k])); });
+  keys.forEach(function(k){ T = Math.max(T, laneArrive(lanes[k])); });
   keys.forEach(function(k){
-    var cs = lanes[k], extra = (T - laneArrive(cs)) / cs.length;
-    cs.forEach(function(c){ c.grow += extra; c.reach += extra; });
+    var cs = lanes[k];
+    cs.extra = (T - laneArrive(cs)) / Math.max(1, cs.n);
+    cs.forEach(function(c){ c.grow += cs.extra; c.reach += cs.extra; });
     laneArrive(cs);
   });
+  // When a hop's slice shows and its pieces arrive, by the lanes: the slice
+  // as the first lane starts into it, a number's mark as the last arrives.
+  var laneFrom = {}, laneTo = {};
+  keys.forEach(function(k){
+    lanes[k].forEach(function(c){
+      laneFrom[c.hop] = Math.min(laneFrom[c.hop] === undefined ? Infinity : laneFrom[c.hop], c.at);
+      laneTo[c.hop] = Math.max(laneTo[c.hop] || 0, c.at + c.reach);
+    });
+  });
   if (keys.length) t = Math.max(t, T + back);
+  // A walk that has arrived rises straight up to the top (stay) once both
+  // have, all its pieces together.
+  chains.forEach(function(c){
+    if (!c.stay) return;
+    c.at = keys.length ? T + back : startOf[c.hop];
+    t = Math.max(t, c.at + c.reach + back);
+  });
   var end = 0;
   chains.forEach(function(c){
-    if (!c.lane) c.at = startOf[c.hop];
+    if (!c.lane && !c.stay) c.at = startOf[c.hop];
     c.len = 0;
     c.parts.forEach(function(p, i){
       p.len = 0;
@@ -18396,6 +18426,7 @@ function dhcGrowStart(GA, chains, grows){
   });
   grows.forEach(function(g){
     var after = /\bdhc-(mark|dot|hop-n|raw)\b/.test(g.el.getAttribute('class') || '') && !g.el.classList.contains('is-id');
+    if (g.at === undefined && laneFrom[g.hop] !== undefined && g.hop) g.at = after ? laneTo[g.hop] : laneFrom[g.hop];
     if (g.at === undefined) g.at = !after ? startOf[g.hop] : g.hop ? startOf[g.hop] + (arrive[g.hop] || 0) : Math.max(0, t - (heads ? SLOW_BACK : 0));
     end = Math.max(end, g.at + DHC_FADE);
   });
