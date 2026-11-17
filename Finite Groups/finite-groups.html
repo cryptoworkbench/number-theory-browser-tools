@@ -17465,32 +17465,39 @@ function syncDhPlot(G){
   syncDhCtl();
 }
 // A little picture of the regular k-gon a side's second walk runs round,
-// in that side's colour: a tilted slab, its top face over the walls that
-// face the viewer (a dot for k = 1, a bar across for k = 2).
+// in that side's colour: a prism whose side faces are squares, seen as the
+// time cylinder is at rest (DHC_YAW, DHC_PITCH), its top face over the
+// side faces that face the viewer, fitted into the picture (a disc for
+// k = 1, which has no sides).
 function dhPolyPic(k, who){
-  var W = 34, H = 26, cx = W / 2, cy = 10, r = 14, sp = 0.5, h = 4;
+  var W = 34, H = 26, pad = 1.5, cp = Math.cos(DHC_PITCH), sp = Math.sin(DHC_PITCH);
   var svg = svgEl('svg', { 'class': 'dh-why-pic is-' + who, viewBox: '0 0 ' + W + ' ' + H, width: W, height: H, 'aria-hidden': 'true', focusable: 'false' });
-  // A bar turned off the line of sight, so it lies visibly on the plane.
-  var pts = [], t0 = k === 2 ? Math.PI / 3 : 0;
-  for (var i = 0; i < k; i++){
-    var t = t0 + 2 * Math.PI * i / k;
-    pts.push([cx + r * Math.sin(t), cy - r * Math.cos(t) * sp]);
-  }
-  var xy = function(q, dy){ return num(q[0]) + ' ' + num(q[1] + dy); };
   if (k === 1){
-    svg.appendChild(svgEl('ellipse', { 'class': 'dh-why-wall', cx: num(pts[0][0]), cy: num(cy + h / 2), rx: 3, ry: num(1.5 + h / 2) }));
-    svg.appendChild(svgEl('circle', { 'class': 'dh-why-face', cx: num(pts[0][0]), cy: num(cy), r: 3 }));
+    svg.appendChild(svgEl('circle', { 'class': 'dh-why-face', cx: W / 2, cy: H / 2, r: 3 }));
     return svg;
   }
-  // The walls under the edges whose middle lies in front, far to near.
-  var walls = [];
-  for (var j = 0; j < k; j++){
-    var a = pts[j], b = pts[(j + 1) % k];
-    if (k === 2 && j === 1) break;
-    if (k > 2 && (a[1] + b[1]) / 2 <= cy + 1e-9) continue;
-    walls.push({ y: (a[1] + b[1]) / 2, d: 'M' + xy(a, 0) + ' L' + xy(b, 0) + ' L' + xy(b, h) + ' L' + xy(a, h) + ' Z' });
+  // The corners on a unit circle, each with its depth (front > 0), and the
+  // side faces' height on screen: the side's length, foreshortened.
+  var pts = [];
+  for (var i = 0; i < k; i++){
+    var al = 2 * Math.PI * i / k + DHC_YAW;
+    pts.push({ x: Math.sin(al), y: -Math.cos(al) * sp, front: -Math.cos(al) });
   }
-  walls.sort(function(m, n){ return m.y - n.y; }).forEach(function(w){ svg.appendChild(svgEl('path', { 'class': 'dh-why-wall', d: w.d })); });
+  var h = 2 * Math.sin(Math.PI / k) * cp;
+  var x0 = Math.min.apply(null, pts.map(function(q){ return q.x; })), x1 = Math.max.apply(null, pts.map(function(q){ return q.x; }));
+  var y0 = Math.min.apply(null, pts.map(function(q){ return q.y; })), y1 = Math.max.apply(null, pts.map(function(q){ return q.y; })) + h;
+  var f = Math.min((W - 2 * pad) / (x1 - x0), (H - 2 * pad) / (y1 - y0));
+  var ox = W / 2 - (x0 + x1) / 2 * f, oy = H / 2 - (y0 + y1) / 2 * f;
+  var xy = function(q, dy){ return num(ox + q.x * f) + ' ' + num(oy + (q.y + dy) * f); };
+  // The side faces whose middle lies in front, far to near (a 2-gon's one
+  // side, both ways round the same, once).
+  var walls = [];
+  for (var j = 0; j < (k === 2 ? 1 : k); j++){
+    var a = pts[j], b = pts[(j + 1) % k], front = (a.front + b.front) / 2;
+    if (k > 2 && front <= 1e-9) continue;
+    walls.push({ front: front, d: 'M' + xy(a, 0) + ' L' + xy(b, 0) + ' L' + xy(b, h) + ' L' + xy(a, h) + ' Z' });
+  }
+  walls.sort(function(m, n){ return m.front - n.front; }).forEach(function(w){ svg.appendChild(svgEl('path', { 'class': 'dh-why-wall', d: w.d })); });
   svg.appendChild(svgEl('path', { 'class': 'dh-why-face', d: 'M' + pts.map(function(q){ return xy(q, 0); }).join(' L') + ' Z' }));
   return svg;
 }
