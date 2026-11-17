@@ -1286,10 +1286,14 @@
   .letter-btn[aria-pressed="true"]{ color:var(--text); border-color:var(--accent); background:linear-gradient(color-mix(in srgb, var(--accent) 16%, transparent), color-mix(in srgb, var(--accent) 16%, transparent)), var(--surface); }
   .letter-btn:focus{ outline:none; }
   .letter-btn:focus-visible{ box-shadow:var(--ctl-focus); }
-  /* On the ring's rotation row, a size up, just right of the forward turn
-     button but out of the row's flow, so the speed track keeps its width. */
-  .spin-ruler:has(> #ring-raw-btn){ position:relative; }
-  .spin-ruler > .letter-btn{ position:absolute; left:calc(100% + 8px); top:50%; transform:translateY(-50%); height:1.45em; min-width:1.75em; font-size:.75em; }
+  /* On the ring's rotation row, a size up, the congruence wheel's switch
+     and the raw results' just right of the forward turn button but out of
+     the row's flow, so the speed track keeps its width. */
+  .spin-ruler:has(> .spin-extra){ position:relative; }
+  .spin-ruler > .spin-extra{ position:absolute; left:calc(100% + 8px); top:50%; transform:translateY(-50%); display:flex; align-items:center; gap:6px; }
+  .spin-extra > .letter-btn{ height:1.45em; min-width:1.75em; font-size:.75em; }
+  #ring-wheel-btn{ padding:0 4px; }
+  #ring-wheel-btn svg{ width:1.25em; height:1.25em; }
   /* Values on (the filled window only): each full slice's beads in the ring's
      own colours, each carrying its natural value, set flat to the screen. */
   .dhc-bead.is-coloured{ fill:var(--ord, var(--text-dim)); }
@@ -3740,7 +3744,7 @@
             <span class="gear-knob" id="gear-knob" aria-hidden="true"></span>
           </div>
           <button type="button" class="spin-step" id="spin-fwd" aria-label="Rotate one element clockwise" data-i18n-aria-label="cyclicGroups.rotateForward" title="Rotate one element clockwise" data-i18n-title="cyclicGroups.rotateForward">&#x27F3;</button>
-          <button type="button" class="letter-btn" id="ring-raw-btn" aria-pressed="false" title="Show ‘raw’ results before reduction" aria-label="Show ‘raw’ results before reduction" data-i18n-title="cyclicGroups.dhCylRawTip" data-i18n-aria-label="cyclicGroups.dhCylRawTip" hidden>R</button>
+          <span class="spin-extra"><button type="button" class="letter-btn" id="ring-wheel-btn" aria-pressed="false" title="Show the congruence wheel" aria-label="Show the congruence wheel" data-i18n-title="cyclicGroups.ringWheelShow" data-i18n-aria-label="cyclicGroups.ringWheelShow" hidden></button><button type="button" class="letter-btn" id="ring-raw-btn" aria-pressed="false" title="Show ‘raw’ results before reduction" aria-label="Show ‘raw’ results before reduction" data-i18n-title="cyclicGroups.dhCylRawTip" data-i18n-aria-label="cyclicGroups.dhCylRawTip" hidden>R</button></span>
         </div>
         <div class="fs-menu ring-ctx" id="plot-ctx" role="menu" hidden></div>
         <div class="fs-menu ring-ctx" id="dhc-ctx" role="menu" aria-label="Time cylinder" data-i18n-aria-label="cyclicGroups.dhCylMenu" hidden></div>
@@ -13115,7 +13119,7 @@ function drawNecklace(G, paint){
   } else if (kept && kept.ring) patchRingCombo(kept.ring, G, beads, box);
   else drawRing(ringDynamicEl, G, beads, box, paint);
   ringSvgEl.classList.toggle('has-wheel', !big && ringWheelShown(G));
-  syncRingRawBtn(G);
+  syncRingSpinBtns(G);
   syncRingBodyHas();
   syncLapKey(G);
   syncFlogWin(G);
@@ -13453,14 +13457,20 @@ function ringRawLive(path){
   return ringRawOn[path] || !!ringRawMorph[path];
 }
 function ringRawShown(G, path){ return (path ? ringRawLive(path) : ringRawLive('el') || ringRawLive('inv')) && ringWheelShown(G); }
-// The R button: on while any path shows its raw results; a click turns
-// them all off then, else all on.
+// The rotation row's two switches. The wheel's, its mark in it, turns the
+// congruence wheel on and off, shown wherever the wheel fits the group
+// (not on a curve). The R button, shown while the wheel is: on while any
+// path shows its raw results; a click turns them all off then, else all on.
 function ringRawAny(){ return Object.keys(RING_RAW).some(function(path){ return ringRawOn[path]; }); }
-function syncRingRawBtn(G){
-  var b = $('ring-raw-btn');
+function syncRingSpinBtns(G){
+  var w = $('ring-wheel-btn'), b = $('ring-raw-btn');
+  w.hidden = !(ringDrawn(G) && !IS_PREVIEW && dhcWheelFits(G));
+  w.setAttribute('aria-pressed', ringWheelOn ? 'true' : 'false');
   b.hidden = !(ringDrawn(G) && ringWheelShown(G));
   b.setAttribute('aria-pressed', ringRawAny() ? 'true' : 'false');
 }
+$('ring-wheel-btn').appendChild(wheelMark());
+$('ring-wheel-btn').addEventListener('click', function(){ toggleRingWheel(); });
 $('ring-raw-btn').addEventListener('click', function(){ setRingRawAll(!ringRawAny()); });
 function setRingRawAll(on){
   Object.keys(RING_RAW).forEach(function(path){
