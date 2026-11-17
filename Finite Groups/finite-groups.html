@@ -17548,6 +17548,10 @@ var dhc = { values: (function(){ try { return localStorage.getItem(DHC_VALUES_KE
 // the ring, instead of fading in. growAnim is the growth under way (the
 // step it adds and when it began), growLive what is drawn of it now.
 var DHC_GROW_KEY = 'cyclic-groups-dhc-slow-arrows';
+// Polygon mode's Keep all beads on every layer (the menu's, on by default):
+// off, a layer shows only the beads its polygons have as corners.
+var DHC_KEEP_BEADS_KEY = 'cyclic-groups-dhc-keep-beads';
+dhc.keepBeads = (function(){ try { return localStorage.getItem(DHC_KEEP_BEADS_KEY) !== '0'; } catch (e) { return true; } })();
 dhc.grow = (function(){ try { return localStorage.getItem(DHC_GROW_KEY) === '1'; } catch (e) { return false; } })();
 dhc.growAnim = dhc.growLive = null;
 dhc.growRaf = 0;
@@ -18037,8 +18041,13 @@ function drawDhCyl(){
         }
       }
       if (!sl.full || m > DHC_BEAD_CAP) return;
+      var corner = null;
+      if (poly && !dhc.keepBeads){
+        corner = {};
+        slicePolys(sl, true).forEach(function(by){ lap(G, by, G.orders[by]).forEach(function(x){ corner[x] = true; }); });
+      }
       G.els.forEach(function(x){
-        if (place[x] === undefined) return;
+        if (place[x] === undefined || corner && !corner[x]) return;
         var q = P(place[x], z), far = reach[x] ? '' : ' is-far';
         if (!looks){
           put(svgEl('circle', { 'class': cls('dhc-bead', '', q.front, far), cx: num(q.x), cy: num(q.y), r: num(rBead) }), over + q.depth, sl.step, sl.hop, ci);
@@ -18883,7 +18892,8 @@ function setDhcCtx(open, x, y){
   dhcCtxEl.appendChild(polyItem);
   var stackItem = menuTick('menuitemcheckbox', translate('cyclicGroups.dhCylPolyStack'), dhc.polyStack && dhc.polygon && fits, flip(function(){ return (dhc.polyStack = !dhc.polyStack); }, DHC_POLY_STACK_KEY));
   var keepItem = menuTick('menuitemcheckbox', translate('cyclicGroups.dhCylPolyKeepG'), dhc.polyKeepG && dhc.polygon && fits, flip(function(){ return (dhc.polyKeepG = !dhc.polyKeepG); }, DHC_POLY_KEEP_G_KEY));
-  [stackItem, keepItem].forEach(function(item){
+  var beadsItem = menuTick('menuitemcheckbox', translate('cyclicGroups.dhCylKeepBeads'), dhc.keepBeads || !dhc.polygon || !fits, flip(function(){ return (dhc.keepBeads = !dhc.keepBeads); }, DHC_KEEP_BEADS_KEY));
+  [stackItem, keepItem, beadsItem].forEach(function(item){
     if (!fits || !dhc.polygon){
       item.disabled = true;
       item.title = translate(fits ? 'cyclicGroups.dhCylPolyStackNo' : 'cyclicGroups.dhCylPolygonNo');

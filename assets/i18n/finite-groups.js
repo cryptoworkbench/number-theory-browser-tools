@@ -316,7 +316,9 @@
    choices: the arrows drawn at once, or each growing along its path),
    and zoomFit (the switch beside the zoom pill keeping every arrow, the
    raw results' included, in sight), and combineStop (the stop button
-   beside the a ∗ b / aᵏ choice stopping slow arrows).
+   beside the a ∗ b / aᵏ choice stopping slow arrows), and dhCylKeepBeads
+   (the time cylinder menu's switch keeping every bead on every layer in
+   polygon mode, off showing only the polygons' corners).
    Every other language shows the English value through NT.i18n's
    fallback meanwhile.
 
@@ -1502,6 +1504,7 @@
       dhCylPolyStack: 'Stacked polygons',
       dhCylPolyStackNo: 'Only in polygon mode',
       dhCylPolyKeepG: 'Keep g’s polygon on every layer',
+      dhCylKeepBeads: 'Keep all beads on every layer',
       dhCylWheel: 'Congruence wheel floor',
       dhCylWheelNo: 'Only for the integers modulo n, not a curve’s points',
       dhCylWheelMod: 'mod {n}',
