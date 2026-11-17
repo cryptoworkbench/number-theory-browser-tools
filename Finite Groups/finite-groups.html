@@ -1317,8 +1317,6 @@
   .ring-wheel-host, .ring-frost-host, .ring-paths-host{ position:absolute; left:0; top:0; width:0; height:0; pointer-events:none; z-index:-2; }
   .ring-wheel-window{ position:absolute; overflow:hidden; }
   .ring-wheel-svg{ position:absolute; overflow:visible; will-change:transform; }
-  /* Over the wheel's svg, its numbers, painted (paintWheelNums). */
-  .ring-num-canvas{ position:absolute; pointer-events:none; will-change:transform; }
   /* The card's blur: a window on the card, on its ground, the blurred wheel
      turning in it as the wheel does; its own clip and ground are left to
      pictures of the ring. */
@@ -3610,7 +3608,7 @@
           <div class="check"><input type="checkbox" role="switch" id="layer-cindex"><label for="layer-cindex" data-i18n="cyclicGroups.formulaToggleCosetsShort">Subgroup-coset amount</label></div>
         </div>
         <div class="ring-head" id="ring-head"></div>
-        <div class="ring-wheel-host" id="ring-wheel-host" aria-hidden="true"><div class="ring-wheel-window" id="ring-wheel-window"><svg class="ring-wheel-svg" id="ring-wheel-svg" viewBox="0 0 760 760" focusable="false"><g id="ring-wheel-turn"></g></svg><canvas class="ring-num-canvas" id="ring-num-canvas" aria-hidden="true"></canvas><svg class="ring-wheel-svg" id="ring-lit-svg" viewBox="0 0 760 760" focusable="false"><g id="ring-lit-turn"></g></svg></div></div>
+        <div class="ring-wheel-host" id="ring-wheel-host" aria-hidden="true"><div class="ring-wheel-window" id="ring-wheel-window"><svg class="ring-wheel-svg" id="ring-wheel-svg" viewBox="0 0 760 760" focusable="false"><g id="ring-wheel-turn"></g></svg><svg class="ring-wheel-svg" id="ring-lit-svg" viewBox="0 0 760 760" focusable="false"><g id="ring-lit-turn"></g></svg></div></div>
         <div class="ring-frost-host" id="ring-frost-host" aria-hidden="true"><div class="ring-frost-window" id="ring-frost-window"><svg class="ring-frost-svg" id="ring-frost-svg" viewBox="0 0 760 760" focusable="false"><g id="ring-frost-turn"></g></svg></div></div>
         <div class="ring-paths-host" id="ring-paths-host" aria-hidden="true"><svg class="ring-paths-svg" id="ring-paths-svg" viewBox="0 0 760 760" focusable="false"><g id="ring-paths-turn" class="ring-paths"></g></svg></div>
         <div class="ring-paths-host" id="ring-combo-host" aria-hidden="true"><svg class="ring-paths-svg" id="ring-combo-svg" viewBox="0 0 760 760" focusable="false"><g id="ring-combo-turn" class="ring-combo"></g></svg></div>
@@ -4369,10 +4367,6 @@ var wheelHostEl = $('ring-wheel-host'), wheelWindowEl = $('ring-wheel-window'), 
 // Over it, in the same window, the cells a tap or a walk down lights
 // (putLitCell), in a layer of their own.
 var litLayerEl = $('ring-lit-svg'), litTurnEl = $('ring-lit-turn');
-// Between them, the wheel's numbers, painted on a canvas (paintWheelNums):
-// thousands of svg texts cost their making, styles, layout and painting
-// at every redraw of the wheel. numGeom maps the drawing's units onto it.
-var numCanvasEl = $('ring-num-canvas'), numCtx = numCanvasEl.getContext('2d'), numGeom = null, numProbe = null;
 var frostHostEl = $('ring-frost-host'), frostWindowEl = $('ring-frost-window'), frostLayerEl = $('ring-frost-svg'), frostTurnEl = $('ring-frost-turn'), wheelInRing = false;
 // The ring svg's view box mapped into its box in px (see syncWheelLayer),
 // and the card the blur's window lies on, in the ring's units.
@@ -13030,7 +13024,6 @@ function drawNecklace(G, paint){
     if (!wheelReused){
       frostTurnEl.replaceChildren();
       wheelTurnEl.replaceChildren();
-      queueWheelNums();
       litTurnEl.replaceChildren();
       wheelTurnOffset = 0;
     }
@@ -13146,103 +13139,17 @@ function syncWheelLayer(){
   wheelOrigin = [ox + box.cx * k, oy + box.cy * k];
   ss.transformOrigin = num(wheelOrigin[0]) + 'px ' + num(wheelOrigin[1]) + 'px';
   ['left', 'top', 'width', 'height', 'transformOrigin'].forEach(function(k){ litLayerEl.style[k] = ss[k]; });
-  placeNumCanvas(c, ox, oy, k);
   pathsLayerEl.style.transformOrigin = ss.transformOrigin;
   comboLayerEl.style.transformOrigin = ss.transformOrigin;
   frostLayerEl.style.transformOrigin = ss.transformOrigin;
   placeFrostWindow();
   [wheelLayerEl, litLayerEl, frostLayerEl, pathsLayerEl, comboLayerEl].forEach(function(el){ if (el.getAttribute('viewBox') !== vbText) el.setAttribute('viewBox', vbText); });
 }
-// The numbers' canvas: a square about the wheel's centre in the wheel's
-// window, reaching the window's farthest corner, so that however the layer
-// turns it covers the window; its pixels the screen's (the page's zoom and
-// the display's density), fewer only past 16 million.
-function placeNumCanvas(c, ox, oy, k){
-  var at = [wheelOrigin[0] - c.x, wheelOrigin[1] - c.y];
-  var R = Math.ceil(Math.max.apply(null, [[0, 0], [c.w, 0], [0, c.h], [c.w, c.h]].map(function(p){ return Math.hypot(p[0] - at[0], p[1] - at[1]); }))) + 2;
-  var S = PAGE_ZOOM * (window.devicePixelRatio || 1);
-  if (2 * R * S > 4000) S = 4000 / (2 * R);
-  var px = Math.max(1, Math.round(2 * R * S)), st = numCanvasEl.style, left = at[0] - R, top = at[1] - R;
-  st.left = num(left) + 'px';
-  st.top = num(top) + 'px';
-  st.width = st.height = (2 * R) + 'px';
-  st.transformOrigin = R + 'px ' + R + 'px';
-  var sized = numCanvasEl.width !== px || numCanvasEl.height !== px;
-  if (sized) numCanvasEl.width = numCanvasEl.height = px;
-  // Canvas px from the drawing's units: as the wheel's svg maps them, then
-  // from the layer to the canvas.
-  var a = px / (2 * R) * k, g = { a: a, bx: px / (2 * R) * (ox - c.x - left), by: px / (2 * R) * (oy - c.y - top), px: px };
-  var moved = !numGeom || ['a', 'bx', 'by', 'px'].some(function(f){ return Math.abs(numGeom[f] - g[f]) > 1e-6; });
-  numGeom = g;
-  if (sized || moved) queueWheelNums();
-}
-// Painted once for everything a task changes (a resize, the wheel drawn
-// again), before the next frame.
-var wheelNumsQueued = false;
-function queueWheelNums(){
-  if (wheelNumsQueued) return;
-  wheelNumsQueued = true;
-  queueMicrotask(function(){ wheelNumsQueued = false; paintWheelNums(); });
-}
-// The wheel's numbers painted on the canvas, from the wheel's numData (see
-// drawRingWheelCells), turned as its group is drawn; the layer turns the
-// canvas with the wheel. Nothing while the wheel is carried in the ring,
-// where its numbers are texts of its own.
-function paintWheelNums(){
-  var ctx = numCtx, G = numGeom;
-  ctx.setTransform(1, 0, 0, 1, 0, 0);
-  ctx.clearRect(0, 0, numCanvasEl.width, numCanvasEl.height);
-  var g = wheelTurnEl.querySelector(':scope > .ring-wheel'), d = g && g.numData;
-  if (!d || !G || wheelInRing || IS_PREVIEW) return;
-  if (!numProbe) numProbe = wheelLayerEl.appendChild(svgEl('text', { 'class': 'dhc-wheel-num', visibility: 'hidden' }));
-  var cs = getComputedStyle(numProbe);
-  ctx.fillStyle = cs.fill;
-  ctx.font = cs.fontWeight + ' ' + num(d.size * G.a) + 'px ' + cs.fontFamily;
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  var pcx = G.a * d.cx + G.bx, pcy = G.a * d.cy + G.by, turn = g.drawnTurn || 0;
-  d.wedges.forEach(function(w){
-    var t = (turn + w.rot) * Math.PI / 180, cos = Math.cos(t), sin = Math.sin(t);
-    ctx.setTransform(cos, sin, -sin, cos, pcx - cos * pcx + sin * pcy, pcy - sin * pcx - cos * pcy);
-    w.nums.forEach(function(n){ ctx.fillText(n.text, G.a * n.x + G.bx, G.a * n.y + G.by); });
-  });
-}
-new MutationObserver(paintWheelNums).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
-if (document.fonts){
-  document.fonts.ready.then(paintWheelNums);
-  document.fonts.addEventListener('loadingdone', paintWheelNums);
-}
-// A wheel kept through turns is turned by its layer (wheelTurnOffset), and
-// a layer this large (the numbers' canvas above all) turned by the
-// compositor costs the GPU every frame: a ring kept with its result on top
-// ran at ~30-45 fps. So once the ring has stopped turning, the turn is
-// folded into the wheel's drawing (foldWheelTurn) and its numbers painted
-// again, its layers standing straight.
-var wheelFoldTimer = 0, ringAngleNow = 0;
-function foldWheelAtRest(){
-  wheelFoldTimer = 0;
-  if (spin || wheelInRing || ringAngleNow || !wheelTurnOffset) return;
-  // The blur's copy, built in a frame of its own, takes the same turn on
-  // top of the one it has (foldWheelTurn would give it the wheel's).
-  var copy = frostTurnEl.querySelector('.ring-frost-wheel'), by = wheelTurnOffset;
-  var had = copy && /rotate\((-?[\d.e]+)/.exec(copy.getAttribute('transform') || '');
-  foldWheelTurn();
-  if (copy){
-    var box = ringBox(), turn = (had ? +had[1] : 0) + by;
-    copy.setAttribute('transform', 'rotate(' + num(turn) + ' ' + box.cx + ' ' + box.cy + ')');
-  }
-  turnWheelLayer(0);
-  paintWheelNums();
-}
 // The wheel turned with the ring, by the compositor alone.
 function turnWheelLayer(angle){
   var w = angle + wheelTurnOffset ? 'rotate(' + num(angle + wheelTurnOffset) + 'deg)' : '';
   if (wheelLayerEl.style.transform !== w) wheelLayerEl.style.transform = w;
   if (litLayerEl.style.transform !== w) litLayerEl.style.transform = w;
-  if (numCanvasEl.style.transform !== w) numCanvasEl.style.transform = w;
-  ringAngleNow = angle;
-  if (wheelFoldTimer) clearTimeout(wheelFoldTimer);
-  wheelFoldTimer = wheelTurnOffset && !wheelInRing ? setTimeout(foldWheelAtRest, 150) : 0;
   if (frostLayerEl.style.transform !== w) frostLayerEl.style.transform = w;
   var pv = angle + pathsTurnOffset ? 'rotate(' + num(angle + pathsTurnOffset) + 'deg)' : '';
   if (pathsLayerEl.style.transform !== pv) pathsLayerEl.style.transform = pv;
@@ -13325,24 +13232,17 @@ function wheelIntoRing(ring){
   foldWheelTurn();
   foldPathsTurn();
   foldComboTurn();
-  // Its numbers go with it as texts, the canvas left empty.
-  var wheelG = wheelTurnEl.querySelector(':scope > .ring-wheel');
-  if (wheelG && !wheelG.querySelector(':scope > .dhc-wheel-nums')) appendWheelNums(wheelG, wheelG.numData);
   var parts = ringLayerParts(false);
   turnWheelLayer(0);
   if (parts.length) ring.insertBefore(parts.reduce(function(f, el){ f.appendChild(el); return f; }, document.createDocumentFragment()), ring.firstChild);
   wheelInRing = true;
-  queueWheelNums();
   placeFrostWindow();
 }
 function wheelOutOfRing(){
   wheelInRing = false;
   var ring = ringDynamicEl.querySelector('.ring');
   if (!ring) return;
-  ring.querySelectorAll(':scope > .ring-wheel').forEach(function(el){
-    wheelTurnEl.appendChild(el);
-    el.querySelectorAll(':scope > .dhc-wheel-nums').forEach(function(nums){ nums.remove(); });
-  });
+  ring.querySelectorAll(':scope > .ring-wheel').forEach(function(el){ wheelTurnEl.appendChild(el); });
   ring.querySelectorAll(':scope > .ring-combine-frost').forEach(function(el){ frostTurnEl.appendChild(el); });
   if (!IS_PREVIEW){
     ring.querySelectorAll(':scope > :is(.guide, .mirror-axis, .cord, .walks)').forEach(function(el){ pathsTurnEl.appendChild(el); });
@@ -13352,7 +13252,6 @@ function wheelOutOfRing(){
   }
   var at = /rotate\((-?[\d.]+)/.exec(ring.getAttribute('transform') || '');
   turnWheelLayer(at ? +at[1] : 0);
-  queueWheelNums();
   placeFrostWindow();
 }
 // A copy of the ring svg for a picture of it (the PNG, the swap): the
@@ -13371,8 +13270,6 @@ function ringLayerParts(copies){
   [wheelTurnEl, frostTurnEl, pathsTurnEl, comboTurnEl].forEach(function(host){
     Array.prototype.forEach.call(host.children, function(el){
       var copy = copies ? el.cloneNode(true) : el;
-      // The wheel's numbers, painted in its layer, written into its copy.
-      if (copies && host === wheelTurnEl && el.numData && !copy.querySelector(':scope > .dhc-wheel-nums')) appendWheelNums(copy, el.numData);
       if (copies && el.drawnTurn !== el.turn) trueWheelTurn(copy, el);
       if (copies && host === pathsTurnEl && pathsTurnOffset) turnPathsBy([copy], pathsTurnOffset);
       if (copies && host === comboTurnEl && comboTurnOffset) turnPathsBy([copy], comboTurnOffset);
@@ -13679,17 +13576,23 @@ function frostRings(g, card){
   return [Math.floor((lo - c.R0) / c.ring) - 1, Math.ceil((hi - c.R0) / c.ring) + 1];
 }
 function frostWheelCopy(wheel, card){
-  var copy = wheel.cloneNode(false), rings = frostRings(wheel, card);
+  var copy = wheel.cloneNode(false), rings = frostRings(wheel, card), near = null;
   copy.setAttribute('class', 'dhc-wheel ring-frost-wheel');
   copy.removeAttribute('id');
   // The card's window clips it: the wheel's clip, turned at every step,
   // would have every number in it laid out again.
   copy.removeAttribute('clip-path');
+  if (rings) near = function(el){
+    var j = +String(el.getAttribute('data-cell')).split(',')[1];
+    return j >= rings[0] && j <= rings[1];
+  };
   Array.prototype.forEach.call(wheel.children, function(el){
-    if (el.tagName === 'clipPath' || el.classList.contains('ring-wheel-lit') || el.classList.contains('dhc-wheel-nums')) return;
-    copy.appendChild(el.cloneNode(true));
+    if (el.tagName === 'clipPath' || el.classList.contains('ring-wheel-lit')) return;
+    if (!near || !el.classList.contains('dhc-wheel-nums')){ copy.appendChild(el.cloneNode(true)); return; }
+    var nums = el.cloneNode(false);
+    Array.prototype.forEach.call(el.children, function(t){ if (near(t)) nums.appendChild(t.cloneNode(true)); });
+    if (nums.firstChild) copy.appendChild(nums);
   });
-  appendWheelNums(copy, wheel.numData, rings);
   return copy;
 }
 // The wheel drawn again, the card's blur of it is copied again.
@@ -13910,11 +13813,9 @@ function drawRingWheel(g, G, place, m, box, beadR){
     var turnedBy = /rotate\((-?[\d.]+)/.exec(g.parentNode.getAttribute('transform') || '');
     if (turnedBy || g.turn) turnRingWheelClip(g.parentNode, turnedBy ? +turnedBy[1] : 0, box);
   }
-  if (keep && wheelKept && wheelKept.key === keep){
-    wheelKept.nodes.forEach(function(el){ g.appendChild(el); });
-    g.numData = wheelKept.numData;
-  } else drawRingWheelCells(g, G, place, m, box, R0, ring, depth, outer, wedge);
-  wheelKept = keep ? { key: keep, g: g, clip: clipKey, nodes: Array.prototype.slice.call(g.querySelectorAll(':scope > .dhc-wheel-band, :scope > .dhc-wheel-ring')), numData: g.numData } : null;
+  if (keep && wheelKept && wheelKept.key === keep) wheelKept.nodes.forEach(function(el){ g.appendChild(el); });
+  else drawRingWheelCells(g, G, place, m, box, R0, ring, depth, outer, wedge);
+  wheelKept = keep ? { key: keep, g: g, clip: clipKey, nodes: Array.prototype.slice.call(g.querySelectorAll(':scope > .dhc-wheel-band, :scope > .dhc-wheel-ring, :scope > .dhc-wheel-nums')) } : null;
   // What a tap on a cell needs to find it (see ringWheelCellAt).
   g.cells = { G: G, place: place, m: m, cx: box.cx, cy: box.cy, R0: R0, ring: ring, depth: depth };
   // Cells lit by a tap stay lit through the redraw, under the numbers,
@@ -13927,20 +13828,15 @@ function drawRingWheel(g, G, place, m, box, beadR){
   var mod = svgEl('text', { 'class': 'dhc-wheel-mod', x: box.cx, y: box.cy, 'font-size': num(box.R * 0.12) });
   mod.textContent = translate('cyclicGroups.ringWheelMod', { n: N });
   g.appendChild(mod);
-  // Its numbers painted in the wheel's layer; written as texts in the ring.
-  if (g.parentNode === wheelTurnEl && !IS_PREVIEW) queueWheelNums();
-  else appendWheelNums(g, g.numData);
   refreshFrostWheel(g);
 }
-// The wheel's bands, rings and wedge edges in g, and its numbers, each
-// turned upright where it stands, as g.numData.
+// The wheel's bands, rings, wedge edges and numbers, each number turned
+// upright where it stands in g.
 function drawRingWheelCells(g, G, place, m, box, R0, ring, depth, outer, wedge){
   var N = G.n, k;
   for (k = 0; k < depth; k += 2) g.appendChild(svgEl('circle', { 'class': 'dhc-wheel-band', cx: box.cx, cy: box.cy, r: num(R0 + (k + 0.5) * ring), 'stroke-width': num(ring) }));
   for (k = 0; k <= depth; k++) g.appendChild(svgEl('circle', { 'class': 'dhc-wheel-ring' + (k === 0 ? ' is-edge' : ''), cx: box.cx, cy: box.cy, r: num(R0 + k * ring) }));
-  // The numbers are kept as data (numData), painted on the canvas or
-  // written as texts by whoever shows them (paintWheelNums, appendWheelNums).
-  var data = { cx: box.cx, cy: box.cy, size: ringWheelNumSize(G, m, R0, ring, depth), wedges: [], byX: {} };
+  var size = ringWheelNumSize(G, m, R0, ring, depth);
   G.els.forEach(function(x){
     if (place[x] === undefined) return;
     var mid = (dirSign() * 360 * place[x] / m) % 360;
@@ -13950,41 +13846,18 @@ function drawRingWheelCells(g, G, place, m, box, R0, ring, depth, outer, wedge){
       g.appendChild(svgEl('line', { 'class': 'dhc-wheel-ring', x1: num(p1[0]), y1: num(p1[1]), x2: num(p2[0]), y2: num(p2[1]) }));
     }
     // The wedge's numbers share one turn, about the wheel's centre, each
-    // laid where that turn carries it to its place.
-    var rot = mid > 90 && mid < 270 ? mid + 180 : mid, w = { x: x, rot: rot, nums: [] };
+    // laid where that turn carries it to its place: turned about its own
+    // place, every number was a transform of its own, and the thousands of
+    // them made each frame's layering of the page cost as many pieces.
+    var rot = mid > 90 && mid < 270 ? mid + 180 : mid;
+    var nums = g.appendChild(svgEl('g', { 'class': 'dhc-wheel-nums', transform: 'rotate(' + num(rot) + ' ' + box.cx + ' ' + box.cy + ')' }));
     for (var j = 0; j < depth; j++){
       var q = polar(box.cx, box.cy, R0 + (j + 0.5) * ring, mid - rot);
-      w.nums.push({ x: num(q[0]), y: num(q[1]), text: String(x + j * N) });
-    }
-    data.wedges.push(w);
-    data.byX[x] = w;
-  });
-  g.numData = data;
-}
-// The wheel's numbers as texts in g, each wedge's group turned as its
-// numbers stand (in the rings from rings[0] to rings[1] only, if given),
-// before the % n in the middle: for the wheel while it is carried in the
-// ring, for pictures of it and for the card's blur.
-function appendWheelNums(g, d, rings){
-  if (!d) return;
-  var frag = document.createDocumentFragment();
-  d.wedges.forEach(function(w){
-    var nums = svgEl('g', { 'class': 'dhc-wheel-nums', transform: 'rotate(' + num(w.rot) + ' ' + d.cx + ' ' + d.cy + ')' });
-    w.nums.forEach(function(n, j){
-      if (rings && (j < rings[0] || j > rings[1])) return;
-      var t = svgEl('text', { 'class': 'dhc-wheel-num', 'data-cell': w.x + ',' + j, x: n.x, y: n.y, 'font-size': num(d.size) });
-      t.textContent = n.text;
+      var t = svgEl('text', { 'class': 'dhc-wheel-num', 'data-cell': x + ',' + j, x: num(q[0]), y: num(q[1]), 'font-size': num(size) });
+      t.textContent = String(x + j * N);
       nums.appendChild(t);
-    });
-    if (nums.firstChild) frag.appendChild(nums);
+    }
   });
-  g.insertBefore(frag, g.querySelector(':scope > .dhc-wheel-mod'));
-}
-// The number in bead x's wedge, ring k, of the wheel g: its place, turn
-// and text, or null.
-function wheelNumAt(g, x, k){
-  var d = g.numData, w = d && d.byX[x], n = w && w.nums[k];
-  return n ? { x: n.x, y: n.y, text: n.text, rot: w.rot, size: d.size, cx: d.cx, cy: d.cy } : null;
 }
 // The wheel's figures' size: as large as the widest fits its innermost
 // cell, and no more than half a ring at the default cell height, so a
@@ -14032,15 +13905,16 @@ function litWheelCell(g, x, k, el){
   var tint = el.firstChild || el.appendChild(svgEl('path', {}));
   tint.setAttribute('d', annularSectorPath(c.cx, c.cy, c.R0 + k * c.ring, c.R0 + (k + 1) * c.ring, mid - half, mid + half));
   // Reshaped in place where it has one already (see takeLitCell).
-  // The copy is written from the wheel's numbers (wheelNumAt), turned as
-  // its wedge's numbers are.
-  var n = wheelNumAt(g, x, k), old = tint.nextSibling;
-  if (!old) old = el.appendChild(svgEl('text', { 'class': 'dhc-wheel-num' }));
-  if (!n){ old.setAttribute('display', 'none'); return true; }
-  var attrs = { x: n.x, y: n.y, 'font-size': num(n.size), transform: 'rotate(' + num(n.rot) + ' ' + n.cx + ' ' + n.cy + ')' };
-  old.removeAttribute('display');
-  Object.keys(attrs).forEach(function(a){ if (old.getAttribute(a) !== String(attrs[a])) old.setAttribute(a, attrs[a]); });
-  setTextData(old, n.text);
+  // The copy takes its wedge's turn (see drawRingWheelCells).
+  var n = g.querySelector('.dhc-wheel-num[data-cell="' + x + ',' + k + '"]'), old = tint.nextSibling;
+  if (!old) old = el.appendChild(n ? n.cloneNode(true) : svgEl('text', { display: 'none' }));
+  else if (!n) old.setAttribute('display', 'none');
+  else if (morphEl(old, n) && old.textContent !== n.textContent){
+    if (old.firstChild) old.firstChild.data = n.textContent;
+    else old.textContent = n.textContent;
+  }
+  var turn = n && n.parentNode.getAttribute('transform');
+  if (turn && old.getAttribute('transform') !== turn) old.setAttribute('transform', turn);
   return true;
 }
 // A lit cell put over the wheel g: in the lit cells' own layer, turned as
@@ -27179,20 +27053,6 @@ function snapshotRing(){
     }
   }
   var liveWheel = wheelTurnEl.querySelector(':scope > .ring-wheel');
-  // The wheel's numbers, painted in its layer, written into the picture
-  // with the paint a text of theirs resolves to.
-  var copyWheel = wheelCopy.querySelector(':scope > .ring-wheel');
-  if (liveWheel && copyWheel && liveWheel.numData && !copyWheel.querySelector(':scope > .dhc-wheel-nums')){
-    appendWheelNums(copyWheel, liveWheel.numData);
-    var probe = wheelLayerEl.appendChild(svgEl('text', { 'class': 'dhc-wheel-num' })), look = getComputedStyle(probe), paint = {};
-    PAINT_PROPS.forEach(function(p){ if (p !== 'font-size'){ var v = look.getPropertyValue(p); if (v) paint[p] = v; } });
-    paint['font-family'] = portableFont(look.getPropertyValue('font-family'));
-    probe.remove();
-    copyWheel.querySelectorAll('.dhc-wheel-num').forEach(function(t){
-      Object.keys(paint).forEach(function(p){ t.setAttribute(p, paint[p]); });
-      t.setAttribute('font-size', t.getAttribute('font-size') + 'px');
-    });
-  }
   if (liveWheel && liveWheel.drawnTurn !== liveWheel.turn) trueWheelTurn(wheelCopy.querySelector(':scope > .ring-wheel'), liveWheel);
   if (pathsTurnOffset) turnPathsBy(Array.prototype.slice.call(pathsCopy.children), pathsTurnOffset);
   if (comboTurnOffset) turnPathsBy(Array.prototype.slice.call(comboCopy.children), comboTurnOffset);

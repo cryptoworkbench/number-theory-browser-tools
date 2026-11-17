@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-10-02)
 Phase: 4 — Continued Fractions Tool
 Plan: Not started
 Status: Ready to plan
-Last activity: 2026-11-17 - Completed quick task 261117-z4r: Finite Groups wheel turn folded at rest
+Last activity: 2026-11-17 - Completed quick task 261117-z5v: Finite Groups canvas numbers reverted
 
 Progress: [█████████░] 86%
 
@@ -986,6 +986,7 @@ None yet.
 | 261117-z2c | Finite Groups: congruence wheel numbers painted on a canvas (svg texts only where needed): first step ~25-35% shorter headless, no long paint after | 2026-11-17 | 7da315d | [261117-z2c-finite-groups-wheel-numbers-canvas](./quick/261117-z2c-finite-groups-wheel-numbers-canvas/) |
 | 261117-z3m | Finite Groups: :has() shim keeps candidates incrementally (and no longer drops undelivered changes), address bar written at idle: first step ~10% shorter in the user's Chrome | 2026-11-17 | 16c3ed2 | [261117-z3m-finite-groups-shim-incremental-url-idle](./quick/261117-z3m-finite-groups-shim-incremental-url-idle/) |
 | 261117-z4r | Finite Groups: with Keep the result on top, the wheel's turn folded into its drawing once the ring is at rest (no huge layers turned by the compositor): dropped frames ~3x fewer in the user's Chrome | 2026-11-17 | 9f2102a | [261117-z4r-finite-groups-fold-wheel-turn-at-rest](./quick/261117-z4r-finite-groups-fold-wheel-turn-at-rest/) |
+| 261117-z5v | Finite Groups: canvas wheel numbers and the at-rest fold reverted: smoother with Keep the result on top (6-11 vs 37-47 dropped frames per 15 s) | 2026-11-17 | (this) | [261117-z5v-finite-groups-revert-canvas-numbers](./quick/261117-z5v-finite-groups-revert-canvas-numbers/) |
 
 ## Deferred Items
 
@@ -1001,4 +1002,4 @@ Last session: 2026-10-03
 Stopped at: Quick task 261005-dn2 complete — Venn Diagram double-click respects thumbnail scroll
 Resume file: None
 
-Last activity: 2026-11-17 - Completed quick task 261117-z4r: Finite Groups wheel turn folded at rest
+Last activity: 2026-11-17 - Completed quick task 261117-z5v: Finite Groups canvas numbers reverted

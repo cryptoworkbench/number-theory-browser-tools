@@ -67,6 +67,8 @@ Earlier: User's Chrome after 11-16: median frame 14–33 ms between steps; about
 
 ## Rejected (don't retry without a new reason)
 
+- **Wheel numbers on a canvas (7da315d) and folding the wheel's turn at rest (9f2102a), both reverted 11-17** [z5v]: with Keep the result on top (the benchmark), the single 3198² px canvas is either turned by the compositor every frame (GPU over budget) or, folded, repainted and re-rastered every step (a > 50 ms frame per step). SVG numbers in the wheel's layer raster in tiles and turn cheaply. User's Chrome, result on top, 15 s windows once settled (frames / > 25 ms / > 50 ms), alternated: 9f2102a 837/37/8, 822/47/8; 75b23bd (svg numbers) 874/26/0, 886/14/0, 889/10/0; 6b46109 876/21/1, 869/28/2; reverted (75b23bd + 16c3ed2) 894/6/0, 889/11/0. The canvas did halve the first step's zoom-out frame (identity on top: 817/744/510 → 356/425/368 ms); that gain is lost with the revert.
+
 - **will-change on the wheel inside the ring svg** [wl1]: turns collapse to 6–9 fps.
 - **Converting the remaining ~40 `:has()` rules** [wl1]: the cost is spread over all of them, and interaction states (hover, focus-visible) are at risk.
   - 11-16 re-measured in the user's Chrome (85 `:has(` selectors counted in the stylesheets): one insert costs 32–51 ms with them and 11 ms with all of them off. Turning rules on one at a time showed no single culprit.
@@ -103,5 +105,5 @@ Earlier: User's Chrome after 11-16: median frame 14–33 ms between steps; about
    - Other candidates, not tried:
      - leave out numbers whose cells lie outside the main area, but the wheel layer turns by the compositor, so culled corners would show during turns;
      - skip numbers too small to read: a visual change.
-5. **Result on top, what's left** (15–18 slow per 10 s vs 0 with identity on top): the fold frame itself (canvas repaint + wheel svg re-raster each step), turns (5 of 83 slow before), paths/combo layers still turned (no measurable effect when removed). Measuring lessons: only interleaved short windows within one run count (baseline drifts 95→158 frames in 30 s); an idle page's rAF rate is meaningless here (40–50 fps idle while the running animation holds 60).
+5. **Result on top, what's left** after the revert (6–11 slow, none > 50 ms, per 15 s settled): to be located. The first step's zoom-out frame is back at ~500–800 ms (svg numbers). Measuring lessons: only interleaved short windows within one run count (baseline drifts 95→158 frames in 30 s); an idle page's rAF rate is meaningless here (40–50 fps idle while the running animation holds 60).
 3. **GPU raster of the ring svg's arrows and halos as they grow** [rl1 remaining]: partly addressed by the combo layer.
