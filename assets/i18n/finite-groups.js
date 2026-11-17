@@ -1507,7 +1507,7 @@
       dhCylKeepBeads: 'Keep all beads on every layer',
       dhCylWheel: 'Congruence wheel floor',
       dhCylWheelNo: 'Only for the integers modulo n, not a curve’s points',
-      dhCylWheelMod: 'mod {n}',
+      dhCylWheelMod: '% {n}',
       dhCylWheelRaw: 'Show raw results before reduction',
       ringWheelShow: 'Show the congruence wheel',
       ringWheelUpright: 'Keep the numbers readable at every turn',
