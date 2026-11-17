@@ -17892,7 +17892,7 @@ function drawDhCyl(){
   };
   // Stacked polygons: no cylinder, but a tier for each layer, its polygon
   // risen on ribs from the layer below, like a wedding cake's.
-  var cake = poly && dhc.polyStack, wheel = dhc.wheel && dhcWheelFits(G), rawOn = wheel && dhc.wheelRaw;
+  var cake = poly && dhc.polyStack, wheel = dhc.wheel && dhcWheelFits(G), rawMix = wheel ? dhcRawMix() : 0, rawOn = rawMix > 0;
   var rings = wheel ? dhcWheelRings(G, tl) : 0, wheelReach = 0;
   $('dhc-rings-mode').parentNode.hidden = !wheel;
   $('dhc-rings-mode').value = dhc.ringsMode;
@@ -17958,7 +17958,10 @@ function drawDhCyl(){
       if (!rawOn || by === undefined) return null;
       var raw = G.mode === 'multiplicative' ? x * by : x + by, q = Math.floor(raw / G.n), to = raw % G.n;
       if (q < 1 || place[to] === undefined) return null;
-      return { raw: raw, q: q, to: to, z: z, pt: dhcAt(cyl, R + (q + 0.5) * R * DHC_WHEEL_RING, W, place[to], z, m) };
+      // Switching raw results on or off, the turn eases out from the bead
+      // to its ring over the floor, or back in (rawMix).
+      var r = R + (q + 0.5) * R * DHC_WHEEL_RING * rawMix;
+      return { raw: raw, q: q, to: to, z: z, r: r, pt: dhcAt(cyl, r, W, place[to], z, m) };
     };
     // Its way back in, dashed, and the raw number at its turn.
     var reduce = function(base, who, ex, end, extra, st, hop, ch){
@@ -17966,9 +17969,10 @@ function drawDhCyl(){
       // Written flat in its slice's plane as the floor writes the same
       // number in its cell below: the slice's centre, squashed as the
       // floor is, the cell's middle, the same size and turn.
-      var mid = dhcWheelMid(place, m, ex.to), size = dhcWheelNumSize(G, m, R, depth), at = polar(0, 0, R + (ex.q + 0.5) * R * DHC_WHEEL_RING, mid);
+      var mid = dhcWheelMid(place, m, ex.to), size = dhcWheelNumSize(G, m, R, depth), at = polar(0, 0, ex.r, mid);
       var label = svgEl('text', { 'class': cls('dhc-raw', who, ex.pt.front, extra), x: num(at[0]), y: num(at[1]), 'font-size': num(size), 'stroke-width': num(size * 0.28), transform: 'matrix(1 0 0 ' + num(sp) + ' ' + num(cx) + ' ' + num(OY - ex.z * cp) + ') rotate(' + num(dhcWheelRot(mid)) + ' ' + num(at[0]) + ' ' + num(at[1]) + ')' });
       label.textContent = String(ex.raw);
+      if (rawMix < 1) label.style.opacity = num(rawMix);
       // In a group of its own, which the Per computer / Per variable slide
       // moves (its transform), leaving the label's own.
       var held = svgEl('g', { 'class': 'dhc-raw-g' });
@@ -18119,7 +18123,7 @@ function drawDhCyl(){
         var A = P(place[u], za), B = P(place[v], zb), ex = excursion(u, via.by, za), ch = chain(st, h);
         if (ch && via.sync) ch.lane = owner;
         if (ex){
-          var rr = R + (ex.q + 0.5) * ring, f0 = flat(R, place[u]), fr = flat(rr, place[v]);
+          var rr = ex.r, f0 = flat(R, place[u]), fr = flat(rr, place[v]);
           var out = Math.hypot(fr[0] - f0[0], fr[1] - f0[1]), back = rr - R;
           ex = excursion(u, via.by, za + (zb - za) * out / (out + back));
         }
@@ -18299,6 +18303,32 @@ function drawDhCyl(){
   dhcGrowStart(growing ? GA : null, chains, grows);
   $('dhc-plot-title').textContent = translate('cyclicGroups.dhCylTitle', { group: G.label });
   dhcSvgEl.setAttribute('aria-label', translate('cyclicGroups.dhCylAria', { group: G.label }));
+}
+
+/* ---------- switching raw results ---------- */
+// Show raw results before reduction, switched, eases over DHC_RAW_MS: each
+// hop's turn out over the floor grows out of its bead or shrinks back into
+// it, its raw number fading with it. dhcRawMix gives how far out the turns
+// are now (0 in, 1 out); dhcRawMorph, called as the switch flips, starts
+// the easing from where it stands.
+var DHC_RAW_MS = 700;
+dhc.rawMorph = null;
+function dhcRawMix(){
+  var mo = dhc.rawMorph, to = dhc.wheelRaw ? 1 : 0;
+  if (!mo) return to;
+  var p = clamp((performance.now() - mo.t0) / DHC_RAW_MS, 0, 1);
+  if (p >= 1 || reducedMotion && reducedMotion.matches){ dhc.rawMorph = null; return to; }
+  var e = p * p * (3 - 2 * p);
+  return mo.from + (to - mo.from) * e;
+}
+function dhcRawMorph(){
+  dhc.rawMorph = { t0: performance.now(), from: dhcRawMix() };
+  var tick = function(){
+    if (!dhc.rawMorph || !dhc.open){ dhc.rawMorph = null; return; }
+    dhcRedraw();
+    requestAnimationFrame(tick);
+  };
+  requestAnimationFrame(tick);
 }
 
 /* ---------- the time cylinder's slow arrows ---------- */
@@ -18946,7 +18976,7 @@ function setDhcCtx(open, x, y){
     wheelItem.disabled = true;
     wheelItem.title = translate('cyclicGroups.dhCylWheelNo');
   }
-  var rawItem = menuTick('menuitemcheckbox', translate('cyclicGroups.dhCylWheelRaw'), dhc.wheelRaw && dhc.wheel && wheelFits, flip(function(){ return (dhc.wheelRaw = !dhc.wheelRaw); }, DHC_WHEEL_RAW_KEY));
+  var rawItem = menuTick('menuitemcheckbox', translate('cyclicGroups.dhCylWheelRaw'), dhc.wheelRaw && dhc.wheel && wheelFits, flip(function(){ dhcRawMorph(); return (dhc.wheelRaw = !dhc.wheelRaw); }, DHC_WHEEL_RAW_KEY));
   if (!wheelFits || !dhc.wheel){
     rawItem.disabled = true;
     rawItem.title = translate(wheelFits ? 'cyclicGroups.dhCylWheelRawNo' : 'cyclicGroups.dhCylWheelNo');
