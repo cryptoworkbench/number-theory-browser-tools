@@ -17941,6 +17941,11 @@ function drawDhCyl(){
     // Every slice's circle lies under the beads, and the beads, their values
     // and the marks on them over Alice's and Bob's paths and lines.
     var under = -1e4, over = 1e4;
+    // Per hop's swap slice, and the beads on it the swap's dashed lines land
+    // on in this cylinder: the only ones it shows, beads and marks alike.
+    var landed = {};
+    lay.links.forEach(function(lk){ if (lk.to.cyl === ci && lk.to.slice === tl.swap.slice) landed[lk.to.x] = true; });
+    var swapOnly = function(i){ return dhc.slices === 'hop' && i === tl.swap.slice; };
     if (!cake) put(svgEl('ellipse', { 'class': 'dhc-cap', cx: num(cx), cy: num(hi), rx: num(R), ry: num(R * sp) }), -1e5, -1, 0, ci);
     // Raw results (the menu's choice, on the congruence wheel floor): a hop
     // from x by y first reaches the unreduced x+y or x·y, out on the
@@ -18049,10 +18054,7 @@ function drawDhCyl(){
       }
       // Per hop's swap slice keeps only the beads the swap's dashed lines
       // land on in this cylinder.
-      if (dhc.slices === 'hop' && i === tl.swap.slice){
-        corner = {};
-        lay.links.forEach(function(lk){ if (lk.to.cyl === ci && lk.to.slice === i) corner[lk.to.x] = true; });
-      }
+      if (swapOnly(i)) corner = landed;
       G.els.forEach(function(x){
         if (place[x] === undefined || corner && !corner[x]) return;
         var q = P(place[x], z), far = reach[x] ? '' : ' is-far';
@@ -18239,7 +18241,7 @@ function drawDhCyl(){
     var placed = {};
     tl.marks.forEach(function(k){
       moving = k.step === DH_LAST && k.owner !== 'pub';
-      if (!mine(cyl, k.owner) || !shows(k.step) || !vis[k.slice] || place[k.x] === undefined) return;
+      if (!mine(cyl, k.owner) || !shows(k.step) || !vis[k.slice] || place[k.x] === undefined || swapOnly(k.slice) && !landed[k.x]) return;
       var key = k.slice + '|' + k.x, c = placed[key] || 0, q = P(place[k.x], zOf(k.slice));
       placed[key] = c + 1;
       put(svgEl('circle', { 'class': cls('dhc-mark', k.who, q.front, (c ? ' is-halo' : '') + (k.step === step ? ' is-now' : '')), cx: num(q.x), cy: num(q.y), r: num(4.2 + 2.6 * c) }), (slices[k.slice].full && c ? 1e4 : 0) + q.depth + 0.02, k.step, k.hop, ci);
