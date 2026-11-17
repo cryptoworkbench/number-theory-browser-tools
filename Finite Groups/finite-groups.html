@@ -4138,9 +4138,10 @@ var hasShim = (function(){
     if (r.selectorText.indexOf(':has(') !== -1) failed++;
   });
   // The elements each rule could apply to (its candidates) are kept between
-  // syncs, and found afresh, all in one query of the document, only when
-  // the page's own elements come or go; an element whose class, id or
-  // hidden changes is put in or taken out alone (see the observer below).
+  // syncs: found in one query of the document at the start, then looked for
+  // only in the page elements that come, dropped when they go, and an
+  // element whose class, id or hidden changes put in or taken out alone
+  // (see the observer below).
   // An argument ending, in each of its alternatives, at an element named by
   // id is asked the other way round: that element, found by id, is asked
   // whether it lies where the argument says under the anchor (marked for
@@ -4184,10 +4185,27 @@ var hasShim = (function(){
       else if (!is && at !== -1) a.cands.splice(at, 1);
     });
   };
+  // Every anchor is one compound selector (no combinator), so whether an
+  // element is a candidate depends on that element alone: elements that
+  // come are looked for in what came, and elements that go are dropped.
+  var addFrom = function(n){
+    if (!n.isConnected) return;
+    try {
+      if (n.matches(anchorSel)) recheck(n);
+      Array.prototype.forEach.call(n.querySelectorAll(anchorSel), recheck);
+    } catch (e) { /* a selector this browser cannot read */ }
+  };
+  var dropGone = function(){
+    args.forEach(function(a){ a.cands = a.cands.filter(function(el){ return el.isConnected; }); });
+  };
   var applying = false;
   // only: 'hover' or 'focus' for the rules that ask for that state alone.
   var sync = function(only){
     applying = true;
+    // Changes the observer has not yet been told of are taken in first, and
+    // then every rule synced: the records dropped at the end must be only
+    // this sync's own.
+    if (note(mo.takeRecords())) only = undefined;
     args.forEach(function(a){
       if (only && !a[only]) return;
       var now = [];
@@ -4206,22 +4224,27 @@ var hasShim = (function(){
   // as it was; no rule looks into an svg.
   var ANCHOR_ATTRS = ['class', 'id', 'hidden'];
   var isPageEl = function(n){ return n.nodeType === 1 && !(n instanceof SVGElement && n.ownerSVGElement); };
-  var mo = new MutationObserver(function(list){
-    if (applying) return;
-    var any = false, all = false, changed = [];
+  var note = function(list){
+    var any = false, gone = false, came = [], changed = [];
     for (var i = 0; i < list.length; i++){
       var m = list[i], t = m.target;
       if (m.type === 'attributes' && m.attributeName === 'style') continue;
       if (t.nodeType !== 1) t = t.parentNode;
       if (!t || t.ownerSVGElement || (m.type !== 'attributes' && t instanceof SVGElement)) continue;
       any = true;
-      if (m.type === 'childList' && !all) all = Array.prototype.some.call(m.addedNodes, isPageEl) || Array.prototype.some.call(m.removedNodes, isPageEl);
+      if (m.type === 'childList'){
+        Array.prototype.forEach.call(m.addedNodes, function(n){ if (isPageEl(n) && came.indexOf(n) === -1) came.push(n); });
+        if (!gone) gone = Array.prototype.some.call(m.removedNodes, isPageEl);
+      }
       if (m.type === 'attributes' && ANCHOR_ATTRS.indexOf(m.attributeName) !== -1 && changed.indexOf(t) === -1) changed.push(t);
     }
-    if (!any) return;
-    if (all) findAll();
-    else changed.forEach(recheck);
-    sync();
+    if (gone) dropGone();
+    came.forEach(addFrom);
+    changed.forEach(recheck);
+    return any;
+  };
+  var mo = new MutationObserver(function(list){
+    if (!applying && note(list)) sync();
   });
   // Several events in a row synced once, before the next frame is drawn.
   var queued = null;
@@ -23886,6 +23909,7 @@ function syncCayleyLink(){
 // logBasePrompt). The ring-window and pane switches are dropped too, so a
 // modified click inside a Ring window's frame opens the normal page.
 function isoHref(mode, n, gen, curve){
+  flushMirror();
   var q = new URLSearchParams(location.search);
   // An elliptic curve's chip names its curve; any other chip none, even
   // from a curve's ring.
@@ -26815,7 +26839,13 @@ function mirrorPaneToUrl(){
 // Mirror every control into the address bar. A throttled or blocked write is
 // skipped. A ring in a frame (the isomorphism pane) has no address bar of its
 // own: it reports its query to the page that holds it instead.
-function mirrorToUrl(G){
+// The write and the chips' links, built from it, wait for an idle moment
+// (redraws come every frame while zooming or stepping), and are made at once
+// when something reads the address first (isoHref) or the page goes.
+var mirrorDue = false;
+function flushMirror(){
+  if (!mirrorDue) return;
+  mirrorDue = false;
   try {
     var q = stateQuery();
     if (IS_RINGWIN){
@@ -26825,8 +26855,16 @@ function mirrorToUrl(G){
     }
   } catch (e) { /* the address bar is a convenience, never a requirement */ }
   syncIsoLinks();
+}
+function mirrorToUrl(G){
+  if (!mirrorDue){
+    mirrorDue = true;
+    if (window.requestIdleCallback) requestIdleCallback(flushMirror, { timeout: 500 });
+    else setTimeout(flushMirror, 200);
+  }
   postIsoShared(false);
 }
+window.addEventListener('pagehide', flushMirror);
 
 /* ---------- arrow colors ---------- */
 
