@@ -226,8 +226,8 @@
    ones, and one slice per hop or per frame) and dhColoursLabel, dhColoursOwn,
    dhColoursOwnTip, dhColoursPaths and dhColoursPathsTip (the Diffie–Hellman
    window's Colours switch: Alice and Bob in their own colours or in the
-   forward and backward paths') and dhCylValues and dhCylValuesTip (the filled
-   time cylinder's Values toggle) and dhStepBoth (the exchange's step where
+   forward and backward paths') and dhCylValuesTip (the tooltip of the filled
+   time cylinder's V toggle for values) and dhStepBoth (the exchange's step where
    Alice and Bob compute A and B at the same time; dhStep2 and dhStep3, the
    two steps it replaces, are no longer used) and dhStepBothK (the step where
    both compute K at the same time; it replaces dhStep5 and dhStep6, no
@@ -321,8 +321,8 @@
    dhCylUnmax (the time cylinder head's maximize button, covering the Ring
    window's rows and bottom bar too, and putting it back), and dhReplay
    (the exchange's Play button at the end, starting it over), and
-   dhCylRawBtn (the time cylinder picture's toggle for raw results, its
-   title the menu item's dhCylWheelRaw).
+   dhCylRawTip (the tooltip of the time cylinder picture's R toggle for
+   raw results).
    Every other language shows the English value through NT.i18n's
    fallback meanwhile.
 
@@ -1498,7 +1498,6 @@
       dhCylPerHopTip: 'One slice for every hop of Alice’s and Bob’s walks, side by side',
       dhCylPerFrame: 'Per frame',
       dhCylPerFrameTip: 'One slice for the secrets, one for A and B, and one for the swap and K, the threads between them climbing through the walks to A and B and on to K',
-      dhCylValues: 'Values',
       dhCylValuesTip: 'Show each bead’s natural value on the slices, in the ring’s colours (in the filled window)',
       dhCylMenu: 'Time cylinder',
       dhCylHopNumbers: 'Hop numbers',
@@ -1510,7 +1509,7 @@
       dhCylPolyKeepG: 'Keep g’s polygon on every layer',
       dhCylKeepBeads: 'Keep all beads on every layer',
       dhReplay: 'Replay',
-      dhCylRawBtn: 'Raw results',
+      dhCylRawTip: 'Show ‘raw’ results before reduction',
       dhCylMax: 'Maximize over the whole Ring window, its rows and bottom bar included',
       dhCylUnmax: 'Back to the size it had before',
       dhCylWheel: 'Congruence wheel floor',
