@@ -17813,7 +17813,9 @@ function dhcByVariable(){ return (dhc.cyls === 'split' || !!dhc.cylMorph) && dhc
 function dhcFollow(tl){
   if (!dhcByVariable()) return tl;
   var other = { alice: 'bob', bob: 'alice' };
-  var moved = function(k){ return Object.assign({}, k, { owner: other[k.owner] || k.owner }); };
+  // maker keeps who made it, whose colour its first hop keeps (so the
+  // Per computer / Per variable slide carries the colour across).
+  var moved = function(k){ return Object.assign({}, k, { owner: other[k.owner] || k.owner, maker: k.owner }); };
   var later = function(k){ return k.who === 'mix'; };
   return Object.assign({}, tl, {
     threads: tl.threads.map(function(t){ return later(t) ? moved(t) : t; }),
@@ -18121,7 +18123,7 @@ function drawDhCyl(){
         var mix = once(pieceKey(a, c));
         if (mix < 0) return;
         var who = mix ? 'mix' : t.who, first = !mix && t.who === 'mix' && k === 1;
-        var firstCls = first ? ['', 'is-first', DHC_BY[t.owner]].join(' ') : '';
+        var firstCls = first ? ['', 'is-first', DHC_BY[t.maker || t.owner]].join(' ') : '';
         if (c.via){
           riseWalk(c.via, zOf(a.slice), zOf(c.slice), who, (c.step === step ? ' is-now' : '') + firstCls, firstCls, c.step, t.owner);
           if (nVis <= DHC_RIM_CAP && c.x !== a.x){
@@ -18175,7 +18177,7 @@ function drawDhCyl(){
       var z = zOf(k.slice), q1 = P(a, z), q2 = P(b, z), ex = excursion(k.from, k.by, z);
       // With a raw result, the chord runs out to it; reduce brings it back.
       if (ex) q2 = ex.pt;
-      var who = mix ? 'mix' : k.who, first = !mix && k.who === 'mix' && k.hop === 1 ? ['', 'is-first', DHC_BY[k.owner]].join(' ') : '';
+      var who = mix ? 'mix' : k.who, first = !mix && k.who === 'mix' && k.hop === 1 ? ['', 'is-first', DHC_BY[k.maker || k.owner]].join(' ') : '';
       var ch = chain(k.step, k.hop);
       put(grow(ch, svgEl('line', { 'class': cls('dhc-line', who, q1.front + q2.front, (k.step === step ? ' is-now' : '') + first), x1: num(q1.x), y1: num(q1.y), x2: num(q2.x), y2: num(q2.y) }), [q1, q2]), (q1.depth + q2.depth) / 2, k.step, k.hop, ci);
       if (ex) reduce('dhc-line', who, ex, P(b, z), first, k.step, k.hop, ch);
@@ -18538,7 +18540,7 @@ function dhcCylMorph(){
 // Called by every ring draw while the exchange is on: the ring's own place
 // map is what the slices use, so the cylinder is redrawn only when
 // something it shows (or the way it is turned) has changed.
-// The class naming whose cylinder a mixed walk's first step lies in.
+// The class naming who made a mixed walk, whose colour its first step takes.
 var DHC_BY = { alice: 'is-by-alice', bob: 'is-by-bob' };
 function dhcValuesOn(){ return dhc.values && dhc.filled; }
 // Each element's colour classes and style as the ring's beads have them.
