@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-10-02)
 Phase: 4 — Continued Fractions Tool
 Plan: Not started
 Status: Ready to plan
-Last activity: 2026-11-17 - Completed quick task 261117-zjb: Finite Groups synced arrival
+Last activity: 2026-11-17 - Completed quick task 261117-zkd: Finite Groups synced arrival at K
 
 Progress: [█████████░] 86%
 
@@ -1000,6 +1000,7 @@ None yet.
 | 261117-zgw | Finite Groups (branch dhc-rise-walks): Per computer / Per variable keeps the walks' colours | 2026-11-17 | 92a4770 | [261117-zgw-finite-groups-dhc-follow-colours](./quick/261117-zgw-finite-groups-dhc-follow-colours/) |
 | 261117-zhq | Finite Groups (branch dhc-rise-walks): the walks to K rise from layer 1 to layer 2; no walks drawn in a layer | 2026-11-17 | 4aeff9c | [261117-zhq-finite-groups-dhc-rise-to-k](./quick/261117-zhq-finite-groups-dhc-rise-to-k/) |
 | 261117-zjb | Finite Groups: Per frame slow arrows, Alice and Bob reach A and B at the same moment | 2026-11-17 | 61ebc86 | [261117-zjb-finite-groups-dhc-sync-arrival](./quick/261117-zjb-finite-groups-dhc-sync-arrival/) |
+| 261117-zkd | Finite Groups: Per frame slow arrows, Alice and Bob reach K at the same moment | 2026-11-17 | a315519 | [261117-zkd-finite-groups-dhc-sync-k](./quick/261117-zkd-finite-groups-dhc-sync-k/) |
 
 ## Deferred Items
 
@@ -1015,4 +1016,4 @@ Last session: 2026-10-03
 Stopped at: Quick task 261005-dn2 complete — Venn Diagram double-click respects thumbnail scroll
 Resume file: None
 
-Last activity: 2026-11-17 - Completed quick task 261117-zjb: Finite Groups synced arrival
+Last activity: 2026-11-17 - Completed quick task 261117-zkd: Finite Groups synced arrival at K
