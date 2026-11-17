@@ -13085,12 +13085,15 @@ function drawNecklace(G, paint){
   drawCurvePlot(G);
   drawPolyPlot(G);
   drawCayley(G);
+  // Minimized, the lines are not drawn at all: their task in the bar
+  // stays while there are lines to bring back (placeCombineCard).
+  var linesMin = !big && combineCardAvail() && combineCardAt[combineCardKind()] === 'min';
   if (!big){
     if (kept && kept.lines) kept.lines.forEach(function(el){ ringDynamicEl.appendChild(el); });
-    else { drawCombineLine(G, SIZE - 16); combineCopies(); }
+    else if (!linesMin){ drawCombineLine(G, SIZE - 16); combineCopies(); }
     cardCombineLines(G);
   }
-  placeCombineCard(G);
+  placeCombineCard(G, linesMin && combineRoles(G).size > 0 && comboLive(G));
   syncCombineKMod(G);
   if (IS_PREVIEW) cropToRing();
   // On screen the captions sit over the diagram, so the view starts just
@@ -16445,13 +16448,14 @@ function combineCardItems(){
 // Every redraw, once the lines are drawn under the ring: detached, they
 // move into the window (without the card's plate and blur and its own two
 // buttons), at the size they had there; minimized, they go, leaving a task
-// in the bar that brings them back where they were.
-function placeCombineCard(G){
+// in the bar that brings them back where they were (due: minimized lines
+// that would be drawn, see drawNecklace).
+function placeCombineCard(G, due){
   combineWinSvgEl.replaceChildren();
   var parts = Array.prototype.filter.call(ringDynamicEl.children, function(el){
     return el.matches('.ring-combine-box, text.ring-combine, .ring-combine-copies');
   });
-  var kind = combineCardKind(), at = parts.length && combineCardAvail() ? combineCardAt[kind] : 'card';
+  var kind = combineCardKind(), at = (parts.length || due) && combineCardAvail() ? combineCardAt[kind] : 'card';
   if (at !== 'card'){
     ringDynamicEl.querySelectorAll('.ring-combine-plate, .ring-combine-frost, .ring-combine-copy.is-card').forEach(function(el){ el.remove(); });
     frostTurnEl.querySelectorAll('.ring-combine-frost').forEach(function(el){ el.remove(); });
