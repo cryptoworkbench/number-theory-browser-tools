@@ -296,14 +296,11 @@
    relatedRowLabel, relSwap and relReduce (the Related groups row, the
    desktop's SUBGROUP row renamed for holding Divide, Multiply and Swap
    too, its Swap button and its Reduce to structure button), and
-   ringWheelShow, ringWheelUpright, ringRawFwd, ringRawBack, ringRawCombine,
-   ringRawPower, ringWheelThick, ringWheelThinner, ringWheelThicker and
-   ringWheelThickReset (the ring menu's Congruence wheel submenu: the
-   switch showing the wheel, the switch turning its numbers upright again
-   after every turn of the ring, the two switches showing the forward and the
-   backward path's raw results before reduction, ringRawCombine's and
-   ringRawPower's switches showing a combination's and aᵏ's walk's, and
-   the rings' cell height with its two buttons and its reset button),
+   ringWheelShow, ringWheelUpright, ringWheelThick, ringWheelThinner,
+   ringWheelThicker and ringWheelThickReset (the ring menu's Congruence
+   wheel submenu: the switch showing the wheel, the switch turning its
+   numbers upright again after every turn of the ring, and the rings' cell
+   height with its two buttons and its reset button),
    and combineCardDetach, combineCardDock, combineWinAb, combineWinAk,
    combineWinShowAb and combineWinShowAk (a ∗ b's and aᵏ's lines detached
    into a window and put back, the window's titles, and its task in the
@@ -324,8 +321,8 @@
    (the exchange's Play button at the end, starting it over), and
    dhWhyBob and dhWhyAlice (under the exchange's last step, why each
    side's second walk runs round a regular polygon of that many sides) and
-   dhCylRawTip (the tooltip of the time cylinder picture's R toggle for
-   raw results).
+   dhCylRawTip (the tooltip of the R toggles for raw results: the time
+   cylinder picture's, and the ring's rotation row's for every path at once).
    Every other language shows the English value through NT.i18n's
    fallback meanwhile.
 
@@ -1528,10 +1525,6 @@
       combineWinAk: 'aᵏ',
       combineWinShowAb: 'Show a ∗ b',
       combineWinShowAk: 'Show aᵏ',
-      ringRawFwd: 'Show raw results before reduction on the forward path',
-      ringRawBack: 'Show raw results before reduction on the backward path',
-      ringRawCombine: 'Show raw results before reduction when a*b',
-      ringRawPower: 'Show raw results before reduction when a^k',
       ringWheelThick: 'Cell height',
       ringWheelThinner: 'Lower cells',
       ringWheelThicker: 'Higher cells',
