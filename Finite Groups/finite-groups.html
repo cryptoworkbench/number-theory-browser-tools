@@ -17692,7 +17692,10 @@ function dhcTimelineFrame(G){
   return {
     slices: slices, marks: marks, lines: [],
     threads: [thread('alice', aliceAt, dh.a), thread('bob', bobAt, dh.b), toK('alice', v.B, dh.a), toK('bob', v.A, dh.b)],
-    swap: { slice: 2, A: v.A, B: v.B, step: 3, madeA: 1, madeB: 1 },
+    // A and B land where the receiver's walk to K first reaches them, the
+    // end of its first hop (e ∗ A = A), 1/b and 1/a of the way up to layer
+    // 2: where that walk's colour turns from its maker's to both.
+    swap: { slice: 2, A: v.A, B: v.B, step: 3, madeA: 1, madeB: 1, upA: 1 / dh.b, upB: 1 / dh.a },
     uses: []
   };
 }
@@ -18234,7 +18237,7 @@ function drawDhCyl(){
   }
   // Links: a chord between two cylinders (or two beads of the one); two
   // links lying on one another are drawn once, in their colours mixed.
-  var linkKey = function(lk){ return [lk.from.cyl, lk.from.slice, lk.from.x, lk.to.cyl, lk.to.slice, lk.to.x].join('|'); };
+  var linkKey = function(lk){ return [lk.from.cyl, lk.from.slice, lk.from.x, lk.to.cyl, lk.to.slice, lk.to.x, lk.to.up].join('|'); };
   var linkWho = {};
   lay.links.forEach(function(lk){ if (shows(lk.step)){ var k = linkKey(lk); linkWho[k] = linkWho[k] && linkWho[k] !== lk.who ? 'mix' : lk.who; } });
   var linkDone = {};
@@ -18244,7 +18247,10 @@ function drawDhCyl(){
     var key = linkKey(lk);
     if (linkDone[key]) return;
     linkDone[key] = true;
-    var q1 = dhcAt(ca, R, W, pa, zOf(lk.from.slice), m), q2 = dhcAt(cb, R, W, pb, zOf(lk.to.slice), m);
+    // A far end with up lies that share of the way up to its slice from
+    // the one below.
+    var z2 = lk.to.up === undefined ? zOf(lk.to.slice) : zOf(lk.to.slice - 1) + (zOf(lk.to.slice) - zOf(lk.to.slice - 1)) * lk.to.up;
+    var q1 = dhcAt(ca, R, W, pa, zOf(lk.from.slice), m), q2 = dhcAt(cb, R, W, pb, z2, m);
     var link = svgEl('line', { 'class': cls('dhc-line is-link', linkWho[key], q1.front + q2.front, lk.step === step ? ' is-now' : ''), x1: num(q1.x), y1: num(q1.y), x2: num(q2.x), y2: num(q2.y) });
     // Its far end is what the Per computer / Per variable switch moves.
     if (lay.cyls.length === 2){
@@ -18507,8 +18513,8 @@ function dhcLayoutShared(tl){
     w: 300, R: 100,
     cyls: [{ cx: 0, owners: ['alice', 'bob', 'pub'] }],
     links: [
-      { from: { cyl: 0, slice: s.madeA, x: s.A }, to: { cyl: 0, slice: s.slice, x: s.A }, who: 'alice', step: s.step },
-      { from: { cyl: 0, slice: s.madeB, x: s.B }, to: { cyl: 0, slice: s.slice, x: s.B }, who: 'bob', step: s.step }
+      { from: { cyl: 0, slice: s.madeA, x: s.A }, to: { cyl: 0, slice: s.slice, x: s.A, up: s.upA }, who: 'alice', step: s.step },
+      { from: { cyl: 0, slice: s.madeB, x: s.B }, to: { cyl: 0, slice: s.slice, x: s.B, up: s.upB }, who: 'bob', step: s.step }
     ]
   };
 }
@@ -18526,8 +18532,8 @@ function dhcLayoutSplit(tl){
     w: 400 + dhc.cylApart - DHC_APART, R: 78,
     cyls: [{ cx: -half, owners: ['alice', 'pub'] }, { cx: half, owners: ['bob', 'pub'] }],
     links: [
-      { from: { cyl: 0, slice: s.madeA, x: s.A }, to: { cyl: across, slice: s.slice, x: s.A }, who: 'alice', step: s.step },
-      { from: { cyl: 1, slice: s.madeB, x: s.B }, to: { cyl: 1 - across, slice: s.slice, x: s.B }, who: 'bob', step: s.step }
+      { from: { cyl: 0, slice: s.madeA, x: s.A }, to: { cyl: across, slice: s.slice, x: s.A, up: s.upA }, who: 'alice', step: s.step },
+      { from: { cyl: 1, slice: s.madeB, x: s.B }, to: { cyl: 1 - across, slice: s.slice, x: s.B, up: s.upB }, who: 'bob', step: s.step }
     ]
   };
 }
