@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-10-02)
 Phase: 4 — Continued Fractions Tool
 Plan: Not started
 Status: Ready to plan
-Last activity: 2026-11-17 - Completed quick task 261117-z6k: Finite Groups shim read attributes
+Last activity: 2026-11-17 - Completed quick task 261117-z7m: Finite Groups minimized card task
 
 Progress: [█████████░] 86%
 
@@ -988,6 +988,7 @@ None yet.
 | 261117-z4r | Finite Groups: with Keep the result on top, the wheel's turn folded into its drawing once the ring is at rest (no huge layers turned by the compositor): dropped frames ~3x fewer in the user's Chrome | 2026-11-17 | 9f2102a | [261117-z4r-finite-groups-fold-wheel-turn-at-rest](./quick/261117-z4r-finite-groups-fold-wheel-turn-at-rest/) |
 | 261117-z5v | Finite Groups: canvas wheel numbers and the at-rest fold reverted: smoother with Keep the result on top (6-11 vs 37-47 dropped frames per 15 s) | 2026-11-17 | 80fd365 | [261117-z5v-finite-groups-revert-canvas-numbers](./quick/261117-z5v-finite-groups-revert-canvas-numbers/) |
 | 261117-z6k | Finite Groups: shim ignores attributes no rule reads; chip links written only on change; stutter with result on top located (steps 2-10, main-thread bound) | 2026-11-17 | 016bc6e | [261117-z6k-finite-groups-shim-read-attrs](./quick/261117-z6k-finite-groups-shim-read-attrs/) |
+| 261117-z7m | Finite Groups: minimized a∗b/aᵏ card keeps its bar task through turns (no flicker with result on top); its lines not drawn while minimized | 2026-11-17 | 2f6731a | [261117-z7m-finite-groups-minimized-card-task](./quick/261117-z7m-finite-groups-minimized-card-task/) |
 
 ## Deferred Items
 
@@ -1003,4 +1004,4 @@ Last session: 2026-10-03
 Stopped at: Quick task 261005-dn2 complete — Venn Diagram double-click respects thumbnail scroll
 Resume file: None
 
-Last activity: 2026-11-17 - Completed quick task 261117-z6k: Finite Groups shim read attributes
+Last activity: 2026-11-17 - Completed quick task 261117-z7m: Finite Groups minimized card task
