@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-10-02)
 Phase: 4 — Continued Fractions Tool
 Plan: Not started
 Status: Ready to plan
-Last activity: 2026-11-17 - Completed quick task 261117-z8g: Finite Groups time cylinder slow arrows
+Last activity: 2026-11-17 - Completed quick task 261117-z9c: Finite Groups time cylinder walk down
 
 Progress: [█████████░] 86%
 
@@ -990,6 +990,7 @@ None yet.
 | 261117-z6k | Finite Groups: shim ignores attributes no rule reads; chip links written only on change; stutter with result on top located (steps 2-10, main-thread bound) | 2026-11-17 | 016bc6e | [261117-z6k-finite-groups-shim-read-attrs](./quick/261117-z6k-finite-groups-shim-read-attrs/) |
 | 261117-z7m | Finite Groups: minimized a∗b/aᵏ card keeps its bar task through turns (no flicker with result on top); its lines not drawn while minimized | 2026-11-17 | 2f6731a | [261117-z7m-finite-groups-minimized-card-task](./quick/261117-z7m-finite-groups-minimized-card-task/) |
 | 261117-z8g | Finite Groups: Slow arrows for the time cylinder (hops grow in instead of fading in) | 2026-11-17 | 0872843 | [261117-z8g-finite-groups-dhc-slow-arrows](./quick/261117-z8g-finite-groups-dhc-slow-arrows/) |
+| 261117-z9c | Finite Groups: time cylinder slow arrows walk reductions down the congruence wheel floor (lit cells, bead flash) | 2026-11-17 | 1a6b9b2 | [261117-z9c-finite-groups-dhc-walk-down](./quick/261117-z9c-finite-groups-dhc-walk-down/) |
 
 ## Deferred Items
 
@@ -1005,4 +1006,4 @@ Last session: 2026-10-03
 Stopped at: Quick task 261005-dn2 complete — Venn Diagram double-click respects thumbnail scroll
 Resume file: None
 
-Last activity: 2026-11-17 - Completed quick task 261117-z8g: Finite Groups time cylinder slow arrows
+Last activity: 2026-11-17 - Completed quick task 261117-z9c: Finite Groups time cylinder walk down
