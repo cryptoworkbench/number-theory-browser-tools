@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-10-02)
 Phase: 4 — Continued Fractions Tool
 Plan: Not started
 Status: Ready to plan
-Last activity: 2026-11-18 - Completed quick task 261118-a6m: Finite Groups rings now (branch)
+Last activity: 2026-11-18 - Completed quick task 261118-a7p: Finite Groups distance follows (branch)
 
 Progress: [█████████░] 86%
 
@@ -1019,6 +1019,7 @@ None yet.
 | 261118-a2r | Finite Groups: Raw results toggle on the time cylinder's picture | 2026-11-18 | 75c82f6 | [261118-a2r-finite-groups-dhc-raw-toggle](./quick/261118-a2r-finite-groups-dhc-raw-toggle/) |
 | 261118-a5k | Finite Groups (branch dhc-auto-distance): automatic distance; zoom capped to keep the floors in sight | 2026-11-18 | 860348b | [261118-a5k-finite-groups-dhc-auto-distance](./quick/261118-a5k-finite-groups-dhc-auto-distance/) |
 | 261118-a6m | Finite Groups (branch dhc-rings-now): floor rings always as far as the current step reaches; Rings dropdown gone | 2026-11-18 | 5a33497 | [261118-a6m-finite-groups-dhc-rings-now](./quick/261118-a6m-finite-groups-dhc-rings-now/) |
+| 261118-a7p | Finite Groups (branch dhc-distance-follows): cylinders as close as the step on show allows, parting as the floor grows | 2026-11-18 | 39d7a75 | [261118-a7p-finite-groups-dhc-distance-follows](./quick/261118-a7p-finite-groups-dhc-distance-follows/) |
 
 ## Deferred Items
 
@@ -1034,4 +1035,4 @@ Last session: 2026-10-03
 Stopped at: Quick task 261005-dn2 complete — Venn Diagram double-click respects thumbnail scroll
 Resume file: None
 
-Last activity: 2026-11-18 - Completed quick task 261118-a6m: Finite Groups rings now (branch)
+Last activity: 2026-11-18 - Completed quick task 261118-a7p: Finite Groups distance follows (branch)
