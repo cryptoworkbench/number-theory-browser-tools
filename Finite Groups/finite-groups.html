@@ -18130,6 +18130,17 @@ function drawDhCyl(){
         if (place[u] === undefined || place[v] === undefined) continue;
         var A = P(place[u], za), B = P(place[v], zb), ex = excursion(u, via.by, za), ch = chain(st, early ? 0 : h);
         if (ch && via.sync && !early) ch.lane = owner;
+        // The early hop grows as long as it would have as the first of its
+        // walk's synced hops (see dhcGrowStart): plan holds the walk's hops'
+        // own times, its walks down included; meetKey the number it
+        // receives, which the swap's line landing on it carries.
+        if (ch && early){
+          ch.meetKey = via.by;
+          ch.plan = seq.slice(0, via.n).map(function(x){
+            var raw = G.mode === 'multiplicative' ? x * via.by : x + via.by, q = Math.floor(raw / G.n);
+            return SLOW_GROW + (rawOn && q >= 1 && place[raw % G.n] !== undefined ? wheelWalkMs(q) : 0);
+          });
+        }
         if (ex){
           var rr = ex.r, f0 = flat(R, place[u]), fr = flat(rr, place[v]);
           var out = Math.hypot(fr[0] - f0[0], fr[1] - f0[1]), back = rr - R;
@@ -18292,7 +18303,9 @@ function drawDhCyl(){
       link.setAttribute('data-x2', num(q2.x));
       link.setAttribute('data-x2-shift', num((lay.cyls[1 - lk.to.cyl].cx - cb.cx) * Z));
     }
-    put(grow(chain(lk.step, 0), link, [q1, q2]), (q1.depth + q2.depth) / 2, lk.step, 0);
+    var lch = chain(lk.step, 0);
+    if (lch && lk.to.up !== undefined) lch.meet = lk.to.x;
+    put(grow(lch, link, [q1, q2]), (q1.depth + q2.depth) / 2, lk.step, 0);
   });
   // The step numerals, left of the leftmost cylinder.
   var left = OX + Math.min.apply(null, lay.cyls.map(function(c){ return c.cx; })) * Z - R - 8;
@@ -18389,8 +18402,23 @@ function dhcGrowStart(GA, chains, grows){
   // Each hop's slot lasts as long as its slowest chain: the growth out, the
   // walk down if any, the head's drop.
   var arrive = {}, slot = {}, hops = {}, lanes = {}, back = heads ? SLOW_BACK : 0;
+  // A walk's first hop drawn early with the swap (plan) takes as long as it
+  // would as the first of the synced walks' hops, the shorter walk's
+  // stretched to arrive with the longer's; the swap's line landing on it
+  // (meet) takes as long, so the two meet at its end.
+  var early = chains.filter(function(c){ return c.plan; });
+  if (early.length){
+    var nat = function(c){ return c.plan.reduce(function(a, r){ return a + r + back; }, 0) - back; };
+    var T0 = Math.max.apply(null, early.map(nat));
+    early.forEach(function(c){ c.dur = c.plan[0] + (T0 - nat(c)) / c.plan.length; });
+    chains.forEach(function(c){
+      if (c.meet === undefined) return;
+      var e = early.filter(function(x){ return x.meetKey === c.meet; })[0];
+      if (e) c.dur = e.dur;
+    });
+  }
   chains.forEach(function(c){
-    c.grow = SLOW_GROW;
+    c.grow = c.dur || SLOW_GROW;
     c.reach = c.grow + (c.walk ? c.walk.ms : 0);
     if (c.lane){ (lanes[c.lane] = lanes[c.lane] || []).push(c); return; }
     if (c.stay) return;
