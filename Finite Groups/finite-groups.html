@@ -1305,6 +1305,10 @@
   .dhc-wheel-num, .dhc-wheel-mod{ fill:var(--text); font-family:var(--font-mono); font-variant-numeric:tabular-nums; text-anchor:middle; dominant-baseline:central; pointer-events:none; }
   .dhc-wheel-mod{ font-family:var(--font-sans); }
   .dhc-wheel-split{ stroke:var(--panel-border-strong); stroke-width:1.6; }
+  /* Slow arrows' walk down on the floor (dhcWalkRig): the lit cell, as the
+     ring's wheel lights it, and the reduced bead's flash. */
+  .dhc-wheel-lit{ fill:color-mix(in srgb, var(--accent) 42%, transparent); stroke:none; }
+  .dhc-reduced{ fill:none; stroke:var(--pointer-edge); stroke-width:2; pointer-events:none; }
   /* The same wheel behind the main area's ring (its menu's Congruence wheel
      background), turning and rearranging with the beads. */
   .ring-wheel{ pointer-events:none; }
@@ -17886,7 +17890,7 @@ function drawDhCyl(){
       // cylinders each wheel stops at the line down the floor's middle.
       var floorY = lo + dhc.floorGap * Z * cp, depth = rings === null ? dhcWheelFill(R, sp, cx, floorY, W, m) : rings;
       wheelReach = Math.max(wheelReach, R * (1 + DHC_WHEEL_RING * depth));
-      var floor = dhcWheel(G, place, m, R, sp, cx, floorY, depth, rings === null);
+      var floor = dhcWheel(G, place, m, R, sp, cx, floorY, depth, rings === null), wheelG = floor;
       if (lay.cyls.length > 1){
         var clip = svgEl('clipPath', { id: 'dhc-floor-clip-' + ci });
         var far = 4 * W;
@@ -17910,7 +17914,7 @@ function drawDhCyl(){
       if (!rawOn || by === undefined) return null;
       var raw = G.mode === 'multiplicative' ? x * by : x + by, q = Math.floor(raw / G.n), to = raw % G.n;
       if (q < 1 || place[to] === undefined) return null;
-      return { raw: raw, pt: dhcAt(cyl, R + (q + 0.5) * R * DHC_WHEEL_RING, W, place[to], z, m) };
+      return { raw: raw, q: q, to: to, pt: dhcAt(cyl, R + (q + 0.5) * R * DHC_WHEEL_RING, W, place[to], z, m) };
     };
     // Its way back in, dashed, and the raw number at its turn.
     var reduce = function(base, who, ex, end, extra, st, hop, ch){
@@ -17918,6 +17922,7 @@ function drawDhCyl(){
       var label = svgEl('text', { 'class': cls('dhc-raw', who, ex.pt.front, extra), x: num(ex.pt.x), y: num(ex.pt.y - 4) });
       label.textContent = String(ex.raw);
       put(label, 1e3 + ex.pt.depth, st, hop, ci);
+      if (ch) dhcWalkRig(ch, wheelG, ex, end, R, m, place, depth, function(halo){ chained.add(halo); put(halo, over + end.depth + 0.03, st, hop, ci); }, rBead);
     };
     // The elements walked by on a slice in this cylinder, each giving it a
     // polygon (with kept, g's too, the menu's choice to keep it on every
@@ -18179,32 +18184,76 @@ function drawDhCyl(){
 // The hops of a step grow one after the other, SLOW_GROW each, the hops
 // alike (Alice's and Bob's side by side) together; with hops as arrows each
 // head rides its line's tip and then drops onto the chord's middle
-// (SLOW_BACK) before the next hop grows. Hop 0's lines (the swap, a thread
-// rising to the next layer) grow first. What is no line fades in: a
-// slice's rims and beads as its hop starts to grow, marks, dots, numbers
-// and raw results as it arrives (hop 0's once every hop has arrived).
-var DHC_FADE = 350;
+// (SLOW_BACK) before the next hop grows. A hop out to a raw result on the
+// congruence wheel floor then walks down: the floor's cell under the raw
+// result lights and the lit cell steps in ring by ring to the bead's own
+// (wheelWalkMs, as slow aᵏ's walk down on the ring), while the head dives
+// down the reduction line in step, and the bead flashes once reached.
+// Hop 0's lines (the swap, a thread rising to the next layer) grow first.
+// What is no line fades in: a slice's rims and beads as its hop starts to
+// grow, marks, dots, numbers and raw results as it arrives (hop 0's once
+// every hop has arrived).
+var DHC_FADE = 350, DHC_HALO = 1500;
+// The walk down a chain c makes from the raw result ex to the bead at end:
+// a lit cell on the floor wheel for each ring from ex's in (those the
+// floor has), and the bead's flash, added by putHalo.
+function dhcWalkRig(c, wheel, ex, end, R, m, place, depth, putHalo, rBead){
+  var ring = R * DHC_WHEEL_RING, half = m > 1 ? 180 / m : 180, cells = [];
+  var mid = (dirSign() * 360 * place[ex.to] / m + dhc.yaw * 180 / Math.PI) % 360;
+  if (mid < 0) mid += 360;
+  var before = wheel && wheel.querySelector(':scope > .dhc-wheel-num');
+  for (var k = ex.q; k >= 0; k--){
+    if (!wheel || k >= depth){ cells.push(null); continue; }
+    var tint = svgEl('path', { 'class': 'dhc-wheel-lit', d: annularSectorPath(0, 0, R + k * ring, R + (k + 1) * ring, mid - half, mid + half), opacity: 0 });
+    wheel.insertBefore(tint, before);
+    cells.push(tint);
+  }
+  var halo = svgEl('circle', { 'class': 'dhc-reduced', cx: num(end.x), cy: num(end.y), r: num(rBead + Math.max(2, rBead * 0.3)), opacity: 0 });
+  putHalo(halo);
+  // The share of the reduction line the head is at as each cell lights: in
+  // its cell's middle, the last at the bead.
+  var stops = [];
+  for (var i = 1; i <= ex.q; i++) stops.push(i / (ex.q + 0.5));
+  stops.push(1);
+  c.walk = { cells: cells, halo: halo, stops: stops, step: wheelWalkStep(ex.q), ms: wheelWalkMs(ex.q) };
+}
 function dhcGrowStart(GA, chains, grows){
   dhc.growLive = null;
   if (!GA) return;
-  var heads = chains.some(function(c){ return !!c.head; }), slot = SLOW_GROW + (heads ? SLOW_BACK : 0);
-  var base = chains.some(function(c){ return !c.hop; }) ? 1 : 0;
-  var startOf = function(h){ return (h ? h - 1 + base : 0) * slot; };
+  var heads = chains.some(function(c){ return !!c.head; });
+  // Each hop's slot lasts as long as its slowest chain: the growth out, the
+  // walk down if any, the head's drop.
+  var arrive = {}, slot = {}, hops = {};
+  chains.forEach(function(c){
+    c.reach = SLOW_GROW + (c.walk ? c.walk.ms : 0);
+    arrive[c.hop] = Math.max(arrive[c.hop] || 0, c.reach);
+    slot[c.hop] = Math.max(slot[c.hop] || 0, c.reach + (heads ? SLOW_BACK : 0));
+    hops[c.hop] = true;
+  });
+  grows.forEach(function(g){ hops[g.hop] = true; });
+  var startOf = {}, t = 0;
+  Object.keys(hops).map(Number).sort(function(x, y){ return x - y; }).forEach(function(h){
+    startOf[h] = t;
+    t += slot[h] || 0;
+  });
   var end = 0;
   chains.forEach(function(c){
-    c.at = startOf(c.hop);
+    c.at = startOf[c.hop];
     c.len = 0;
-    c.parts.forEach(function(p){
+    c.parts.forEach(function(p, i){
       p.len = 0;
-      for (var i = 1; i < p.pts.length; i++) p.len += Math.hypot(p.pts[i].x - p.pts[i - 1].x, p.pts[i].y - p.pts[i - 1].y);
+      for (var j = 1; j < p.pts.length; j++) p.len += Math.hypot(p.pts[j].x - p.pts[j - 1].x, p.pts[j].y - p.pts[j - 1].y);
       p.full = p.el.tagName === 'line' ? p.el.getAttribute('x2') + ' ' + p.el.getAttribute('y2') : p.el.getAttribute('d');
-      c.len += p.len;
+      // With a walk down, the last part is the reduction line, drawn
+      // during the walk rather than with the growth out.
+      p.dive = !!c.walk && i === c.parts.length - 1;
+      if (!p.dive) c.len += p.len;
     });
-    end = Math.max(end, c.at + slot);
+    end = Math.max(end, c.at + slot[c.hop], c.walk ? c.at + c.reach + DHC_HALO : 0);
   });
   grows.forEach(function(g){
     var after = /\bdhc-(mark|dot|hop-n|raw)\b/.test(g.el.getAttribute('class') || '') && !g.el.classList.contains('is-id');
-    g.at = !after ? startOf(g.hop) : g.hop ? startOf(g.hop) + SLOW_GROW : Math.max(0, end - (heads ? SLOW_BACK : 0));
+    g.at = !after ? startOf[g.hop] : g.hop ? startOf[g.hop] + (arrive[g.hop] || 0) : Math.max(0, t - (heads ? SLOW_BACK : 0));
     end = Math.max(end, g.at + DHC_FADE);
   });
   GA.total = end;
@@ -18241,6 +18290,7 @@ function dhcGrowPart(p, f){
     p.el.setAttribute('x2', num(tip.x));
     p.el.setAttribute('y2', num(tip.y));
   } else p.el.setAttribute('d', pts.map(function(q, j){ return (j ? 'L ' : 'M ') + num(q.x) + ' ' + num(q.y); }).join(' '));
+  p.el.style.visibility = '';
   return { tip: tip, heading: heading };
 }
 function dhcGrowWhole(p){
@@ -18250,19 +18300,48 @@ function dhcGrowWhole(p){
     p.el.setAttribute('y2', xy[1]);
   } else p.el.setAttribute('d', p.full);
   p.el.style.visibility = '';
+  var a = p.pts[p.pts.length - 2], b = p.pts[p.pts.length - 1];
+  return { tip: b, heading: Math.atan2(b.y - a.y, b.x - a.x) };
+}
+// The flash of a reduced bead, as the ring's (.bead-reduced): on three
+// times in DHC_HALO.
+function dhcHaloOn(u){
+  return u >= 0 && u < 1 && [[0.08, 0.22], [0.41, 0.55], [0.74, 0.88]].some(function(w){ return u >= w[0] - 0.04 && u <= w[1] + 0.04; });
+}
+// A walk's lit cells and flash, a time s into its chain. Cell i (counted
+// from the raw result's in) lights at SLOW_GROW + i·step, fading in as the
+// ring's do; it goes out quickly as the next lights, the bead's slowly once
+// the walk is done.
+function dhcWalkApply(w, s){
+  var t0 = SLOW_GROW, last = w.cells.length - 1;
+  w.cells.forEach(function(el, i){
+    if (!el) return;
+    var at = t0 + i * w.step, out = t0 + (i + 1) * w.step, fade = i === last ? 600 : 150;
+    var o = s < at ? 0 : Math.min(1, (s - at) / 180) * (1 - Math.min(1, Math.max(0, (s - out) / fade)));
+    el.setAttribute('opacity', num(o));
+  });
+  w.halo.setAttribute('opacity', dhcHaloOn((s - t0 - w.ms) / DHC_HALO) ? '1' : '0');
 }
 function dhcGrowApply(L, t){
   L.chains.forEach(function(c){
     var s = t - c.at, want = Math.min(1, Math.max(0, s / SLOW_GROW)) * c.len, acc = 0, at = null;
+    var walkU = c.walk ? Math.min(1, Math.max(0, (s - SLOW_GROW) / c.walk.ms)) : 0;
     c.parts.forEach(function(p){
-      if (s >= SLOW_GROW || acc + p.len <= want && s > 0){ dhcGrowWhole(p); at = { tip: p.pts[p.pts.length - 1], heading: Math.atan2(p.pts[p.pts.length - 1].y - p.pts[p.pts.length - 2].y, p.pts[p.pts.length - 1].x - p.pts[p.pts.length - 2].x) }; }
-      else if (s > 0 && acc < want){ p.el.style.visibility = ''; at = dhcGrowPart(p, (want - acc) / p.len); }
+      if (p.dive){
+        if (s >= c.reach) at = dhcGrowWhole(p);
+        else if (s > SLOW_GROW) at = dhcGrowPart(p, slowDive(c.walk.stops, walkU));
+        else p.el.style.visibility = 'hidden';
+        return;
+      }
+      if (s >= SLOW_GROW || acc + p.len <= want && s > 0) at = dhcGrowWhole(p);
+      else if (s > 0 && acc < want) at = dhcGrowPart(p, (want - acc) / p.len);
       else p.el.style.visibility = 'hidden';
       acc += p.len;
     });
+    if (c.walk) dhcWalkApply(c.walk, s);
     var H = c.head;
     if (!H) return;
-    if (s <= 0 || s >= SLOW_GROW + SLOW_BACK){
+    if (s <= 0 || s >= c.reach + SLOW_BACK){
       H.orig.style.visibility = s <= 0 ? 'hidden' : '';
       if (H.head){ H.head.remove(); H.head = null; }
       if (H.drop){ H.drop.remove(); H.drop = null; }
@@ -18275,8 +18354,8 @@ function dhcGrowApply(L, t){
       H.orig.after(H.head);
     }
     if (!at) return;
-    if (s < SLOW_GROW) slowPlaceHead(H, [at.tip.x, at.tip.y], at.heading, 1);
-    else slowDropHead(H, [at.tip.x, at.tip.y], at.heading, (s - SLOW_GROW) / SLOW_BACK);
+    if (s < c.reach) slowPlaceHead(H, [at.tip.x, at.tip.y], at.heading, 1);
+    else slowDropHead(H, [at.tip.x, at.tip.y], at.heading, (s - c.reach) / SLOW_BACK);
   });
   L.grows.forEach(function(g){
     var s = t - g.at;
