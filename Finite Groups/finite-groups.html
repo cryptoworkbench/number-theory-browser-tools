@@ -17858,6 +17858,54 @@ function dhcPolyFits(G, place, m){
   return walk.every(function(x, k){ return place[x] === (p0 + k * s) % m; });
 }
 
+/* ---------- the automatic distance and zoom ---------- */
+// The separate cylinders' distance is the program's, not the viewer's: they
+// stand just far enough apart that what reaches farthest from each axis
+// over the whole exchange (its floor's outer ring, or its farthest raw
+// result) keeps clear of the other's, so it never changes during playback
+// or as the cylinders turn. The zoom then never goes past the largest at
+// which the floors, the cylinders and the raw results all fit in the
+// picture (dhc.zoomCap): a wider distance zooms the view out by itself, and
+// the view is kept from being moved so far that any of it runs off.
+var DHC_AUTO_GAP = 12, DHC_AUTO_MARGIN = 8, DHC_AUTO_PAD = 8;
+function dhcAutoView(G, tl){
+  var two = dhc.cyls === 'split', baseR = two ? 78 : 100;
+  var wheel = dhc.wheel && dhcWheelFits(G), raw = wheel && (dhc.wheelRaw || !!dhc.rawMorph);
+  // How far out, in rings, the floor and the raw results reach over the
+  // whole exchange (the rings counted as for its last step).
+  var mode = dhc.ringsMode, floorRings = 0, rawRings = 0;
+  if (wheel){
+    dhc.ringsMode = 'final';
+    var reach = dhcWheelRings(G, tl);
+    dhc.ringsMode = mode;
+    var rings = mode === 'final' || mode === 'now' ? reach : dhcWheelRings(G, tl);
+    if (rings !== null) floorRings = rings;
+    if (raw) rawRings = reach - 0.5;
+  }
+  // A floor that stops (not Infinite) has its ⋯ marks just past its outer
+  // ring: a ring's width more.
+  var rFloor = floorRings ? baseR * (1 + DHC_WHEEL_RING * (floorRings + 1)) : 0, rRaw = baseR * (1 + DHC_WHEEL_RING * rawRings);
+  var rMax = Math.max(rFloor, rRaw, baseR) + DHC_AUTO_PAD;
+  if (two) dhc.cylApart = Math.ceil(2 * rMax + DHC_AUTO_GAP);
+  // The picture's width with that distance, and how far the drawing reaches
+  // from its centre at zoom 1: across, and up and down at the tilt.
+  var W = two ? 400 + dhc.cylApart - DHC_APART : 300, cp = Math.cos(dhc.pitch), sp = Math.sin(dhc.pitch);
+  var hw = (two ? dhc.cylApart / 2 : 0) + rMax;
+  var up = DHC_L / 2 * cp + Math.max(baseR, rRaw) * sp + DHC_AUTO_PAD, down = DHC_L / 2 * cp + dhc.floorGap * cp + rMax * sp + DHC_AUTO_PAD;
+  var cap = Math.min((W / 2 - DHC_AUTO_MARGIN) / hw, (DHC_H - 2 * DHC_AUTO_MARGIN) / Math.max(1, up + down));
+  dhc.zoomCap = Math.max(0.05, cap);
+  if (dhc.zoom > dhc.zoomCap) dhc.zoom = dhc.zoomCap;
+  dhcClampPanTo(W, hw, up, down);
+}
+// Keeps the drawing (hw across, up and down from its centre at zoom 1)
+// within the picture, W wide; centred along an axis it fills.
+function dhcClampPanTo(W, hw, up, down){
+  var Z = dhc.zoom, mx = W / 2 - DHC_AUTO_MARGIN - hw * Z;
+  dhc.panX = mx > 0 ? clamp(dhc.panX, -mx, mx) : 0;
+  var lo = DHC_AUTO_MARGIN - DHC_H / 2 + up * Z, hi = DHC_H / 2 - DHC_AUTO_MARGIN - down * Z;
+  dhc.panY = lo <= hi ? clamp(dhc.panY, lo, hi) : (lo + hi) / 2;
+}
+
 /* ---------- drawing the time cylinder ---------- */
 // Everything is painted as flat svg primitives, each with a depth, sorted
 // far to near, so the cylinder is see-through yet reads in three
@@ -17866,7 +17914,9 @@ function drawDhCyl(){
   var L = dhc.last;
   if (!L || !dh || !dhLive(L.G)) return;
   var G = L.G, place = L.place, m = L.m, step = dh.step;
-  var tl = dhcFollow(dhcTimeline(G)), lay = dhcLayoutNow(tl), poly = dhc.polygon && dhcPolyFits(G, place, m);
+  var tl = dhcFollow(dhcTimeline(G));
+  dhcAutoView(G, tl);
+  var lay = dhcLayoutNow(tl), poly = dhc.polygon && dhcPolyFits(G, place, m);
   var Z = dhc.zoom, W = lay.w, R = lay.R * Z, cp = Math.cos(dhc.pitch), sp = Math.sin(dhc.pitch);
   var OX = W / 2 + dhc.panX, OY = DHC_H / 2 + dhc.panY;
   dhc.w = W;
@@ -18756,7 +18806,7 @@ function dhcUser(e){
 }
 // Zoom by the factor f about the picture's point (u, v), which stays put.
 function dhcZoomAt(f, u, v){
-  var z0 = dhc.zoom, z1 = clamp(z0 * f, DHC_ZOOM_MIN, DHC_ZOOM_MAX);
+  var z0 = dhc.zoom, z1 = clamp(z0 * f, Math.min(DHC_ZOOM_MIN, dhc.zoomCap || DHC_ZOOM_MIN), Math.min(DHC_ZOOM_MAX, dhc.zoomCap || DHC_ZOOM_MAX));
   if (z1 === z0) return;
   dhc.panX = u - dhc.w / 2 - (u - (dhc.w / 2 + dhc.panX)) * z1 / z0;
   dhc.panY = v - DHC_H / 2 - (v - (DHC_H / 2 + dhc.panY)) * z1 / z0;
@@ -18845,7 +18895,7 @@ $('dhc-zoom-in').addEventListener('click', function(){ dhcZoomMid(1.25); });
 // The zoom pill's slider runs over the zoom's logarithm, from DHC_ZOOM_MIN
 // to DHC_ZOOM_MAX; a double click on it, or the percentage, sets 100%.
 var dhcZoomSliderEl = $('dhc-zoom-slider'), dhcZoomPctEl = $('dhc-zoom-pct');
-dhcZoomSliderEl.min = String(Math.log(DHC_ZOOM_MIN));
+dhcZoomSliderEl.min = String(Math.log(0.05));
 dhcZoomSliderEl.max = String(Math.log(DHC_ZOOM_MAX));
 function syncDhcZoom(){
   var v = String(Math.log(dhc.zoom));
@@ -18853,10 +18903,10 @@ function syncDhcZoom(){
   dhcZoomPctEl.textContent = Math.round(dhc.zoom * 100) + '%';
   dhcZoomPctEl.disabled = Math.abs(dhc.zoom - 1) < 1e-9;
   $('dhc-zoom-out').disabled = dhc.zoom <= DHC_ZOOM_MIN + 1e-9;
-  $('dhc-zoom-in').disabled = dhc.zoom >= DHC_ZOOM_MAX - 1e-9;
+  $('dhc-zoom-in').disabled = dhc.zoom >= Math.min(DHC_ZOOM_MAX, dhc.zoomCap || DHC_ZOOM_MAX) - 1e-9;
 }
 dhcZoomSliderEl.addEventListener('input', function(){ dhcZoomMid(Math.exp(parseFloat(dhcZoomSliderEl.value)) / dhc.zoom); });
-var dhcZoomTo100 = function(){ dhcZoomMid(1 / dhc.zoom); };
+var dhcZoomTo100 = function(){ dhcZoomMid(Math.min(1, dhc.zoomCap || 1) / dhc.zoom); };
 dhcZoomSliderEl.addEventListener('dblclick', dhcZoomTo100);
 dhcZoomPctEl.addEventListener('click', dhcZoomTo100);
 $('dhc-reset').addEventListener('click', dhcReset);
@@ -18867,7 +18917,8 @@ $('dhc-reset').addEventListener('click', dhcReset);
 var DHC_MODE_TABLES = { slices: DHC_TIMELINES, cyls: DHC_LAYOUTS, follow: DHC_FOLLOWS }, DHC_MODE_KEYS = { slices: DHC_SLICES_KEY, cyls: DHC_CYLS_KEY, follow: DHC_FOLLOW_KEY };
 function syncDhcMode(){
   $('dhc-follow').hidden = dhc.cyls !== 'split';
-  $('dhc-apart').parentNode.hidden = dhc.cyls !== 'split';
+  // The distance is the program's (dhcAutoView): no slider.
+  $('dhc-apart').parentNode.hidden = true;
   $('dhc-apart').value = String(dhc.cylApart);
   ['dhc-cyls', 'dhc-slices', 'dhc-follow'].forEach(function(id){
     var group = $(id), kind = group.dataset.dhc;
