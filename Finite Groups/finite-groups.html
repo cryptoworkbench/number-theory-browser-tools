@@ -1235,7 +1235,12 @@
      polygon it does. */
   .dh-why{ margin:0 0 .55em; font-size:.8em; line-height:1.4; color:var(--text-dim); }
   .dh-why[hidden]{ display:none; }
-  .dh-why-line{ margin:0 0 .25em; }
+  .dh-why-line{ display:flex; align-items:center; gap:8px; margin:0 0 .25em; }
+  .dh-why-pic{ flex:none; overflow:visible; }
+  .dh-why-pic.is-alice{ --c:var(--dh-alice); }
+  .dh-why-pic.is-bob{ --c:var(--dh-bob); }
+  .dh-why-face{ fill:color-mix(in srgb, var(--c) 22%, var(--surface)); stroke:var(--c); stroke-width:1.2; stroke-linejoin:round; }
+  .dh-why-wall{ fill:color-mix(in srgb, var(--c) 45%, var(--surface)); stroke:var(--c); stroke-width:1; stroke-linejoin:round; }
   .dh-ctl{ display:flex; flex-wrap:wrap; gap:6px; margin-bottom:.2em; }
   .dh-ctl > button{ font:inherit; font-size:.74em; line-height:1.2; padding:4px 10px; border:1px solid var(--panel-border); border-radius:var(--radius-ctl); background:none; color:var(--text); cursor:pointer; }
   .dh-ctl > button:hover:not(:disabled){ background:color-mix(in srgb, var(--accent) 12%, transparent); }
@@ -17451,12 +17456,43 @@ function syncDhPlot(G){
   // variable).
   var whyOn = s === DH_LAST && !(dhc.cyls === 'split' && dhc.follow === 'variable');
   p.why.hidden = !whyOn;
-  if (whyOn) p.why.replaceChildren.apply(p.why, [['cyclicGroups.dhWhyBob', v.B, 'bob'], ['cyclicGroups.dhWhyAlice', v.A, 'alice']].map(function(t){
-    var line = dhEl('p', 'dh-why-line');
-    translateInto(line, t[0], { count: G.orders[t[1]], x: dhVal(G, t[1], t[2]) });
+  if (whyOn) p.why.replaceChildren.apply(p.why, [['cyclicGroups.dhWhyBob', v.B, 'bob', 'alice'], ['cyclicGroups.dhWhyAlice', v.A, 'alice', 'bob']].map(function(t){
+    var line = dhEl('p', 'dh-why-line'), text = dhEl('span', 'dh-why-text');
+    translateInto(text, t[0], { count: G.orders[t[1]], x: dhVal(G, t[1], t[2]) });
+    line.append(dhPolyPic(G.orders[t[1]], t[3]), text);
     return line;
   }));
   syncDhCtl();
+}
+// A little picture of the regular k-gon a side's second walk runs round,
+// in that side's colour: a tilted slab, its top face over the walls that
+// face the viewer (a dot for k = 1, a bar across for k = 2).
+function dhPolyPic(k, who){
+  var W = 34, H = 26, cx = W / 2, cy = 10, r = 14, sp = 0.5, h = 4;
+  var svg = svgEl('svg', { 'class': 'dh-why-pic is-' + who, viewBox: '0 0 ' + W + ' ' + H, width: W, height: H, 'aria-hidden': 'true', focusable: 'false' });
+  // A bar turned off the line of sight, so it lies visibly on the plane.
+  var pts = [], t0 = k === 2 ? Math.PI / 3 : 0;
+  for (var i = 0; i < k; i++){
+    var t = t0 + 2 * Math.PI * i / k;
+    pts.push([cx + r * Math.sin(t), cy - r * Math.cos(t) * sp]);
+  }
+  var xy = function(q, dy){ return num(q[0]) + ' ' + num(q[1] + dy); };
+  if (k === 1){
+    svg.appendChild(svgEl('ellipse', { 'class': 'dh-why-wall', cx: num(pts[0][0]), cy: num(cy + h / 2), rx: 3, ry: num(1.5 + h / 2) }));
+    svg.appendChild(svgEl('circle', { 'class': 'dh-why-face', cx: num(pts[0][0]), cy: num(cy), r: 3 }));
+    return svg;
+  }
+  // The walls under the edges whose middle lies in front, far to near.
+  var walls = [];
+  for (var j = 0; j < k; j++){
+    var a = pts[j], b = pts[(j + 1) % k];
+    if (k === 2 && j === 1) break;
+    if (k > 2 && (a[1] + b[1]) / 2 <= cy + 1e-9) continue;
+    walls.push({ y: (a[1] + b[1]) / 2, d: 'M' + xy(a, 0) + ' L' + xy(b, 0) + ' L' + xy(b, h) + ' L' + xy(a, h) + ' Z' });
+  }
+  walls.sort(function(m, n){ return m.y - n.y; }).forEach(function(w){ svg.appendChild(svgEl('path', { 'class': 'dh-why-wall', d: w.d })); });
+  svg.appendChild(svgEl('path', { 'class': 'dh-why-face', d: 'M' + pts.map(function(q){ return xy(q, 0); }).join(' L') + ' Z' }));
+  return svg;
 }
 function syncDhCtl(){
   if (!dh || !dhParts) return;
