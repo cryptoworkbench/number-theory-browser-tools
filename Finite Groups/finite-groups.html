@@ -4221,12 +4221,21 @@ var hasShim = (function(){
   // svg holds, and inline styles (layers moved and turned) leave every rule
   // as it was; no rule looks into an svg.
   var ANCHOR_ATTRS = ['class', 'id', 'hidden'];
+  // The attributes any of the rewritten rules reads (its own [name] tests,
+  // and those behind the states it asks for); a change of any other (a
+  // link's href or title written again) leaves every rule as it was.
+  var READ_ATTRS = { 'class': 1, id: 1, hidden: 1 };
+  var STATE_ATTRS = { disabled: ['disabled'], enabled: ['disabled'], checked: ['checked'], 'default': ['checked', 'selected'], open: ['open'], 'read-only': ['readonly', 'contenteditable'], 'read-write': ['readonly', 'contenteditable'], required: ['required'], optional: ['required'], 'placeholder-shown': ['placeholder', 'value'], link: ['href'], 'any-link': ['href'], indeterminate: ['indeterminate'], 'popover-open': ['popover'] };
+  from.forEach(function(sel){
+    (sel.match(/\[\s*[\w-]+/g) || []).forEach(function(a){ READ_ATTRS[a.replace(/^\[\s*/, '')] = 1; });
+    (sel.match(/:[\w-]+/g) || []).forEach(function(p){ (STATE_ATTRS[p.slice(1)] || []).forEach(function(a){ READ_ATTRS[a] = 1; }); });
+  });
   var isPageEl = function(n){ return n.nodeType === 1 && !(n instanceof SVGElement && n.ownerSVGElement); };
   var note = function(list){
     var any = false, gone = false, came = [], changed = [];
     for (var i = 0; i < list.length; i++){
       var m = list[i], t = m.target;
-      if (m.type === 'attributes' && m.attributeName === 'style') continue;
+      if (m.type === 'attributes' && !READ_ATTRS[m.attributeName]) continue;
       if (t.nodeType !== 1) t = t.parentNode;
       if (!t || t.ownerSVGElement || (m.type !== 'attributes' && t instanceof SVGElement)) continue;
       any = true;
@@ -23967,11 +23976,13 @@ function curveChips(k, G){
 // Each chip's address, and its name, which says it opens beside the ring (or,
 // for the supergroup's chip, that it is one).
 function syncIsoLinks(){
+  // Written only where they differ: each write is a change to the page.
+  var put = function(a, name, v){ if (a.getAttribute(name) !== v) a.setAttribute(name, v); };
   document.querySelectorAll('#iso-panel a.iso-chip, #iso-group-chips a.iso-chip').forEach(function(a){
-    a.setAttribute('href', isoHref(a.getAttribute('data-iso-mode'), a.getAttribute('data-iso-n'), a.getAttribute('data-iso-gen'), a.getAttribute('data-iso-curve')));
+    put(a, 'href', isoHref(a.getAttribute('data-iso-mode'), a.getAttribute('data-iso-n'), a.getAttribute('data-iso-gen'), a.getAttribute('data-iso-curve')));
     var open = translate('cyclicGroups.iso.openBeside', { group: a.getAttribute('data-iso-label') });
-    a.setAttribute('aria-label', open);
-    a.setAttribute('title', a.hasAttribute('data-iso-super') ? translate('cyclicGroups.iso.supergroup') : open);
+    put(a, 'aria-label', open);
+    put(a, 'title', a.hasAttribute('data-iso-super') ? translate('cyclicGroups.iso.supergroup') : open);
   });
   if (previewChip) showIsoPreview(previewChip);
 }
