@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-10-02)
 Phase: 4 — Continued Fractions Tool
 Plan: Not started
 Status: Ready to plan
-Last activity: 2026-11-17 - Completed quick task 261117-zyn: Finite Groups rings dropdown theme
+Last activity: 2026-11-17 - Completed quick task 261117-zzp: Finite Groups replay and rings dropdown style
 
 Progress: [█████████░] 86%
 
@@ -1014,6 +1014,7 @@ None yet.
 | 261117-zwk | Finite Groups: time cylinder picture never shows a focus outline | 2026-11-17 | 19e8f2e | [261117-zwk-finite-groups-dhc-no-focus-outline](./quick/261117-zwk-finite-groups-dhc-no-focus-outline/) |
 | 261117-zxm | Finite Groups: time cylinder maximize button covering the Ring window's rows and bottom bar | 2026-11-17 | 47bc1a3 | [261117-zxm-finite-groups-dhc-maximize](./quick/261117-zxm-finite-groups-dhc-maximize/) |
 | 261117-zyn | Finite Groups: time cylinder Rings dropdown follows the night theme | 2026-11-17 | 94fa24d | [261117-zyn-finite-groups-dhc-rings-select-theme](./quick/261117-zyn-finite-groups-dhc-rings-select-theme/) |
+| 261117-zzp | Finite Groups: DH Play reads Replay at the end; Rings dropdown styled as the Generator dropdown | 2026-11-17 | 5a5cfd5 | [261117-zzp-finite-groups-dh-replay-rings-style](./quick/261117-zzp-finite-groups-dh-replay-rings-style/) |
 
 ## Deferred Items
 
@@ -1029,4 +1030,4 @@ Last session: 2026-10-03
 Stopped at: Quick task 261005-dn2 complete — Venn Diagram double-click respects thumbnail scroll
 Resume file: None
 
-Last activity: 2026-11-17 - Completed quick task 261117-zyn: Finite Groups rings dropdown theme
+Last activity: 2026-11-17 - Completed quick task 261117-zzp: Finite Groups replay and rings dropdown style
