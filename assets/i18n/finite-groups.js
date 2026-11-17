@@ -318,7 +318,9 @@
    raw results' included, in sight), and combineStop (the stop button
    beside the a ∗ b / aᵏ choice stopping slow arrows), and dhCylKeepBeads
    (the time cylinder menu's switch keeping every bead on every layer in
-   polygon mode, off showing only the polygons' corners).
+   polygon mode, off showing only the polygons' corners), and dhCylMax and
+   dhCylUnmax (the time cylinder head's maximize button, covering the Ring
+   window's rows and bottom bar too, and putting it back).
    Every other language shows the English value through NT.i18n's
    fallback meanwhile.
 
@@ -1505,6 +1507,8 @@
       dhCylPolyStackNo: 'Only in polygon mode',
       dhCylPolyKeepG: 'Keep g’s polygon on every layer',
       dhCylKeepBeads: 'Keep all beads on every layer',
+      dhCylMax: 'Maximize over the whole Ring window, its rows and bottom bar included',
+      dhCylUnmax: 'Back to the size it had before',
       dhCylWheel: 'Congruence wheel floor',
       dhCylWheelNo: 'Only for the integers modulo n, not a curve’s points',
       dhCylWheelMod: '% {n}',
