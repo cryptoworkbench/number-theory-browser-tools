@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-10-02)
 Phase: 4 — Continued Fractions Tool
 Plan: Not started
 Status: Ready to plan
-Last activity: 2026-11-18 - Completed quick task 261118-a2r: Finite Groups raw results toggle
+Last activity: 2026-11-18 - Completed quick task 261118-a5k: Finite Groups auto distance (branch)
 
 Progress: [█████████░] 86%
 
@@ -1017,6 +1017,7 @@ None yet.
 | 261117-zzp | Finite Groups: DH Play reads Replay at the end; Rings dropdown styled as the Generator dropdown | 2026-11-17 | 5a5cfd5 | [261117-zzp-finite-groups-dh-replay-rings-style](./quick/261117-zzp-finite-groups-dh-replay-rings-style/) |
 | 261118-a1z | Finite Groups: time cylinder zoom pill (−, slider, +, percentage) | 2026-11-18 | 2769e87 | [261118-a1z-finite-groups-dhc-zoom-pill](./quick/261118-a1z-finite-groups-dhc-zoom-pill/) |
 | 261118-a2r | Finite Groups: Raw results toggle on the time cylinder's picture | 2026-11-18 | 75c82f6 | [261118-a2r-finite-groups-dhc-raw-toggle](./quick/261118-a2r-finite-groups-dhc-raw-toggle/) |
+| 261118-a5k | Finite Groups (branch dhc-auto-distance): automatic distance; zoom capped to keep the floors in sight | 2026-11-18 | 860348b | [261118-a5k-finite-groups-dhc-auto-distance](./quick/261118-a5k-finite-groups-dhc-auto-distance/) |
 
 ## Deferred Items
 
@@ -1032,4 +1033,4 @@ Last session: 2026-10-03
 Stopped at: Quick task 261005-dn2 complete — Venn Diagram double-click respects thumbnail scroll
 Resume file: None
 
-Last activity: 2026-11-18 - Completed quick task 261118-a2r: Finite Groups raw results toggle
+Last activity: 2026-11-18 - Completed quick task 261118-a5k: Finite Groups auto distance (branch)
