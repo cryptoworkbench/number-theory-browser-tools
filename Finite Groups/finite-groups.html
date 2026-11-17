@@ -1231,6 +1231,11 @@
   .dh-spin > .dh-secret{ -moz-appearance:textfield; appearance:textfield; padding-right:22px; }
   .dh-secret{ width:4.2em; margin-left:.2em; font:inherit; padding:1px 4px; border:1px solid currentColor; border-radius:5px; background:var(--surface); color:var(--text); cursor:text; user-select:text; -webkit-user-select:text; }
   .dh-say{ margin:.6em 0 .45em; min-height:2.7em; font-size:.86em; line-height:1.4; color:var(--text); }
+  /* Under it at the last step, why each side's second walk runs round the
+     polygon it does. */
+  .dh-why{ margin:0 0 .55em; font-size:.8em; line-height:1.4; color:var(--text-dim); }
+  .dh-why[hidden]{ display:none; }
+  .dh-why-line{ margin:0 0 .25em; }
   .dh-ctl{ display:flex; flex-wrap:wrap; gap:6px; margin-bottom:.2em; }
   .dh-ctl > button{ font:inherit; font-size:.74em; line-height:1.2; padding:4px 10px; border:1px solid var(--panel-border); border-radius:var(--radius-ctl); background:none; color:var(--text); cursor:pointer; }
   .dh-ctl > button:hover:not(:disabled){ background:color-mix(in srgb, var(--accent) 12%, transparent); }
@@ -17351,6 +17356,8 @@ function buildDhPlot(G){
   var inA = secret(rows[1][0], 'alice', 'a'), inB = secret(rows[1][2], 'bob', 'b');
   var say = dhEl('p', 'dh-say');
   say.setAttribute('aria-live', 'polite');
+  var why = dhEl('div', 'dh-why');
+  why.hidden = true;
   var ctl = dhEl('div', 'dh-ctl');
   var btn = function(cls, run){
     var b = dhEl('button', cls);
@@ -17360,7 +17367,7 @@ function buildDhPlot(G){
     return b;
   };
   var parts = {
-    rows: rows, key: key, inA: inA, inB: inB, say: say,
+    rows: rows, key: key, inA: inA, inB: inB, say: say, why: why,
     reset: btn('dh-reset', function(){ stopDhPlay(); setDhStep(0); }),
     back: btn('dh-back', function(){ stopDhPlay(); setDhStep(dh.step - 1); }),
     play: btn('dh-play', toggleDhPlay),
@@ -17400,7 +17407,7 @@ function buildDhPlot(G){
   parts.renew.textContent = translate('cyclicGroups.dhNew');
   dhParts = parts;
   syncDhColours();
-  dhBodyEl.replaceChildren(note, grid, say, ctl);
+  dhBodyEl.replaceChildren(note, grid, say, why, ctl);
 }
 // The cells' formulas, as far as the exchange has got, the step on show
 // shaded, and the sentence saying what it does.
@@ -17438,6 +17445,17 @@ function syncDhPlot(G){
   p.key.classList.toggle('is-later', s < DH_LAST);
   var params = { group: groupNameNode(G), g: gv(), a: dhEl('span', 'dh-val is-alice', aT), b: dhEl('span', 'dh-val is-bob', bT), A: dhVal(G, v.A, 'alice'), B: dhVal(G, v.B, 'bob'), K: dhVal(G, v.K, 'key') };
   translateInto(p.say, DH_SAYS[s], params);
+  // At the last step, why each side's second walk runs round the polygon it
+  // does: the other's public number generates a subgroup of that many
+  // elements. Not while the separate cylinders follow one number each (Per
+  // variable).
+  var whyOn = s === DH_LAST && !(dhc.cyls === 'split' && dhc.follow === 'variable');
+  p.why.hidden = !whyOn;
+  if (whyOn) p.why.replaceChildren.apply(p.why, [['cyclicGroups.dhWhyBob', v.B, 'bob'], ['cyclicGroups.dhWhyAlice', v.A, 'alice']].map(function(t){
+    var line = dhEl('p', 'dh-why-line');
+    translateInto(line, t[0], { count: G.orders[t[1]], x: dhVal(G, t[1], t[2]) });
+    return line;
+  }));
   syncDhCtl();
 }
 function syncDhCtl(){
@@ -18918,6 +18936,7 @@ function setDhcMode(kind, value){
   dhc[kind] = value;
   try { localStorage.setItem(DHC_MODE_KEYS[kind], value); } catch (e) { /* storage unavailable */ }
   syncDhcMode();
+  if (kind !== 'slices' && dh && drawn && dhLive(drawn.G)) syncDhPlot(drawn.G);
   if (dhc.open && dhc.last){
     syncDhCyl(dhc.last.G, dhc.last.place, dhc.last.m);
     dhcClampPan();

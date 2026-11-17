@@ -321,6 +321,8 @@
    dhCylUnmax (the time cylinder head's maximize button, covering the Ring
    window's rows and bottom bar too, and putting it back), and dhReplay
    (the exchange's Play button at the end, starting it over), and
+   dhWhyBob and dhWhyAlice (under the exchange's last step, why each
+   side's second walk runs round a regular polygon of that many sides) and
    dhCylRawTip (the tooltip of the time cylinder picture's R toggle for
    raw results).
    Every other language shows the English value through NT.i18n's
@@ -1473,6 +1475,8 @@
       dhStep3: { one: 'Bob computes B: {count} step of g from the identity lands on {B}.', other: 'Bob computes B: {count} steps of g from the identity land on {B}.' },
       dhStepBoth: 'At the same time, Alice and Bob compute their public numbers: Alice’s a steps of g from the identity land on A = {A}, Bob’s b steps on B = {B}.',
       dhStepBothK: 'At the same time, Alice takes a steps of Bob’s B = {B} and Bob takes b steps of Alice’s A = {A}, both from the identity, and both land on {K}: their shared key K, which never travelled between them.',
+      dhWhyBob: { one: 'Bob’s {x} generates a subgroup with a cardinality of {count} element, therefore the path on Alice’s side will continue on a {count}-sided regular polygon.', other: 'Bob’s {x} generates a subgroup with a cardinality of {count} elements, therefore the path on Alice’s side will continue on a {count}-sided regular polygon.' },
+      dhWhyAlice: { one: 'Alice’s {x} generates a subgroup with a cardinality of {count} element, therefore the path on Bob’s side will continue on a {count}-sided regular polygon.', other: 'Alice’s {x} generates a subgroup with a cardinality of {count} elements, therefore the path on Bob’s side will continue on a {count}-sided regular polygon.' },
       dhStep4: 'They send A and B to each other in public. Anyone listening sees A = {A} and B = {B}, but never a or b.',
       dhStep5: { one: 'Alice takes {count} step of Bob’s B = {B} from the identity, and lands on {K}.', other: 'Alice takes {count} steps of Bob’s B = {B} from the identity, and lands on {K}.' },
       dhStep6: { one: 'Bob takes {count} step of Alice’s A = {A}, and lands on {K} too: their shared key K, which never travelled between them.', other: 'Bob takes {count} steps of Alice’s A = {A}, and lands on {K} too: their shared key K, which never travelled between them.' },
