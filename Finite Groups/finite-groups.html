@@ -17694,8 +17694,11 @@ function dhcTimelineFrame(G){
   // mixes both colours. No walk is drawn in a layer: the rises climb
   // through them all (see riseWalk in drawDhCyl). Synced as the walks to A
   // and B are: with slow arrows both reach K at the same moment.
+  // Its first hop (e ∗ B = B, the number received entering the walk) is
+  // drawn with the swap (step 3), meeting the swap's dashed line where it
+  // lands; the rest (rest) at step 4.
   var toK = function(owner, by, secret){
-    return { who: 'mix', owner: owner, pts: [{ slice: 1, x: e, step: 4, hop: 0 }, { slice: 2, x: v.K, step: 4, hop: 0, via: { by: by, n: secret, sync: true } }] };
+    return { who: 'mix', owner: owner, pts: [{ slice: 1, x: e, step: 3, hop: 0 }, { slice: 2, x: v.K, step: 3, hop: 0, via: { by: by, n: secret, sync: true, rest: 4 } }] };
   };
   return {
     slices: slices, marks: marks, lines: [],
@@ -18114,14 +18117,19 @@ function drawDhCyl(){
     // climbs and shows the walk as it goes. Each hop is a hop of its own for
     // the fade-in and slow arrows, with its head and its number as the
     // menu says, as a walk's chords have them.
-    var riseWalk = function(via, z0, z1, who, extra, firstCls, st, owner){
+    // With via.rest, the first hop belongs to the step st (growing with that
+    // step's hop-0 pieces, the swap's lines) and the others to step rest.
+    var riseWalk = function(via, z0, z1, who, firstCls, st0, owner){
       var seq = lap(G, via.by, via.n + 1), ring = R * DHC_WHEEL_RING;
       var flat = function(r, pos){ var al = 2 * Math.PI * pos / m; return [r * Math.sin(al), r * Math.cos(al)]; };
       for (var h = 1; h <= via.n; h++){
+        var early = via.rest !== undefined && h === 1, st = via.rest === undefined || early ? st0 : via.rest;
+        if (!shows(st)) break;
+        var extra = st === step ? ' is-now' : '';
         var u = seq[h - 1], v = seq[h], za = z0 + (z1 - z0) * (h - 1) / via.n, zb = z0 + (z1 - z0) * h / via.n;
         if (place[u] === undefined || place[v] === undefined) continue;
-        var A = P(place[u], za), B = P(place[v], zb), ex = excursion(u, via.by, za), ch = chain(st, h);
-        if (ch && via.sync) ch.lane = owner;
+        var A = P(place[u], za), B = P(place[v], zb), ex = excursion(u, via.by, za), ch = chain(st, early ? 0 : h);
+        if (ch && via.sync && !early) ch.lane = owner;
         if (ex){
           var rr = ex.r, f0 = flat(R, place[u]), fr = flat(rr, place[v]);
           var out = Math.hypot(fr[0] - f0[0], fr[1] - f0[1]), back = rr - R;
@@ -18161,10 +18169,10 @@ function drawDhCyl(){
         var who = mix ? 'mix' : t.who, first = !mix && t.who === 'mix' && k === 1;
         var firstCls = first ? ['', 'is-first', DHC_BY[t.maker || t.owner]].join(' ') : '';
         if (c.via){
-          riseWalk(c.via, zOf(a.slice), zOf(c.slice), who, c.step === step ? ' is-now' : '', t.who === 'mix' && !mix ? ['', 'is-first', DHC_BY[t.maker || t.owner]].join(' ') : '', c.step, t.owner);
-          if (nVis <= DHC_RIM_CAP && c.x !== a.x){
+          riseWalk(c.via, zOf(a.slice), zOf(c.slice), who, t.who === 'mix' && !mix ? ['', 'is-first', DHC_BY[t.maker || t.owner]].join(' ') : '', c.step, t.owner);
+          if (nVis <= DHC_RIM_CAP && c.x !== a.x && shows(c.via.rest || c.step)){
             var top = P(p1, zOf(c.slice));
-            put(svgEl('circle', { 'class': cls('dhc-dot', who, top.front), cx: num(top.x), cy: num(top.y), r: 2 }), top.depth + 0.01, c.step, c.hop, ci);
+            put(svgEl('circle', { 'class': cls('dhc-dot', who, top.front), cx: num(top.x), cy: num(top.y), r: 2 }), top.depth + 0.01, c.via.rest || c.step, c.hop, ci);
           }
           return;
         }
@@ -18402,14 +18410,14 @@ function dhcGrowStart(GA, chains, grows){
   // hop lands as the longer's does. Hops go by their numbers, a hop the
   // other lane draws for both (the shared cylinder's) keeping its time.
   var laneArrive = function(cs){
-    var at = 0, last = 0, n = 0, byHop = {};
-    cs.forEach(function(c){ byHop[c.hop] = c; n = Math.max(n, c.hop); });
-    for (var h = 1; h <= n; h++){
+    var at = 0, last = 0, n = 0, h0 = Infinity, byHop = {};
+    cs.forEach(function(c){ byHop[c.hop] = c; n = Math.max(n, c.hop); h0 = Math.min(h0, c.hop); });
+    for (var h = h0; h <= n; h++){
       var c = byHop[h];
       if (c){ c.at = at; last = at + c.reach; at += c.reach + back; }
       else at += SLOW_GROW + (cs.extra || 0) + back;
     }
-    cs.n = n;
+    cs.n = n - h0 + 1;
     return last;
   };
   var keys = Object.keys(lanes), T = 0;
