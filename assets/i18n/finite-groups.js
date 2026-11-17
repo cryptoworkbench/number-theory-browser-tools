@@ -243,8 +243,7 @@
    each one a person's computer, or one public number, its polygons swapped)
    and dhCylWheel, dhCylWheelNo and dhCylWheelMod (the cylinder menu's
    congruence wheel floor, why it is greyed out, and its centre label) and
-   dhCylFloorGap and dhCylFloorGapTip (the slider setting the floor's
-   distance below the cylinders) and dhCylApart and dhCylApartTip (the
+   dhCylApart and dhCylApartTip (the
    slider setting the separate cylinders' distance apart) and dhCylRings,
    dhCylRingsTip, dhCylRingsManual, dhCylRingsNow, dhCylRingsFinal,
    dhCylRingsInfinite and dhCylRingsCount (the congruence wheel floor's
@@ -1544,8 +1543,6 @@
       dhCylRingsCount: 'Number of rings',
       dhCylApart: 'Distance',
       dhCylApartTip: 'Distance between the two cylinders',
-      dhCylFloorGap: 'Floor',
-      dhCylFloorGapTip: 'Distance between the cylinders and the floor',
       dhCylFollowLabel: 'Each cylinder',
       dhCylPerComputer: 'Per computer',
       dhCylPerComputerTip: 'Each cylinder shows what happens on one person’s computer',
