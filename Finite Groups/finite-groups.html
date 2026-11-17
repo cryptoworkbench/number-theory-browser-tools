@@ -17673,8 +17673,10 @@ function dhcTimelineFrame(G){
   mark(1, v.A, 'alice', 'alice', 2); mark(1, v.B, 'bob', 'bob', 2);
   mark(2, v.A, 'alice', 'pub', 3); mark(2, v.B, 'bob', 'pub', 3);
   mark(2, v.K, 'key', 'pub', 4);
-  var thread = function(who, states){
-    return { who: who, owner: who, pts: states.map(function(x, i){ return { slice: i, x: x, step: stepOf[i], hop: 0 }; }) };
+  // The rise to layer 1 carries the walk drawn there (via: n hops by g),
+  // which it climbs through.
+  var thread = function(who, states, secret){
+    return { who: who, owner: who, pts: states.map(function(x, i){ return { slice: i, x: x, step: stepOf[i], hop: 0, via: i === 1 ? { by: dh.g, n: secret } : undefined }; }) };
   };
   var lines = [];
   var walk = function(layer, step, by, secret, owner, who){
@@ -17689,7 +17691,7 @@ function dhcTimelineFrame(G){
   walk(2, 4, v.A, dh.b, 'bob', 'mix');
   return {
     slices: slices, marks: marks, lines: lines,
-    threads: [thread('alice', aliceAt), thread('bob', bobAt)],
+    threads: [thread('alice', aliceAt, dh.a), thread('bob', bobAt, dh.b)],
     swap: { slice: 2, A: v.A, B: v.B, step: 3, madeA: 1, madeB: 1 },
     uses: []
   };
@@ -18068,6 +18070,42 @@ function drawDhCyl(){
     });
     tl.lines.forEach(function(k){ if (mine(cyl, k.owner) && shows(k.step) && place[k.from] !== undefined && place[k.to] !== undefined) see(lineKey(k.slice, k.from, k.to), k.owner); });
     (tl.uses || []).forEach(function(u){ if (mine(cyl, u.owner) && shows(u.step)) see(useKey(u), u.owner); });
+    // A walk risen through from height z0 to z1 (a rise's via: n hops by
+    // by from x), each hop rising by an equal share: its chord as layer 1
+    // draws it, straight across the ring, or, with raw results on, out to
+    // its raw result over the floor's ring and, dashed, back in to its bead,
+    // the height shared between the two by their lengths in the slice. So
+    // the line keeps time as it climbs and shows the walk as it goes. Runs
+    // of solid and dashed pieces, each a list of points, the straight lines
+    // between them cut finely enough to part their back from their front.
+    // runs.ends gives, for each hop, how far along the picture the line has
+    // come at its end, for slow arrows to grow each hop with layer 1's.
+    var walkRuns = function(via, x, z0, z1){
+      var seq = lap(G, via.by, via.n + 1), runs = [], run = null, ring = R * DHC_WHEEL_RING, len = 0;
+      runs.ends = [];
+      var flat = function(r, pos){ var al = 2 * Math.PI * pos / m; return [r * Math.sin(al), r * Math.cos(al)]; };
+      var add = function(dashed, A, B){
+        if (!run || run.dashed !== dashed){ run = { dashed: dashed, pts: [A] }; runs.push(run); }
+        len += Math.hypot(B.x - A.x, B.y - A.y);
+        for (var i = 1; i <= 8; i++){
+          var f = i / 8;
+          run.pts.push({ x: A.x + (B.x - A.x) * f, y: A.y + (B.y - A.y) * f, front: A.front + (B.front - A.front) * f, depth: A.depth + (B.depth - A.depth) * f });
+        }
+      };
+      for (var h = 1; h <= via.n; h++){
+        var u = seq[h - 1], v = seq[h], za = z0 + (z1 - z0) * (h - 1) / via.n, zb = z0 + (z1 - z0) * h / via.n;
+        if (place[u] === undefined || place[v] === undefined) continue;
+        var A = P(place[u], za), B = P(place[v], zb), ex = excursion(u, via.by, za);
+        if (!ex){ add(false, A, B); runs.ends[h] = len; continue; }
+        var rr = R + (ex.q + 0.5) * ring, f0 = flat(R, place[u]), fr = flat(rr, place[v]);
+        var out = Math.hypot(fr[0] - f0[0], fr[1] - f0[1]), back = rr - R;
+        var X = dhcAt(cyl, rr, W, place[v], za + (zb - za) * out / (out + back), m);
+        add(false, A, X);
+        add(true, X, B);
+        runs.ends[h] = len;
+      }
+      return runs;
+    };
     tl.threads.forEach(function(t){
       if (!mine(cyl, t.owner)) return;
       moving = t.who === 'mix';
@@ -18082,8 +18120,12 @@ function drawDhCyl(){
         var d = ((p1 - p0) % m + m) % m;
         if (d > m / 2) d -= m;
         var count = Math.max(4, Math.ceil(Math.abs(d) * 360 / m / 15)), z0 = zOf(a.slice), z1 = zOf(c.slice);
-        var pts = [], j, side = cake ? tierSide(slices[c.slice], a.x, c.x) : null, ex = excursion(a.x, c.by, z1);
-        if (ex){
+        var pts = [], j, side = cake ? tierSide(slices[c.slice], a.x, c.x) : null, ex = c.via ? null : excursion(a.x, c.by, z1);
+        if (c.via){
+          // A rise that carries a walk (Per frame, up to layer 1): it rises
+          // through the walk itself, hop by hop, as layer 1 draws it.
+          pts = null;
+        } else if (ex){
           pts.push(P(p0, z0), ex.pt);
         } else if (side){
           // Stacked polygons: the piece keeps to the tier's flat sides,
@@ -18095,20 +18137,24 @@ function drawDhCyl(){
         } else {
           for (j = 0; j <= count; j++) pts.push(P(p0 + d * j / count, z0 + (z1 - z0) * j / count));
         }
-        var segs = [], cur = null;
-        for (j = 1; j < pts.length; j++){
-          var back = pts[j - 1].front + pts[j].front < 0;
-          if (!cur || cur.back !== back){ cur = { back: back, pts: [pts[j - 1]] }; segs.push(cur); }
-          cur.pts.push(pts[j]);
-        }
-        segs.forEach(function(sg){
-          var path = '', depth = 0;
-          sg.pts.forEach(function(q, i){ path += (i ? ' L ' : 'M ') + num(q.x) + ' ' + num(q.y); depth += q.depth; });
-          put(grow(ch, svgEl('path', { 'class': cls('dhc-thread', who, sg.back ? -1 : 1, (c.step === step ? ' is-now' : '') + (first ? ['', 'is-first', DHC_BY[t.owner]].join(' ') : '')), d: path }), sg.pts), depth / sg.pts.length, c.step, c.hop, ci);
+        var runs = pts ? [{ dashed: false, pts: pts }] : walkRuns(c.via, a.x, z0, z1);
+        if (ch && runs.ends) ch.ends = runs.ends;
+        runs.forEach(function(run){
+          var segs = [], cur = null;
+          for (j = 1; j < run.pts.length; j++){
+            var back = run.pts[j - 1].front + run.pts[j].front < 0;
+            if (!cur || cur.back !== back){ cur = { back: back, pts: [run.pts[j - 1]] }; segs.push(cur); }
+            cur.pts.push(run.pts[j]);
+          }
+          segs.forEach(function(sg){
+            var path = '', depth = 0;
+            sg.pts.forEach(function(q, i){ path += (i ? ' L ' : 'M ') + num(q.x) + ' ' + num(q.y); depth += q.depth; });
+            put(grow(ch, svgEl('path', { 'class': cls('dhc-thread', who, sg.back ? -1 : 1, (run.dashed ? ' is-reduce' : '') + (c.step === step ? ' is-now' : '') + (first ? ['', 'is-first', DHC_BY[t.owner]].join(' ') : '')), d: path }), sg.pts), depth / sg.pts.length, c.step, c.hop, ci);
+          });
         });
         if (ex) reduce('dhc-thread', who, ex, P(p1, z1), first ? ['', 'is-first', DHC_BY[t.owner]].join(' ') : '', c.step, c.hop, ch);
         if (nVis <= DHC_RIM_CAP && c.x !== a.x){
-          var e = ex ? P(p1, z1) : pts[pts.length - 1];
+          var e = ex || !pts ? P(p1, z1) : pts[pts.length - 1];
           put(svgEl('circle', { 'class': cls('dhc-dot', who, e.front), cx: num(e.x), cy: num(e.y), r: 2 }), e.depth + 0.01, c.step, c.hop, ci);
         }
       });
@@ -18296,6 +18342,16 @@ function dhcGrowStart(GA, chains, grows){
     var walked = chains.filter(function(w){ return w.hop && w.owner === c.owner; });
     c.at = 0;
     c.grow = c.reach = walked.length ? Math.max.apply(null, walked.map(function(w){ return w.at + w.reach; })) : SLOW_GROW;
+    // A rise through a walk grows each hop as that hop grows on layer 1:
+    // knots of (time, length grown), straight between them.
+    if (c.ends){
+      c.knots = [[0, 0]];
+      c.ends.forEach(function(l, h){
+        var w = walked.filter(function(w){ return w.hop === h; })[0];
+        if (!w || l === undefined) return;
+        c.knots.push([w.at, c.ends[h - 1] || 0], [w.at + w.reach, l]);
+      });
+    }
     c.len = 0;
     c.parts.forEach(function(p){
       p.len = 0;
@@ -18303,6 +18359,7 @@ function dhcGrowStart(GA, chains, grows){
       p.full = p.el.tagName === 'line' ? p.el.getAttribute('x2') + ' ' + p.el.getAttribute('y2') : p.el.getAttribute('d');
       c.len += p.len;
     });
+    if (c.knots) c.knots.push([c.grow, c.len]);
     end = Math.max(end, c.reach);
   });
   chains = chains.concat(rises);
@@ -18377,9 +18434,18 @@ function dhcWalkApply(w, s, t0){
   });
   w.halo.setAttribute('opacity', dhcHaloOn((s - t0 - w.ms) / DHC_HALO) ? '1' : '0');
 }
+// The length grown a time s in, from knots of (time, length).
+function dhcKnot(knots, s){
+  if (s <= knots[0][0]) return knots[0][1];
+  for (var i = 1; i < knots.length; i++){
+    var a = knots[i - 1], b = knots[i];
+    if (s <= b[0]) return b[0] > a[0] ? a[1] + (b[1] - a[1]) * (s - a[0]) / (b[0] - a[0]) : b[1];
+  }
+  return knots[knots.length - 1][1];
+}
 function dhcGrowApply(L, t){
   L.chains.forEach(function(c){
-    var s = t - c.at, want = Math.min(1, Math.max(0, s / c.grow)) * c.len, acc = 0, at = null;
+    var s = t - c.at, want = c.knots ? dhcKnot(c.knots, s) : Math.min(1, Math.max(0, s / c.grow)) * c.len, acc = 0, at = null;
     var walkU = c.walk ? Math.min(1, Math.max(0, (s - c.grow) / c.walk.ms)) : 0;
     c.parts.forEach(function(p){
       if (p.dive){
