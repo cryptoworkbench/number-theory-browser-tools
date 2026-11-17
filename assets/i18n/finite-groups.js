@@ -320,7 +320,8 @@
    (the time cylinder menu's switch keeping every bead on every layer in
    polygon mode, off showing only the polygons' corners), and dhCylMax and
    dhCylUnmax (the time cylinder head's maximize button, covering the Ring
-   window's rows and bottom bar too, and putting it back).
+   window's rows and bottom bar too, and putting it back), and dhReplay
+   (the exchange's Play button at the end, starting it over).
    Every other language shows the English value through NT.i18n's
    fallback meanwhile.
 
@@ -1507,6 +1508,7 @@
       dhCylPolyStackNo: 'Only in polygon mode',
       dhCylPolyKeepG: 'Keep g’s polygon on every layer',
       dhCylKeepBeads: 'Keep all beads on every layer',
+      dhReplay: 'Replay',
       dhCylMax: 'Maximize over the whole Ring window, its rows and bottom bar included',
       dhCylUnmax: 'Back to the size it had before',
       dhCylWheel: 'Congruence wheel floor',
