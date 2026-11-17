@@ -4,7 +4,8 @@ One record of every approach tried to make the main area's animations (slow aᵏ
 
 Detail per attempt lives in the quick task's SUMMARY.md (directory in brackets).
 
-Benchmark scenario used since 2026-11-16: ⟨ℤ/37ℤ, ×⟩, a = 35, slow aᵏ to k = 36, wheel and raw aᵏ results on, Keep every arrow in sight on (zoom 25%).
+Benchmark scenario since 2026-11-17 (user's choice): ⟨ℤ/59ℤ, ×⟩ arranged by powers of 56, a = 56, slow aᵏ to k = 57 (56 has order 58), wheel and raw aᵏ results on, Keep every arrow in sight on (zoom goes to 25%, wheel thickness 0.5). URL: `finite-groups.html?mode=multiplicative&n=59&gen=56&arrangegen=56&combine=scalar&combinek=0&combineslow=1&wheel=1&wheelrawak=1` (the arrangement generator is `arrangegen`, not `logbase`), then a JS click on `#cg-enter`, `#zoom-fit` pressed, and a real click on bead 56 (`circle.bead[data-el="56"]`). A run takes ~172 s. Before: ⟨ℤ/37ℤ, ×⟩, a = 35, slow aᵏ to k = 36.
+- Claude in Chrome: a `javascript_tool` call that waits more than a few seconds while the animation runs times out or drops the connection. Start the run with the result stored in `window.__res`, wait with a background `sleep`, then read it with a call that doesn't wait.
 - Measure in the user's real Chrome (Claude in Chrome on a `python3 -m http.server` localhost; it refuses file://). Headless numbers came out several times lower than the user's and hid problems: median frame 17–67 ms headless against 117–150 ms in the user's Chrome for the same code.
 - Bead 35 is picked by a real click (a JS click does not pick it); a second click unpicks it.
 - Tools: rAF frame gaps; `long-animation-frame` entries (forcedStyleAndLayoutDuration); CDP traces (devtools.timeline plus invalidationTracking and stack) for Layerize, Layout and UpdateLayoutTree with callers; hide one layer at a time and compare frame times.
@@ -40,7 +41,20 @@ Benchmark scenario used since 2026-11-16: ⟨ℤ/37ℤ, ×⟩, a = 35, slow aᵏ
 | 11-17 | shim: candidates cached (one `querySelectorAll` of all anchors only when page elements come or go; `recheck` of one element on class/id/hidden changes); arguments ending at an id-named element asked the other way round (`holds`: mark the anchor with `data-hs-at`, ask the element `[data-hs-at] ARG`, walks only its ancestors; 12 of 35 arguments) | first step of a slow run, 16 syncs: 111 → 6.3 ms headless. A live class list read after any change re-walks the whole document; `:has()` with a descendant argument on `.fs-win-body` walks the wheel's thousands of elements (1.5 ms a call). Screenshots identical to 2b4731a, selectors equal | 75b23bd [z1f] |
 | 11-17 | **wheel numbers on a canvas** (`#ring-num-canvas`, `paintWheelNums`, `queueWheelNums`, `g.numData`, `appendWheelNums`, `wheelNumAt`). The canvas is a square about the wheel's centre reaching the window's farthest corner, turned with the layer, at most 4000 px a side. SVG texts are written from the data in the ring (flips, rearrangements), the blur copy (its rings), the lit copies and the pictures (PNG with resolved paint, swap/ring-window copies) | headless first step: task + paint ~480–570 → ~330–480 ms with no long paint after; layout 141–158 → 56–62 ms. User's Chrome, zoom-out main-thread work (no paint): 372/468 → 350/288 ms. Same places, sizes, turns and texts (blur, lit, export markup equal), screenshots differ by anti-aliasing only | 7da315d [z2c] |
 
-User's Chrome after 11-16: median frame 14–33 ms between steps; about 57–68 ms at each new arrow before 2b4731a (step frames after the shim not measured yet: the user's window was occluded, rAF throttled to ~1/s). The first step of a run with Keep every arrow in sight zooming to 25% takes one ~1.4 s frame (the whole wheel redrawn at the new zoom and cell height); not looked at yet.
+**User's Chrome, 11-17, new benchmark, window in front (rAF 60/s), interleaved full runs, 2b4731a+75b23bd+7da315d (NEW) against 6b46109 (PRE, before the shim):**
+
+| Run | median / p90 / p99 frame | frames > 50 ms | > 100 ms | worst | first-step frame (script, forced) | median forced per step frame |
+|---|---|---|---|---|---|---|
+| PRE 1 | 17 / 17 / 33 | 43 | 8 | 934 | (not recorded) | 56 |
+| NEW 1 | 17 / 17 / 33 | 36 | 6 | 594 | 648 (432, 122) | 34 |
+| PRE 2 | 17 / 17 / 33 | 40 | 7 | 683 | 661 (638, 395) | 49 |
+| NEW 2 | 17 / 17 / 33 | 35 | 6 | 600 | 561 (403, 117) | 32 |
+
+- Between new arrows both run at 60 fps (p90 17 ms); the shim and the canvas cut the janky frames by ~15% (40–43 → 35–36 over ~9,700 frames), forced layout per step frame 49–56 → 32–34 ms, and the first step's forced layout 395 → ~120 ms.
+- The first-step frame stays at ~560–650 ms: ~400 ms of script with only ~120 ms forced, so ~280 ms is plain JS, plus raster. That is now the one visible stall; the step frames are ~100–200 ms at most (a handful per run).
+- No page errors in any run.
+
+Earlier: User's Chrome after 11-16: median frame 14–33 ms between steps; about 57–68 ms at each new arrow before 2b4731a (step frames after the shim not measured yet: the user's window was occluded, rAF throttled to ~1/s). The first step of a run with Keep every arrow in sight zooming to 25% takes one ~1.4 s frame (the whole wheel redrawn at the new zoom and cell height); not looked at yet.
 
 ### Micro-measurements (user's Chrome, 11-16; median of 9, change plus forced layout)
 - Attribute change on an svg element: 0.0–0.3 ms. Class toggle: 0.0 ms.
@@ -82,7 +96,7 @@ User's Chrome after 11-16: median frame 14–33 ms between steps; about 57–68 
    - The wheel's numbers (~3,300 `<text>` at 25% zoom, cell height 0.75) cost ~100–160 ms of the task plus ~50 ms of paint, against ~3,300 → 0 in a no-numbers test copy (277–329 ms left).
    - Their CSS is not the lever: `dominant-baseline`, the webfont, tabular-nums, `text-anchor` changed nothing measurable (3,000 texts insert + layout 47–65 ms in every variant).
    - The rest: forced layouts read by `ringWheelFill` (before the wheel is drawn), `renderCombineKey` (its `getComputedStyle` is the first read after the wheel is redrawn, so the wheel's style+layout lands there) and `inTopBand`/`bandHoles` (top-band hover); building the number elements (~30 ms JS); the step itself (~20 ms).
-   - Done 7da315d: the numbers on a canvas (see Kept). Left in the first step: ~150 ms JS headless (forced layouts in `ringWheelFill`, `inTopBand`/`bandHoles`, `renderCombineKey`; ~36 ms of `fillText` for ~3,300 numbers). The step frames in the user's Chrome after the shim and the canvas are still to be measured with the window in front.
+   - Done 7da315d: the numbers on a canvas (see Kept). Left in the first step: ~150 ms JS headless (forced layouts in `ringWheelFill`, `inTopBand`/`bandHoles`, `renderCombineKey`; ~36 ms of `fillText` for ~3,300 numbers). Measured in the user's Chrome on 11-17 (table under Kept): first-step frame ~560–650 ms, ~400 ms script, ~120 ms forced.
    - Other candidates, not tried:
      - leave out numbers whose cells lie outside the main area, but the wheel layer turns by the compositor, so culled corners would show during turns;
      - skip numbers too small to read: a visual change.
