@@ -17218,6 +17218,10 @@ function toggleDhPlay(){
   if (dh.step >= DH_LAST) setDhStep(0);
   var tick = function(){
     if (!dh){ dhPlay = null; return; }
+    // The time cylinder's slow arrows still growing (walks down included)
+    // are let finish first, rather than cut off by the next step.
+    var left = dhcGrowLeft();
+    if (left > 0){ dhPlay = setTimeout(tick, left + DH_GROW_REST); return; }
     setDhStep(dh.step + 1);
     dhPlay = dh.step < DH_LAST ? setTimeout(tick, DH_PACE) : null;
     syncDhCtl();
@@ -18195,7 +18199,13 @@ function drawDhCyl(){
 // What is no line fades in: a slice's rims and beads as its hop starts to
 // grow, marks, dots, numbers and raw results as it arrives (hop 0's once
 // every hop has arrived).
-var DHC_FADE = 350, DHC_HALO = 1500;
+var DHC_FADE = 350, DHC_HALO = 1500, DH_GROW_REST = 500;
+// How long the growth under way has still to run (0 when none is).
+function dhcGrowLeft(){
+  var A = dhc.growAnim;
+  if (!dhc.open || !dhc.grow || !A || !isFinite(A.total)) return 0;
+  return Math.max(0, A.t0 + A.total - performance.now());
+}
 // The walk down a chain c makes from the raw result ex to the bead at end:
 // a lit cell on the floor wheel for each ring from ex's in (those the
 // floor has), and the bead's flash, added by putHalo.
