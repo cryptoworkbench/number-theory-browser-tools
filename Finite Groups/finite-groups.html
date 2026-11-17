@@ -17579,6 +17579,7 @@ function openDhCyl(){
   dhc.open = true;
   dhc.built = '';
   dhc.shown = null;
+  dhc.apartGoal = undefined;
   dhcPlotEl.hidden = false;
   redrawRing();
   dhcWin.place(dhcWin.at.x, dhcWin.at.y);
@@ -17838,28 +17839,29 @@ function dhcPolyFits(G, place, m){
 
 /* ---------- the automatic distance and zoom ---------- */
 // The separate cylinders' distance is the program's, not the viewer's: they
-// stand just far enough apart that what reaches farthest from each axis
-// over the whole exchange (its floor's outer ring, or its farthest raw
-// result) keeps clear of the other's, so it never changes during playback
-// or as the cylinders turn. The zoom then never goes past the largest at
+// stand just far enough apart that what reaches farthest from each axis at
+// the step on show (its floor's outer ring, or its farthest raw result)
+// keeps clear of the other's: as close as they can be when the window opens
+// or a playback has ended, moving apart (over DHC_APART_MS) as a step makes
+// the floor grow. Turning the cylinders never moves them. The zoom then never goes past the largest at
 // which the floors, the cylinders and the raw results all fit in the
 // picture (dhc.zoomCap): a wider distance zooms the view out by itself, and
 // the view is kept from being moved so far that any of it runs off.
-var DHC_AUTO_GAP = 12, DHC_AUTO_MARGIN = 8, DHC_AUTO_PAD = 8;
+var DHC_AUTO_GAP = 12, DHC_AUTO_MARGIN = 8, DHC_AUTO_PAD = 8, DHC_APART_MS = 500;
 function dhcAutoView(G, tl){
   var two = dhc.cyls === 'split', baseR = two ? 78 : 100;
   var wheel = dhc.wheel && dhcWheelFits(G), raw = wheel && (dhc.wheelRaw || !!dhc.rawMorph);
-  // How far out, in rings, the floor and the raw results reach over the
-  // whole exchange (the floor as it is at its last step).
+  // How far out, in rings, the floor and the raw results reach at the step
+  // on show.
   var floorRings = 0, rawRings = 0;
   if (wheel){
-    floorRings = dhcWheelRings(G, tl, DH_LAST);
+    floorRings = dhcWheelRings(G, tl);
     if (raw) rawRings = floorRings - 0.5;
   }
   // The floor's ⋯ marks lie just past its outer ring: a ring's width more.
   var rFloor = floorRings ? baseR * (1 + DHC_WHEEL_RING * (floorRings + 1)) : 0, rRaw = baseR * (1 + DHC_WHEEL_RING * rawRings);
   var rMax = Math.max(rFloor, rRaw, baseR) + DHC_AUTO_PAD;
-  if (two) dhc.cylApart = Math.ceil(2 * rMax + DHC_AUTO_GAP);
+  if (two) dhcApartTo(Math.ceil(2 * rMax + DHC_AUTO_GAP));
   // The picture's width with that distance, and how far the drawing reaches
   // from its centre at zoom 1: across, and up and down at the tilt.
   var W = two ? 400 + dhc.cylApart - DHC_APART : 300, cp = Math.cos(dhc.pitch), sp = Math.sin(dhc.pitch);
@@ -17869,6 +17871,19 @@ function dhcAutoView(G, tl){
   dhc.zoomCap = Math.max(0.05, cap);
   if (dhc.zoom > dhc.zoomCap) dhc.zoom = dhc.zoomCap;
   dhcClampPanTo(W, hw, up, down);
+}
+// Eases the distance to goal (at once the first time, see openDhCyl),
+// redrawing each frame until it is there.
+function dhcApartTo(goal){
+  var now = performance.now();
+  if (dhc.apartGoal === undefined || reducedMotion && reducedMotion.matches){ dhc.apartGoal = goal; dhc.apartAnim = null; dhc.cylApart = goal; return; }
+  if (goal !== dhc.apartGoal){ dhc.apartAnim = { from: dhc.cylApart, t0: now }; dhc.apartGoal = goal; }
+  var A = dhc.apartAnim;
+  if (!A){ dhc.cylApart = goal; return; }
+  var p = clamp((now - A.t0) / DHC_APART_MS, 0, 1), e = p * p * (3 - 2 * p);
+  dhc.cylApart = A.from + (goal - A.from) * e;
+  if (p >= 1){ dhc.apartAnim = null; return; }
+  if (!dhc.apartRaf) dhc.apartRaf = requestAnimationFrame(function(){ dhc.apartRaf = 0; dhcRedraw(); });
 }
 // Keeps the drawing (hw across, up and down from its centre at zoom 1)
 // within the picture, W wide; centred along an axis it fills.
