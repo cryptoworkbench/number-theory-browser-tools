@@ -1293,7 +1293,12 @@
   .spin-ruler > .spin-extra{ position:absolute; left:calc(100% + 8px); top:50%; transform:translateY(-50%); display:flex; align-items:center; gap:6px; }
   .spin-extra > .letter-btn{ height:1.45em; min-width:1.75em; font-size:.75em; }
   #ring-wheel-btn{ padding:0 4px; }
-  #ring-wheel-btn svg{ width:1.25em; height:1.25em; }
+  #ring-wheel-btn > .fs-icon{ display:grid; place-items:center; }
+  #ring-wheel-btn svg{ display:block; width:1.05em; height:1.05em; }
+  /* The row as its own card keeps its track's width and holds them in its
+     padding (see hugBottomCluster). */
+  .fs-win-body.is-ring > #spin-ruler.is-own-card:has(> .spin-extra > :not([hidden])){ box-sizing:content-box; padding-right:calc(10px + var(--spin-extra-w, 0px)); }
+  #spin-ruler.is-own-card > .spin-extra{ left:auto; right:10px; }
   /* Values on (the filled window only): each full slice's beads in the ring's
      own colours, each carrying its natural value, set flat to the screen. */
   .dhc-bead.is-coloured{ fill:var(--ord, var(--text-dim)); }
@@ -15043,9 +15048,18 @@ function hugBottomCluster(){
     if (lo <= hi) rs.push({ left: lo, right: hi, top: top.top, bottom: top.bottom });
   }
   var slider = rs.length;
+  // The rotation row's wheel and R buttons hang just right of it, out of
+  // its flow (see .spin-extra): the card takes them in too, and the row as
+  // its own card pads its right side by their width (--spin-extra-w).
+  var extra = spinRulerEl.querySelector('.spin-extra'), extraOn = !!extra && !!extra.querySelector('.letter-btn:not([hidden])');
+  spinRulerEl.style.setProperty('--spin-extra-w', extraOn ? (extra.offsetWidth + 8) + 'px' : '0px');
   function under(el){
     var r = boxOf(el), mid = (r.left + r.right) / 2;
-    if (slider && mid >= lo && mid <= hi){ rs.push(r); return false; }
+    if (slider && mid >= lo && mid <= hi){
+      rs.push(r);
+      if (el === spinRulerEl && extraOn) rs.push(boxOf(extra));
+      return false;
+    }
     return true;
   }
   // Taken into the card, the chevron sheds its own ground and edge.
@@ -15445,6 +15459,7 @@ if (window.MutationObserver){
   });
   clusterMo.observe(exprSlotEl, { attributes: true, attributeFilter: ['hidden', 'class'], childList: true, characterData: true, subtree: true });
   [splitBtnEl, spinRulerEl].forEach(function(el){ if (el) clusterMo.observe(el, { attributes: true, attributeFilter: ['hidden'] }); });
+  clusterMo.observe(spinRulerEl.querySelector('.spin-extra'), { attributes: true, attributeFilter: ['hidden'], subtree: true });
   clusterMo.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
   clusterMo.observe(ringSvgEl, { attributes: true, attributeFilter: ['class', 'viewBox'] });
   var overlapMo = new MutationObserver(syncRingOverlap);
