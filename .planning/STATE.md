@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-10-02)
 Phase: 4 — Continued Fractions Tool
 Plan: Not started
 Status: Ready to plan
-Last activity: 2026-11-17 - Completed quick task 261117-zuf: Finite Groups raw results transition
+Last activity: 2026-11-17 - Completed quick task 261117-zvg: Finite Groups swap meets walk (branch)
 
 Progress: [█████████░] 86%
 
@@ -1010,6 +1010,7 @@ None yet.
 | 261117-zsx | Finite Groups: Per hop slow arrows, Alice and Bob reach A/B and K at the same moment | 2026-11-17 | 48ff142 | [261117-zsx-finite-groups-dhc-hop-sync](./quick/261117-zsx-finite-groups-dhc-hop-sync/) |
 | 261117-ztb | Finite Groups: time cylinder floor reads % n in its middle | 2026-11-17 | 77f85e1 | [261117-ztb-finite-groups-dhc-floor-percent](./quick/261117-ztb-finite-groups-dhc-floor-percent/) |
 | 261117-zuf | Finite Groups: time cylinder raw results ease on and off | 2026-11-17 | fea795e | [261117-zuf-finite-groups-dhc-raw-transition](./quick/261117-zuf-finite-groups-dhc-raw-transition/) |
+| 261117-zvg | Finite Groups (branch dhc-swap-meets-walk): the swap's lines and the walks' first hops meet at the same moment | 2026-11-17 | 96dc8d1 | [261117-zvg-finite-groups-dhc-swap-meets-walk](./quick/261117-zvg-finite-groups-dhc-swap-meets-walk/) |
 
 ## Deferred Items
 
@@ -1025,4 +1026,4 @@ Last session: 2026-10-03
 Stopped at: Quick task 261005-dn2 complete — Venn Diagram double-click respects thumbnail scroll
 Resume file: None
 
-Last activity: 2026-11-17 - Completed quick task 261117-zuf: Finite Groups raw results transition
+Last activity: 2026-11-17 - Completed quick task 261117-zvg: Finite Groups swap meets walk (branch)
