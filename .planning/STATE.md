@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-10-02)
 Phase: 4 — Continued Fractions Tool
 Plan: Not started
 Status: Ready to plan
-Last activity: 2026-11-17 - Completed quick task 261117-z9c: Finite Groups time cylinder walk down
+Last activity: 2026-11-17 - Completed quick task 261117-zak: Finite Groups time cylinder Per variable to Shared
 
 Progress: [█████████░] 86%
 
@@ -991,6 +991,7 @@ None yet.
 | 261117-z7m | Finite Groups: minimized a∗b/aᵏ card keeps its bar task through turns (no flicker with result on top); its lines not drawn while minimized | 2026-11-17 | 2f6731a | [261117-z7m-finite-groups-minimized-card-task](./quick/261117-z7m-finite-groups-minimized-card-task/) |
 | 261117-z8g | Finite Groups: Slow arrows for the time cylinder (hops grow in instead of fading in) | 2026-11-17 | 0872843 | [261117-z8g-finite-groups-dhc-slow-arrows](./quick/261117-z8g-finite-groups-dhc-slow-arrows/) |
 | 261117-z9c | Finite Groups: time cylinder slow arrows walk reductions down the congruence wheel floor (lit cells, bead flash) | 2026-11-17 | 1a6b9b2 | [261117-z9c-finite-groups-dhc-walk-down](./quick/261117-z9c-finite-groups-dhc-walk-down/) |
+| 261117-zak | Finite Groups: time cylinder Separate + Per variable morphs straight into Shared | 2026-11-17 | 1f39e77 | [261117-zak-finite-groups-dhc-variable-to-shared](./quick/261117-zak-finite-groups-dhc-variable-to-shared/) |
 
 ## Deferred Items
 
@@ -1006,4 +1007,4 @@ Last session: 2026-10-03
 Stopped at: Quick task 261005-dn2 complete — Venn Diagram double-click respects thumbnail scroll
 Resume file: None
 
-Last activity: 2026-11-17 - Completed quick task 261117-z9c: Finite Groups time cylinder walk down
+Last activity: 2026-11-17 - Completed quick task 261117-zak: Finite Groups time cylinder Per variable to Shared
