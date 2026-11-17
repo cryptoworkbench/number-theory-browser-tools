@@ -1431,7 +1431,7 @@
   /* Raw results: the way back in to the bead is the reduction, dashed, and
      the unreduced number labels the turn. */
   :is(.dhc-line, .dhc-thread).is-reduce{ stroke-dasharray:3 2; }
-  .dhc-raw{ --c:var(--text); fill:var(--c); font-family:var(--font-mono); font-size:7px; font-weight:600; text-anchor:middle; pointer-events:none; paint-order:stroke; stroke:var(--bg-1); stroke-width:2px; }
+  .dhc-raw{ --c:var(--text); fill:var(--c); font-family:var(--font-mono); font-variant-numeric:tabular-nums; font-weight:600; text-anchor:middle; dominant-baseline:central; pointer-events:none; paint-order:stroke; stroke:var(--bg-1); }
   .dhc-raw.is-alice{ --c:var(--dh-alice); }
   .dhc-raw.is-bob{ --c:var(--dh-bob); }
   .dhc-raw.is-back{ opacity:.45; }
@@ -17744,6 +17744,23 @@ function dhcWheelFill(R, sp, cx, cy, w, m){
   });
   return clamp(Math.ceil((far - R) / (R * DHC_WHEEL_RING)), 1, Math.max(1, Math.floor(3000 / m)));
 }
+// The floor's numbers: their size (one for all, fitting the widest in its
+// cell), the middle of the wedge of the element x (degrees clockwise from
+// the top, the cylinders' turn included), and the turn a number in that
+// wedge is written at, read outward on the top half and inward on the
+// bottom half. A raw result drawn over the floor (see drawDhCyl) is
+// written the same way, so that seen from straight above it lies on its
+// cell's number.
+function dhcWheelNumSize(G, m, R, depth){
+  var ring = R * DHC_WHEEL_RING, digits = String(Math.max.apply(null, G.els) + (depth - 1) * G.n).length;
+  var arc = m === 1 ? 999 : (R + ring / 2) * 2 * Math.PI / m;
+  return clamp(Math.min(arc / (digits * 0.66), ring * 0.5), 0.5, ring * 0.6);
+}
+function dhcWheelMid(place, m, x){
+  var mid = (dirSign() * 360 * place[x] / m + dhc.yaw * 180 / Math.PI) % 360;
+  return mid < 0 ? mid + 360 : mid;
+}
+function dhcWheelRot(mid){ return mid > 90 && mid < 270 ? mid + 180 : mid; }
 // Drawn flat, centred on 0, angles as the beads' (clockwise from the top),
 // then laid on the floor at (cx, cy) by squashing it to the floor's tilt,
 // with depth rings (open: running on past the picture, no ⋯ beyond).
@@ -17752,18 +17769,15 @@ function dhcWheel(G, place, m, R, sp, cx, cy, depth, open){
   var g = svgEl('g', { 'class': 'dhc-wheel', transform: 'matrix(1 0 0 ' + num(sp) + ' ' + num(cx) + ' ' + num(cy) + ')' });
   for (k = 0; k < depth; k += 2) g.appendChild(svgEl('circle', { 'class': 'dhc-wheel-band', r: num(R + (k + 0.5) * ring), 'stroke-width': num(ring) }));
   for (k = 0; k <= depth; k++) g.appendChild(svgEl('circle', { 'class': 'dhc-wheel-ring' + (k === 0 || k === depth ? ' is-edge' : ''), r: num(R + k * ring) }));
-  var digits = String(Math.max.apply(null, G.els) + (depth - 1) * N).length;
-  var arc = m === 1 ? 999 : (R + ring / 2) * 2 * Math.PI / m;
-  var size = clamp(Math.min(arc / (digits * 0.66), ring * 0.5), 0.5, ring * 0.6);
+  var size = dhcWheelNumSize(G, m, R, depth);
   G.els.forEach(function(x){
     if (place[x] === undefined) return;
-    var mid = (dirSign() * 360 * place[x] / m + dhc.yaw * 180 / Math.PI) % 360;
-    if (mid < 0) mid += 360;
+    var mid = dhcWheelMid(place, m, x);
     if (m > 1){
       var p1 = polar(0, 0, R, mid - wedge / 2), p2 = polar(0, 0, outer, mid - wedge / 2);
       g.appendChild(svgEl('line', { 'class': 'dhc-wheel-ring', x1: num(p1[0]), y1: num(p1[1]), x2: num(p2[0]), y2: num(p2[1]) }));
     }
-    var rot = mid > 90 && mid < 270 ? mid + 180 : mid;
+    var rot = dhcWheelRot(mid);
     for (var j = 0; j < depth; j++){
       var q = polar(0, 0, R + (j + 0.5) * ring, mid);
       var t = svgEl('text', { 'class': 'dhc-wheel-num', x: num(q[0]), y: num(q[1]), 'font-size': num(size), transform: 'rotate(' + num(rot) + ' ' + num(q[0]) + ' ' + num(q[1]) + ')' });
@@ -17920,14 +17934,22 @@ function drawDhCyl(){
       if (!rawOn || by === undefined) return null;
       var raw = G.mode === 'multiplicative' ? x * by : x + by, q = Math.floor(raw / G.n), to = raw % G.n;
       if (q < 1 || place[to] === undefined) return null;
-      return { raw: raw, q: q, to: to, pt: dhcAt(cyl, R + (q + 0.5) * R * DHC_WHEEL_RING, W, place[to], z, m) };
+      return { raw: raw, q: q, to: to, z: z, pt: dhcAt(cyl, R + (q + 0.5) * R * DHC_WHEEL_RING, W, place[to], z, m) };
     };
     // Its way back in, dashed, and the raw number at its turn.
     var reduce = function(base, who, ex, end, extra, st, hop, ch){
       put(grow(ch, svgEl('line', { 'class': cls(base + ' is-reduce', who, ex.pt.front + end.front, extra), x1: num(ex.pt.x), y1: num(ex.pt.y), x2: num(end.x), y2: num(end.y) }), [ex.pt, end]), (ex.pt.depth + end.depth) / 2, st, hop, ci);
-      var label = svgEl('text', { 'class': cls('dhc-raw', who, ex.pt.front, extra), x: num(ex.pt.x), y: num(ex.pt.y - 4) });
+      // Written flat in its slice's plane as the floor writes the same
+      // number in its cell below: the slice's centre, squashed as the
+      // floor is, the cell's middle, the same size and turn.
+      var mid = dhcWheelMid(place, m, ex.to), size = dhcWheelNumSize(G, m, R, depth), at = polar(0, 0, R + (ex.q + 0.5) * R * DHC_WHEEL_RING, mid);
+      var label = svgEl('text', { 'class': cls('dhc-raw', who, ex.pt.front, extra), x: num(at[0]), y: num(at[1]), 'font-size': num(size), 'stroke-width': num(size * 0.28), transform: 'matrix(1 0 0 ' + num(sp) + ' ' + num(cx) + ' ' + num(OY - ex.z * cp) + ') rotate(' + num(dhcWheelRot(mid)) + ' ' + num(at[0]) + ' ' + num(at[1]) + ')' });
       label.textContent = String(ex.raw);
-      put(label, 1e3 + ex.pt.depth, st, hop, ci);
+      // In a group of its own, which the Per computer / Per variable slide
+      // moves (its transform), leaving the label's own.
+      var held = svgEl('g', { 'class': 'dhc-raw-g' });
+      held.appendChild(label);
+      put(held, 1e3 + ex.pt.depth, st, hop, ci);
       if (ch) dhcWalkRig(ch, wheelG, ex, end, R, m, place, depth, function(halo){ chained.add(halo); put(halo, over + end.depth + 0.03, st, hop, ci); }, rBead);
     };
     // The elements walked by on a slice in this cylinder, each giving it a
@@ -18211,8 +18233,7 @@ function dhcGrowLeft(){
 // floor has), and the bead's flash, added by putHalo.
 function dhcWalkRig(c, wheel, ex, end, R, m, place, depth, putHalo, rBead){
   var ring = R * DHC_WHEEL_RING, half = m > 1 ? 180 / m : 180, cells = [];
-  var mid = (dirSign() * 360 * place[ex.to] / m + dhc.yaw * 180 / Math.PI) % 360;
-  if (mid < 0) mid += 360;
+  var mid = dhcWheelMid(place, m, ex.to);
   var before = wheel && wheel.querySelector(':scope > .dhc-wheel-num');
   for (var k = ex.q; k >= 0; k--){
     if (!wheel || k >= depth){ cells.push(null); continue; }
