@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-10-02)
 Phase: 4 — Continued Fractions Tool
 Plan: Not started
 Status: Ready to plan
-Last activity: 2026-11-17 - Completed quick task 261117-zsx: Finite Groups Per hop sync
+Last activity: 2026-11-17 - Completed quick task 261117-ztb: Finite Groups floor % n
 
 Progress: [█████████░] 86%
 
@@ -1008,6 +1008,7 @@ None yet.
 | 261117-zqt | Finite Groups: Per frame drops the left-over A and B marks on layer 2 | 2026-11-17 | 8f6a758 | [261117-zqt-finite-groups-dhc-no-layer2-swap-marks](./quick/261117-zqt-finite-groups-dhc-no-layer2-swap-marks/) |
 | 261117-zrv | Finite Groups: Per hop's swap layer drops the marks without a landing line | 2026-11-17 | c7c21a8 | [261117-zrv-finite-groups-dhc-swap-layer-marks](./quick/261117-zrv-finite-groups-dhc-swap-layer-marks/) |
 | 261117-zsx | Finite Groups: Per hop slow arrows, Alice and Bob reach A/B and K at the same moment | 2026-11-17 | 48ff142 | [261117-zsx-finite-groups-dhc-hop-sync](./quick/261117-zsx-finite-groups-dhc-hop-sync/) |
+| 261117-ztb | Finite Groups: time cylinder floor reads % n in its middle | 2026-11-17 | 77f85e1 | [261117-ztb-finite-groups-dhc-floor-percent](./quick/261117-ztb-finite-groups-dhc-floor-percent/) |
 
 ## Deferred Items
 
@@ -1023,4 +1024,4 @@ Last session: 2026-10-03
 Stopped at: Quick task 261005-dn2 complete — Venn Diagram double-click respects thumbnail scroll
 Resume file: None
 
-Last activity: 2026-11-17 - Completed quick task 261117-zsx: Finite Groups Per hop sync
+Last activity: 2026-11-17 - Completed quick task 261117-ztb: Finite Groups floor % n
