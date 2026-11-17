@@ -17164,10 +17164,12 @@ function openPolyPlot(){
 // runs in both, g^k here being h^k there, so both keys are linked too.
 var dhPlotEl = $('dh-plot'), dhBodyEl = $('dh-body');
 var dh = null, dhPlay = null, dhBuilt = null, dhParts = null;
-// Steps: 0 the group and g agreed, 1 the secrets picked, 2 A and B computed
-// at the same time, 3 the swap, 4 K computed by both at the same time.
-var DH_LAST = 4, DH_PACE = 1700;
-var DH_SAYS = ['cyclicGroups.dhStep0', 'cyclicGroups.dhStep1', 'cyclicGroups.dhStepBoth', 'cyclicGroups.dhStep4', 'cyclicGroups.dhStepBothK'];
+// Steps: 1 the group and g agreed and the secrets picked, so they can be
+// typed over at once, 2 A and B computed at the same time, 3 the swap, 4 K
+// computed by both at the same time. The exchange starts on DH_FIRST: step
+// 0 (the group and g agreed, the secrets not yet picked) is never shown.
+var DH_FIRST = 1, DH_LAST = 4, DH_PACE = 1700;
+var DH_SAYS = ['cyclicGroups.dhStepStart', 'cyclicGroups.dhStepStart', 'cyclicGroups.dhStepBoth', 'cyclicGroups.dhStep4', 'cyclicGroups.dhStepBothK'];
 var dhWin = plotWindow(dhPlotEl, $('dh-grip'));
 // Alice and Bob in their own colours ('own') or in the paths' colours
 // ('paths'), the choice kept like the time cylinder's switches.
@@ -17207,7 +17209,7 @@ function openDh(G, g, a, b, step, quiet){
   // order allows); New secrets draws them at random.
   var max = Math.max(1, G.orders[g] - 1);
   var spawned = dhPlotEl.hidden;
-  dh = { key: G.key, g: g, a: a === undefined ? Math.min(2, max) : a, b: b === undefined ? Math.min(3, max) : b, step: step || 0 };
+  dh = { key: G.key, g: g, a: a === undefined ? Math.min(2, max) : a, b: b === undefined ? Math.min(3, max) : b, step: Math.max(DH_FIRST, step || 0) };
   dhBuilt = null;
   drawDhPlot(G);
   redrawRing();
@@ -17228,7 +17230,7 @@ function closeDh(quiet){
 }
 function setDhStep(s, quiet){
   if (!dh || !drawn) return;
-  dh.step = clamp(s, 0, DH_LAST);
+  dh.step = clamp(s, DH_FIRST, DH_LAST);
   syncDhPlot(drawn.G);
   redrawRing();
   if (!quiet) tellDh();
@@ -17240,7 +17242,7 @@ function stopDhPlay(){
 function toggleDhPlay(){
   if (!dh) return;
   if (dhPlay){ stopDhPlay(); return; }
-  if (dh.step >= DH_LAST) setDhStep(0);
+  if (dh.step >= DH_LAST) setDhStep(DH_FIRST);
   var tick = function(){
     if (!dh){ dhPlay = null; return; }
     // The time cylinder's slow arrows still growing (walks down included)
@@ -17373,7 +17375,7 @@ function buildDhPlot(G){
   };
   var parts = {
     rows: rows, key: key, inA: inA, inB: inB, say: say, why: why,
-    reset: btn('dh-reset', function(){ stopDhPlay(); setDhStep(0); }),
+    reset: btn('dh-reset', function(){ stopDhPlay(); setDhStep(DH_FIRST); }),
     back: btn('dh-back', function(){ stopDhPlay(); setDhStep(dh.step - 1); }),
     play: btn('dh-play', toggleDhPlay),
     step: btn('dh-step', function(){ stopDhPlay(); setDhStep(dh.step + 1); }),
@@ -17442,7 +17444,7 @@ function syncDhPlot(G){
   p.rows.forEach(function(row, i){
     row.forEach(function(cell){
       cell.classList.toggle('is-later', i > s);
-      cell.classList.toggle('is-now', i === s);
+      cell.classList.toggle('is-now', s === DH_FIRST ? i <= s : i === s);
     });
   });
   translateInto(p.key, 'cyclicGroups.dhKey', { k: dhVal(G, v.K, 'key') });
@@ -17507,7 +17509,7 @@ function syncDhCtl(){
   // At the end, Play starts the exchange over (toggleDhPlay): Replay.
   p.play.textContent = translate(dhPlay ? 'common.pause' : dh.step >= DH_LAST ? 'cyclicGroups.dhReplay' : 'common.play');
   p.play.setAttribute('aria-pressed', dhPlay ? 'true' : 'false');
-  p.reset.disabled = p.back.disabled = dh.step === 0;
+  p.reset.disabled = p.back.disabled = dh.step <= DH_FIRST;
   p.step.disabled = p.end.disabled = dh.step === DH_LAST;
   p.cyl.setAttribute('aria-pressed', dhc.open ? 'true' : 'false');
 }
@@ -17581,7 +17583,7 @@ function isoTakeDh(d, m){
     if (dhPlay){ clearTimeout(dhPlay); dhPlay = null; }
     dh.a = d.a;
     dh.b = d.b;
-    dh.step = d.step;
+    dh.step = Math.max(DH_FIRST, d.step);
     syncDhPlot(G);
     redrawRing();
     return;

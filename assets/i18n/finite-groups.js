@@ -148,7 +148,8 @@
    reduceAskOut and reduceAskPast (the Ctrl + R overlay reducing a number
    on the congruence wheel), and subExprFollowTitle
    (the bottom panel's Follow expression slider button), and dhMenu, dhTitle, dhClose, dhAlice, dhPublic,
-   dhBob, dhSecretA, dhSecretB, dhNoteSub, dhNoteIdentity, dhStep0 to
+   dhBob, dhSecretA, dhSecretB, dhNoteSub, dhNoteIdentity, dhStepStart (the
+   exchange's first step: the group and g agreed, the secrets picked), dhStep2 to
    dhStep6, dhKey, dhBack and dhNew (the ring menu's Diffie–Hellman
    exchange worked with G as g, and its window), and swapIsoHead (the ring
    menu's Isomorphic swap section), swapIsoMenu (its Swap for an isomorphic
@@ -1469,8 +1470,7 @@
       dhSecretB: 'Bob’s secret b',
       dhNoteSub: 'g = {g} generates only {k} of the {n} elements, so the key can only be one of those {k}. Diffie–Hellman wants a g that generates a large group.',
       dhNoteIdentity: 'g = {g} is the identity: every step stays where it is, so the key is always {g}.',
-      dhStep0: 'In public, Alice and Bob agree on the group {group} and on its element g = {g}.',
-      dhStep1: 'Each picks a secret number and tells no one: Alice picks a, Bob picks b.',
+      dhStepStart: 'In public, Alice and Bob agree on the group {group} and on its element g = {g}. Each picks a secret number and tells no one: Alice picks a, Bob picks b.',
       dhStep2: { one: 'Alice computes A: {count} step of g from the identity lands on {A}.', other: 'Alice computes A: {count} steps of g from the identity land on {A}.' },
       dhStep3: { one: 'Bob computes B: {count} step of g from the identity lands on {B}.', other: 'Bob computes B: {count} steps of g from the identity land on {B}.' },
       dhStepBoth: 'At the same time, Alice and Bob compute their public numbers: Alice’s a steps of g from the identity land on A = {A}, Bob’s b steps on B = {B}.',
