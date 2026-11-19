@@ -13384,13 +13384,9 @@ function refitShownWheel(){
 // controls around it. It is drawn in the ring's own group, so it turns with the
 // beads, and each wedge follows its bead to a new place when they
 // rearrange. Only for ℤ/nℤ and its units, not a curve's points.
-var RING_WHEEL_KEY = 'cyclic-groups-ring-wheel';
-// A link's wheel=1 or wheel=0 says it for this load, ahead of storage.
-var ringWheelOn = (function(){
-  var w = new URLSearchParams(location.search).get('wheel');
-  if (w === '1' || w === '0') return w === '1';
-  try { return localStorage.getItem(RING_WHEEL_KEY) === '1'; } catch (e) { return false; }
-})();
+// It opens off unless a link's wheel=1 turns it on; the choice is not
+// remembered from one visit to the next.
+var ringWheelOn = new URLSearchParams(location.search).get('wheel') === '1';
 var ringWheelDepth = 6, ringWheelClip = null;
 // The cells the raw results reach, the walks' and the combination's, each
 // a ring of the wheel (q) over an element's wedge (el), whether drawn or
@@ -13499,7 +13495,6 @@ function setRingRawAll(on){
 }
 function toggleRingWheel(){
   ringWheelOn = !ringWheelOn;
-  try { localStorage.setItem(RING_WHEEL_KEY, ringWheelOn ? '1' : '0'); } catch (e) { /* storage unavailable */ }
   if (drawn){ redrawRing(); mirrorToUrl(drawn.G); }
 }
 // Keep the numbers readable at every turn: on, every turn of the ring draws
