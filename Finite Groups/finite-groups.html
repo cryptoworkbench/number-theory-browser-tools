@@ -13525,8 +13525,20 @@ function ringRawEase(moving){
   } finally { humpCoarse = 1; sharedStep = 2; }
   return true;
 }
+// The wheel turned on for the first time, with R never chosen in this
+// browser (nothing in storage; the address always carries R's state, so
+// it cannot tell), turns R on with it.
+function ringRawChosen(){
+  return Object.keys(RING_RAW).some(function(path){
+    try { return localStorage.getItem(RING_RAW[path].key) !== null; } catch (e) { return true; }
+  });
+}
 function toggleRingWheel(){
   ringWheelOn = !ringWheelOn;
+  if (ringWheelOn && !ringRawChosen()) Object.keys(RING_RAW).forEach(function(path){
+    ringRawOn[path] = true;
+    try { localStorage.setItem(RING_RAW[path].key, '1'); } catch (e) { /* storage unavailable */ }
+  });
   if (drawn){ redrawRing(); mirrorToUrl(drawn.G); }
 }
 // Keep the numbers readable at every turn: on, every turn of the ring draws
