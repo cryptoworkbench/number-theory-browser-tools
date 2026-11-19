@@ -6057,7 +6057,7 @@ function drawOuter(ring, walk, cls, scale, sense, place, box, beadR, m, width, r
 // back from the drawn paths, all straight-segment polylines; shared lines
 // coincide to the drawn precision, so the tolerance is tight and a stretch
 // must run SHARED_MIN px, which leaves out shallow crossings.
-var SHARED_EPS = 0.35, SHARED_MIN = 16, SHARED_CELL = 8;
+var SHARED_EPS = 0.35, SHARED_MIN = 16, SHARED_CELL = 8, sharedStep = 2;
 // The last result, by the lines it was worked out from: the same lines
 // (the ring redrawn for a new k, say) give the same shared runs again.
 var sharedKept = null;
@@ -6104,7 +6104,7 @@ function markSharedWalks(walksEl, width){
       return Math.hypot(p[0] - a[0] - u * dx, p[1] - a[1] - u * dy) <= SHARED_EPS;
     });
   };
-  // A forward line, filled in to points 2px apart, in runs on and off the
+  // A forward line, filled in to points sharedStep px apart, in runs on and off the
   // backward path; the runs on it long enough to be more than a crossing
   // or a shared foot are drawn.
   var shared = svgEl('g', { 'class': 'walk-shared', 'aria-hidden': 'true' });
@@ -6120,7 +6120,7 @@ function markSharedWalks(walksEl, width){
       runLen = 0;
     };
     for (var s = 0; s < l.pts.length; s++){
-      var a = l.pts[s], b = l.pts[s + 1] || a, n = Math.max(1, Math.ceil(Math.hypot(b[0] - a[0], b[1] - a[1]) / 2));
+      var a = l.pts[s], b = l.pts[s + 1] || a, n = Math.max(1, Math.ceil(Math.hypot(b[0] - a[0], b[1] - a[1]) / sharedStep));
       for (var t = 0; t < (s + 1 < l.pts.length ? n : 1); t++){
         var p = [a[0] + (b[0] - a[0]) * t / n, a[1] + (b[1] - a[1]) * t / n];
         if (last) along += Math.hypot(p[0] - last[0], p[1] - last[1]);
@@ -13481,17 +13481,49 @@ function setRingRawAll(on){
     ringRawOn[path] = on;
     try { localStorage.setItem(RING_RAW[path].key, on ? '1' : '0'); } catch (e) { /* storage unavailable */ }
   });
-  if (drawn){ redrawRing(); mirrorToUrl(drawn.G); }
-  // The ring redrawn each frame until every easing is over.
+  if (!drawn) return;
+  if (ringRawEasable()) syncRingSpinBtns(drawn.G);
+  else redrawRing();
+  mirrorToUrl(drawn.G);
+  // Redrawn each frame until every easing is over (ringRawEase), and the
+  // whole ring once after the last, to settle its reach.
   if (ringRawTicking) return;
   ringRawTicking = true;
   var tick = function(){
     var live = Object.keys(ringRawMorph).some(function(p){ ringRawMix(p); return !!ringRawMorph[p]; });
-    if (drawn) redrawRing();
-    if (live) requestAnimationFrame(tick);
-    else ringRawTicking = false;
+    if (!drawn){ ringRawTicking = false; return; }
+    if (live){
+      if (!ringRawEase(true)) redrawRing();
+      requestAnimationFrame(tick);
+      return;
+    }
+    ringRawTicking = false;
+    if (ringRawEase(false)) setTimeout(function(){ if (drawn && !ringRawTicking) redrawRing(); }, 0);
+    else redrawRing();
   };
   requestAnimationFrame(tick);
+}
+// One frame of the raw results easing out or in: only what eases is
+// redrawn, the paths (redrawWalks) and a combination shown on the ring
+// (patchRingCombo, as a slow step redraws it), coarsely while moving
+// (humpCoarse, sharedStep); false where the whole ring must be redrawn
+// instead.
+function ringRawEasable(){
+  var ring = ringDynamicEl.querySelector(':scope > .ring');
+  return ring && ring.redrawWalks && ring.walkPlaces && !arranging && !flipping && !coset && ringDrawn(drawn.G) ? ring : null;
+}
+function ringRawEase(moving){
+  var ring = ringRawEasable(), G = drawn.G;
+  if (!ring) return false;
+  var walks = moving ? ringRawMorph.el || ringRawMorph.inv : true;
+  var ab = comboLive(G) && combo.k === null && combo.b !== null, ak = comboLive(G) && combo.k !== null;
+  var patch = moving ? (ringRawMorph.ab && ab) || (ringRawMorph.ak && ak) : ab || ak;
+  if (moving){ humpCoarse = HUMP_COARSE; sharedStep = 6; }
+  try {
+    if (walks) ring.redrawWalks(ring.walkPlaces);
+    if (patch) patchRingCombo(ring, G, turned(arrangement(G)), ringBox());
+  } finally { humpCoarse = 1; sharedStep = 2; }
+  return true;
 }
 function toggleRingWheel(){
   ringWheelOn = !ringWheelOn;
